@@ -54,7 +54,7 @@ the development of the Worpit product is a fair request.
 
 = What is WorpDrive? =
 
-WorpDrive is a new, (far more clever approach to WordPress backup and restore)[http://worpdrive.com], 
+WorpDrive is a new, [far more clever approach to WordPress backup and restore](http://worpdrive.com), 
 and is a premium product available from with the Worpit control panel.
 
 It doesn't use FTP, Amazon S3, or any of the traditional painful approaches to website backup, 
