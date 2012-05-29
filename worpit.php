@@ -3,7 +3,7 @@
 Plugin Name: Worpit
 Plugin URI: http://worpit.com/
 Description: Worpit WordPress Plugin for Advanced WordPress Admin, Worpit.com
-Version: 
+Version: trunk
 Author: Worpit
 Author URI: http://worpit.com/
 */
