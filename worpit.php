@@ -33,7 +33,7 @@ class Worpit_Plugin {
 	public function __construct() {
 		
 		if ( is_admin() ) {
-			add_action( 'admin_init', array( &$this, 'printAdminNotices') );
+			add_action( 'admin_notices', array( &$this, 'printAdminNotices') );
 		}
 	}
 
