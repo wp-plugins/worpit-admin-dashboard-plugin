@@ -14,14 +14,17 @@ Stable tag: trunk
 
 Worpit lets you admin all your WordPress website from a single, fast, convenient dashboard.
 
+With Worpit you can:
+
+*	Monitor all your WordPress websites from a single Admin Dashboard
+*	One-click update a plugin, a theme or even the WordPress Core.
+*	Update all plugins, all themes, all WordPress cores across all sites, or just a selection at once.
+*	Install a brand new WordPress website automatically, anywhere you have cPanel web hosting
+*	Install the Worpit WordPress plugin from WordPress.org, or have Worpit do it for you automatically
+*	Log into your WordPress sites without remembering your WordPress login details.
+*	Worpit is new, but there's much more to come! And what's more, it's FREE!
+
 No more logging in to each individual website to perform the same, repetitive tasks.
-
-With Worpit, you can now:
-
-*	Update the WordPress Core in bulk across all your websites
-*	Update WordPress.org plugins in bulk across all your websites
-*	Update WordPress.org themes in bulk across all your websites
-*	Monitor the status of all plugins and themes in an easy to use dashboard.
 
 == Frequently Asked Questions ==
 
@@ -31,14 +34,35 @@ Yes. Currently if you manage up to 3 WordPress websites you can use Worpit compl
 
 = Is Worpit secure? =
 
-Yes. We take great care to ensure the integrity of the connection between Worpit and your website.
+Yes! We take great care to ensure the integrity of the connection between Worpit and your website.
 
 All sensitive data is encrypted on our system so it is never human-readable by anyone.
+
+See the next question for more in-depth explanation.
+
+= I want more to know more about Worpit plugin security? =
+
+We take security seriously at Worpit - prevention is far better than cure and we trust when you see what steps we
+take to ensure the integrity of your website you'll know we taking the biggest steps to secure your site.
+
+*	Each new plugin install creates a unique secure code that you must supply correctly to add the site to your Worpit account.
+*	When Worpit and your plugin are connected, Worpit creates a unique PIN code, encrypts with an MD5 hash and stores in
+on your site. ONLY attempts to connect to your plugin that supply this correct PIN code will ever be able succeed.
+*	We also take it a step FURTHER - each connection performs a unique hand-shake process (that you wont find in other similar products)
+between Worpit and your WordPress websites to ensure that no-one else, anywhere, can spoof your WordPress site. The plugin will **always**
+check to ensure that the connection has originated from worpit.com. If not, the connection is disregarded completely and immediately.
+
+= Will the Worpit plugin slow down my site? =
+
+Not a chance! We have the absolute SMALLEST plugin (compared to similar products of this type) around.
+
+We install only the absolute necessary code, and when you need more, Worpit's unique "Action Pack" delivery
+system sends just what your site needs.
 
 = How does Worpit work? =
 
 With the plugin installed and the connection setup to your own Worpit account, the Worpit system
-will periodically ask your WordPress website for some information.  Currently we monitor:
+will periodically ask your WordPress website for some information.  Currently we check:
 
 *	WordPress Core update status
 *	WordPress.org Plugins update status
@@ -46,6 +70,8 @@ will periodically ask your WordPress website for some information.  Currently we
 *	Other server environment information that helps us to determine compatibility with the Worpit system.
 This includes things like PHP version, HTTP server type and version. You can review all this captured
 information from within Worpit and is useful as a handy reference.
+
+We then take this information and display it to you on the Worpit dashboard - then it's over to you and what you want to do with it.
 
 = If Worpit is free why is there a payment option? =
 
