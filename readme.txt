@@ -8,7 +8,7 @@ Stable tag: trunk
 
 == Description ==
 
-[Worpit: All-New WordPress Administration Dashboard](http://worpit.com/?wordpressplugin)
+[Worpit: All-New WordPress Administration Dashboard](http://worpit.com/?src=wordpressplugin)
 
 **Worpit is not yet released. The product is still under active development - there is nothing to install yet!** 
 
