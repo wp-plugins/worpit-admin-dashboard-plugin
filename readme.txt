@@ -4,7 +4,7 @@ Donate link: http://worpit.com/
 Tags: worpit, wordpress admin, backup, restore, bulk
 Requires at least: 3.2.0
 Tested up to: 3.4
-Stable tag: trunk
+Stable tag: 1.0
 
 == Description ==
 
@@ -31,6 +31,8 @@ No more logging in to each individual website to perform the same, repetitive ta
 = Is Worpit Free? =
 
 Yes. Currently if you manage up to 3 WordPress websites you can use Worpit completely free.
+
+[You can sign up free here](http://worpitapp.com/?src=wordpressplugin)
 
 = Is Worpit secure? =
 
@@ -92,6 +94,26 @@ WorpDrive is an ALL-IN-ONE backup and restore system for your WordPress website 
 
 No. WorpDrive is available for a small monthly fee.
 
+== Screenshots ==
+
+1. At-a-Glance Summary making it easy to spot needed updates and other important actions.
+
+2. Worpit keeps a log of all your actions so you can track what has been done, and what is pending.
+
+3. You can update individual plugins, themes and the WordPress core, with convenient access to review changelogs.
+
+4. Jump-list menus give you access to most common actions without changing your Worpit context.
+
+5. Worpit provides 4 ways to install the plugin making it easy to get started.
+
 == Changelog ==
 
+= 1.0 =
+
+* Worpit Dashboard Admin Initial Release.
+
 == Upgrade Notice ==
+
+= 1.0 =
+
+* Worpit Dashboard Admin Initial Release.

@@ -1,0 +1,19 @@
+@CHARSET "ISO-8859-1";
+
+#worpit-icon {
+	background: url("../images/worpit_32x32.png") no-repeat 0px 3px transparent;
+}
+
+.wrap .icon32 {
+	width: 32px;
+}
+
+.assigned-state {
+	margin-top: 15px;	
+}
+
+.bootstrap-wpadmin .page-header {
+	padding-bottom: 17px;
+	margin: 18px 0;
+	border-bottom: 1px solid #EEE;
+}
