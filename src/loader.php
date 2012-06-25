@@ -7,6 +7,9 @@ if ( !defined( 'DS' ) ) {
 define( 'LOADER_PATH',	dirname(__FILE__) );
 define( 'VIEWS_PATH',	dirname(__FILE__).'/../views' );
 
+ini_set( 'log_errors', 1 );
+ini_set( 'display_errors', 0 );
+
 /**
  * Convert to Linux Path
  *
@@ -46,7 +49,7 @@ function worpitClassAutoLoader( $insClass ) {
 
 	if ( count( $aNamespace ) > 1 && $aNamespace[0] == 'src' ) {
 		$sFile = LOADER_PATH;
-		array_shift( &$aNamespace );
+		array_shift( $aNamespace );
 
 		foreach ( $aNamespace as $sPath ) {
 			$sFile .= DS.strtolower( $sPath );
@@ -89,22 +92,38 @@ function worpitAuthenticate( $inaData ) {
 	return true;
 }
 
+function worpitValidateSystem() {
+	/*
+	if ( !function_exists( 'exec' ) ) {
+		die( '-5:NoExec' );
+	}
+	
+	if ( ini_get( 'safe_mode' ) ) {
+		die( '-4:SafeModeEnabled' );
+	}
+	*/
+	
+	if ( function_exists( 'is_multisite' ) && is_multisite() ) {
+		die( '-3:Multisite' );
+	}
+}
+
 function worpitVerifyPackageRequest( $inaData ) {
 	// TODO: Use cURL if available or openSSL if available.
 	
-	$sContents = @file_get_contents(
-		sprintf( 'http://worpitapp.com/dashboard/system/verification/check/%s/%s/%s',
-			$inaData['verification_code'], $inaData['package_name'], $inaData['pin']
-		)
+	$sUrl = sprintf( 'http://worpitapp.com/dashboard/system/verification/check/%s/%s/%s',
+		$inaData['verification_code'], $inaData['package_name'], $inaData['pin']
 	);
 	
+	$sContents = @file_get_contents( $sUrl );
+	
 	if ( empty( $sContents ) || $sContents === false ) {
-		die( '-9996:VerfifyCallFailed:'.$sContents );
+		die( '-9996:VerifyCallFailed: '.$sUrl.' : '.$sContents );
 	}
 	
 	$oJson = json_decode( $sContents );
 	if ( !isset( $oJson->success ) || $oJson->success !== true ) {
-		die( '-9995:VerfifyInvalid:'.$sContents );
+		die( '-9995:VerifyInvalid: '.$sUrl.' : '.$sContents );
 	}
 	
 	return true;

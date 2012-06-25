@@ -6,11 +6,38 @@ class Controllers_Transport extends Controllers_Base {
 
 	}
 	
-	public function execute() {
+	/**
+	 * As a means of debugging and helping Worpit function across many more environments
+	 * we may from time to time do a query on the following information.
+	 *
+	 * This functionality is protected by our authentication and handshaking system.
+	 * No other domain than worpitapp.com can make such requests
+	 */
+	public function query() {
 		worpitAuthenticate( $_REQUEST );
 		
 		worpitVerifyPackageRequest( $_REQUEST );
 		
+		$aData = array(
+			'_SERVER'				=> $_SERVER,
+			'_ENV'					=> $_ENV,
+			'ini_get_all'			=> ini_get_all(),
+			'extensions_loaded'		=> get_loaded_extensions(),
+			'php_version'			=> phpversion(),
+			'has_exec'				=> function_exists( 'exec' )? 1: 0
+		);
+		
+		$this->success( $aData );
+	}
+	
+	/**
+	 * Core package execution.
+	 */
+	public function execute() {
+		worpitAuthenticate( $_REQUEST );
+		
+		worpitVerifyPackageRequest( $_REQUEST );
+
 		$sTempDir = createTempDir( dirname(__FILE__), 'pkg_' );
 	
 		if ( $sTempDir === false ) {
@@ -21,7 +48,7 @@ class Controllers_Transport extends Controllers_Base {
 		foreach ( $_FILES as $sKey => $aUpload ) {
 			if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
 				move_uploaded_file( $aUpload['tmp_name'], $sTempDir.'/'.$aUpload['name'] );
-				chmod( $sTempDir.'/'.$aUpload['name'], 0777 );
+				chmod( $sTempDir.'/'.$aUpload['name'], 0755 );
 			}
 		}
 
@@ -39,8 +66,12 @@ class Controllers_Transport extends Controllers_Base {
 		}
 
 		if ( !file_put_contents( $sTempDir.'/request_data.php', $sWritableRequestData."\n" ) ) {
-			$nVal = removeTempDir( $sTempDir, &$this->m_aOutput );
+			$nVal = removeTempDir( $sTempDir, &$aRemoveOutput );
+			$this->logMerge( $aRemoveOutput );
 			$this->fail( 'Failed to create dynamic request data config file.' );
+		}
+		else {
+			chmod( $sTempDir.'/request_data.php', 0755 );
 		}
 
 		// this is one way, if it fails we may need to do a web call!
@@ -51,20 +82,51 @@ class Controllers_Transport extends Controllers_Base {
 		else {
 			$sCmd = 'php-cli --no-header --no-chdir '.$sTempDir.DS.'installer.php';
 		}
-
-		$aOutput = array();
-		exec( $sCmd, &$aInstallerOutput, &$nReturn );
-		$sInstallerResponse = trim( implode( '', $aInstallerOutput ) );
-		$aInstallerResponse = json_decode( $sInstallerResponse, true );
-		/**
-		 * Keep the internal output array up.
-		 */
-		$this->m_aOutput = array_merge( $this->m_aOutput, $aInstallerOutput );
 		
-		$nVal = removeTempDir( $sTempDir, &$this->m_aOutput );
+		$fHasExec = function_exists( 'exec' );
+		$fTriedExec = false;
+		$nReturn = null;
+		$sInstallerResponse = null;
+		
+		if ( $fHasExec && !defined( 'REQUEST_USE_ALTERNATIVE' ) ) {
+			exec( $sCmd, &$aInstallerOutput, &$nReturn );
+			$this->m_aOutput = array_merge( $this->m_aOutput, $aInstallerOutput );
+			
+			$sInstallerResponse = trim( implode( '', $aInstallerOutput ) );
+			$aInstallerResponse = @json_decode( $sInstallerResponse, true );
+			
+			$fTriedExec = true;
+		}
+		
+		if ( ( $fTriedExec && $nReturn !== 0 ) || !$fHasExec || defined( 'REQUEST_USE_ALTERNATIVE' ) ) {
+			// @see http://codex.wordpress.org/Function_Reference/plugins_url
+			//$sInstallerUrl = OPTION_PLUGIN_URL;
+			
+			$sInstallerUrl = plugins_url( 'controllers/' , dirname(__FILE__) );
+			$sInstallerUrl = str_replace( 'https://', 'http://', $sInstallerUrl );
+			
+			$aTempParts = explode( 'src/controllers/', $sTempDir, 2 );
+			if ( count( $aTempParts ) < 2 ) {
+				$this->log( $sInstallerResponse );
+				$this->logMerge( array( $sInstallerResponse, $nReturn, $sTempDir, $sInstallerUrl ) );
+				$this->fail( 'Failed to construct installer request url from sTempDir ('.$sTempDir.')', $nReturn );
+			}
+			
+			$sInstallerUrl .= $aTempParts[1].'/installer.php';
+			
+			$sInstallerResponse = @file_get_contents( $sInstallerUrl );
+			$aInstallerResponse = @json_decode( $sInstallerResponse, true );
+			
+			$this->log( $sInstallerResponse );
+			$nReturn = 0;
+		}
+		
+		$aRemoveOutput = array();
+		$nVal = removeTempDir( $sTempDir, &$aRemoveOutput );
+		$this->logMerge( $aRemoveOutput );
 		
 		if ( $nReturn !== 0 || $aInstallerResponse['success'] !== true ) {
-			$this->fail( 'Failed to execute target.' );
+			$this->fail( 'Failed to execute target: '.$aInstallerResponse['success'], $nReturn );
 		}
 
 		$aData = isset( $aInstallerResponse['data'] )? $aInstallerResponse['data']: array();
@@ -72,6 +134,10 @@ class Controllers_Transport extends Controllers_Base {
 		$this->success( $aData );
 	}
 	
+	/**
+	 * Worpit's autologin secure implementation using temporary tokens only configurable by the
+	 * Worpit package delivery system.
+	 */
 	public function login() {
 		global $wp_version;
 		

@@ -2,9 +2,7 @@
 
 require_once( dirname(__FILE__).'/src/loader.php' );
 
-if ( function_exists( 'is_multisite' ) && is_multisite() ) {
-	die( '-3:Multisite' );
-}
+worpitValidateSystem();
 
 $sKey = get_option( Worpit_Plugin::$VariablePrefix.'key' );
 $sPin = get_option( Worpit_Plugin::$VariablePrefix.'pin' );

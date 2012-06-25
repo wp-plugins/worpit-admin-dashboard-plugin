@@ -9,24 +9,36 @@ class Controllers_Base {
 	}
 	
 	public function __destruct() {
-		$sFile = dirname(__FILE__).'/../../logs/output.txt.php';
+		$sFile = dirname(__FILE__).'/../../logs/output.'.time().'.php';
 		if ( !is_dir( dirname( $sFile ) ) && @mkdir( dirname( $sFile ), 0755, true ) ) {
 			
 		}
 		@file_put_contents( $sFile, implode( "\n", $this->m_aOutput ) );
 	}
 
-	protected function success( $aData = array(), $sMessage = '' ) {
+	/**
+	 * @param array $inaData
+	 * @param string $insMessage
+	 *
+	 * @uses exit
+	 */
+	protected function success( $inaData = array(), $insMessage = '' ) {
 		$aResponse = array(
 			'success'	=> true,
 			'message'	=> $insMessage,
-			'data'		=> $aData
+			'data'		=> $inaData
 		);
 		echo json_encode( $aResponse );
 		
 		exit( 0 );
 	}
 	
+	/**
+	 * @param string $insMessage
+	 * @param integer $innErrno
+	 *
+	 * @uses exit
+	 */
 	protected function fail( $insMessage, $innErrno = -1 ) {
 		$aResponse = array(
 			'success'	=> false,
@@ -39,8 +51,21 @@ class Controllers_Base {
 		exit( $innErrno );
 	}
 	
-	protected function log( $insMessage ) {
-		return array_push( $this->m_aOutput, $insMessage );
+	/**
+	 * @param mixed $inmMessage
+	 * @return array
+	 */
+	protected function log( $inmMessage ) {
+		return array_push( $this->m_aOutput, $inmMessage );
+	}
+	
+	/**
+	 * @param array $inaArray
+	 * @return array
+	 */
+	protected function logMerge( $inaArray ) {
+		$this->m_aOutput = array_merge( $this->m_aOutput, $inaArray );
+		return $this->m_aOutput;
 	}
 	
 	/**
@@ -77,6 +102,7 @@ class Controllers_Base {
 			'document_root'			=> $_SERVER['DOCUMENT_ROOT'],
 
 			'abspath'				=> clp( ABSPATH ),
+			'includes_dir'			=> clp( ABSPATH . WPINC ),
 
 			'content_dir'			=> clp( WP_CONTENT_DIR ),
 			'plugin_dir'			=> clp( WP_PLUGIN_DIR ),

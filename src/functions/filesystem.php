@@ -29,7 +29,7 @@ function createTempDir( $insBaseDir = null, $insPrefix = '' ) {
  * @param string $outsOutput
  * @return unknown
  */
-function removeTempDir( $insDir, $outsOutput = array() ) {
+function removeTempDir( $insDir, &$outsOutput = array() ) {
 	if ( stristr( PHP_OS, 'WIN' ) ) {
 		exec( 'rmdir '.$insDir.' /s /q', $outsOutput, $nReturnVal );
 	}
