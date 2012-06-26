@@ -68,26 +68,27 @@ function worpitClassAutoLoader( $insClass ) {
 }
 
 function worpitAuthenticate( $inaData ) {
-	$fAssigned = (get_option( Worpit_Plugin::$VariablePrefix.'assigned' ) === 'Y');
+	$sOption = get_option( Worpit_Plugin::$VariablePrefix.'assigned' );
+	$fAssigned = ($sOption == 'Y');
 	if ( !$fAssigned ) {
-		die( '-9999:Assigned' );
+		die( '-9999:NotAssigned:'.$sOption );
 	}
 
 	$sKey = get_option( Worpit_Plugin::$VariablePrefix.'key' );
-	if ( $sKey !== $inaData['key'] ) {
-		die( '-9998:Key' );
+	if ( $sKey != trim( $inaData['key'] ) ) {
+		die( '-9998:InvalidKey:'.$inaData['key'].':'.$sKey );
 	}
 
 	$sPin = get_option( Worpit_Plugin::$VariablePrefix.'pin' );
-	if ( $sPin !== md5( $inaData['pin'] ) ) {
-		die( '-9997:Pin' );
+	if ( $sPin !== md5( trim( $inaData['pin'] ) ) ) {
+		die( '-9997:InvalidPin:'.$inaData['pin'].':'.$sPin );
 	}
 
 	if ( isset( $inaData['timeout'] ) ) {
-		set_time_limit( intval( $inaData['timeout'] ) );
+		@set_time_limit( intval( $inaData['timeout'] ) );
 	}
 	else {
-		set_time_limit( 60 );
+		@set_time_limit( 60 );
 	}
 	return true;
 }
@@ -128,6 +129,20 @@ function worpitVerifyPackageRequest( $inaData ) {
 	
 	return true;
 }
+
+function worpitFunctionExists( $insFunc ) {
+	if ( extension_loaded( 'suhosin' ) ) {
+		$sBlackList = @ini_get( "suhosin.executor.func.blacklist" );
+		if ( !empty( $sBlackList ) ) {
+			$aBlackList = explode( ',', $sBlackList );
+			$aBlackList = array_map( 'trim', $aBlackList );
+			$aBlackList = array_map( 'strtolower', $aBlackList );
+			return ( function_exists( $insFunc ) == true && array_search( $insFunc, $aBlackList ) === false );
+		}
+	}
+	return function_exists( $insFunc );
+}
+
 
 require_once( worpitFindWpLoad() );
 
