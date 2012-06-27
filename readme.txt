@@ -4,7 +4,7 @@ Donate link: http://worpit.com/
 Tags: worpit, wordpress admin, backup, restore, bulk
 Requires at least: 3.2.0
 Tested up to: 3.4
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 
 == Description ==
 
@@ -106,6 +106,10 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= 1.0.4 =
+
+* IMPROVED: How the plugin loads and connects with the WordPress environment. This is a critical update.
+
 = 1.0.3 =
 
 * IMPROVED: data handling within the plugin to reduce errors with JSON. This is a critical update.
@@ -123,6 +127,10 @@ No. WorpDrive is available for a small monthly fee.
 * Worpit Dashboard Admin Initial Release.
 
 == Upgrade Notice ==
+
+= 1.0.4 =
+
+* IMPROVED: How the plugin loads and connects with the WordPress environment. This is a critical update.
 
 = 1.0.3 =
 

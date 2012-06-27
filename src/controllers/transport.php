@@ -14,9 +14,9 @@ class Controllers_Transport extends Controllers_Base {
 	 * No other domain than worpitapp.com can make such requests
 	 */
 	public function query() {
-		worpitAuthenticate( $_REQUEST );
+		worpitAuthenticate( $_POST );
 		
-		worpitVerifyPackageRequest( $_REQUEST );
+		//worpitVerifyPackageRequest( $_POST );
 		
 		$aData = array(
 			'_SERVER'				=> $_SERVER,
@@ -34,9 +34,9 @@ class Controllers_Transport extends Controllers_Base {
 	 * Core package execution.
 	 */
 	public function execute() {
-		worpitAuthenticate( $_REQUEST );
+		worpitAuthenticate( $_POST );
 		
-		worpitVerifyPackageRequest( $_REQUEST );
+		//worpitVerifyPackageRequest( $_POST );
 
 		$sTempDir = createTempDir( dirname(__FILE__), 'pkg_' );
 	
@@ -48,17 +48,22 @@ class Controllers_Transport extends Controllers_Base {
 		foreach ( $_FILES as $sKey => $aUpload ) {
 			if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
 				move_uploaded_file( $aUpload['tmp_name'], $sTempDir.'/'.$aUpload['name'] );
-				chmod( $sTempDir.'/'.$aUpload['name'], 0755 );
+				chmod( $sTempDir.'/'.$aUpload['name'], 0644 );
 			}
 		}
 		
 		/**
-		 *
+		 * @since 1.0.3
 		 */
-		$_REQUEST['use_serialize'] = '1';
+		$_POST['use_serialize'] = '1';
+		
+		/**
+		 * @since 1.0.4
+		 */
+		$_POST['prevent_auto_run'] = '1';
 
 		$sWritableRequestData = "<?php \n";
-		foreach ( $_REQUEST as $sKey => $sValue ) {
+		foreach ( $_POST as $sKey => $sValue ) {
 			if ( in_array( $sKey, array( 'key', 'pin', 'action' ) ) ) {
 				continue;
 			}
@@ -76,66 +81,24 @@ class Controllers_Transport extends Controllers_Base {
 			$this->fail( 'Failed to create dynamic request data config file.' );
 		}
 		else {
-			chmod( $sTempDir.'/request_data.php', 0755 );
+			chmod( $sTempDir.'/request_data.php', 0644 );
 		}
+		
+		include_once( $sTempDir.DS.'installer.php' );
+		$oInstall = new Installer();
+		$aInstallerResponse = $oInstall->run();
+		
+		$this->log( $aInstallerResponse );
 
-		// this is one way, if it fails we may need to do a web call!
-		if ( strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' ) {
-			//$sCmd = 'D:/Applications/xampp_1.7.3/php/php.exe --no-header --no-chdir '.$sTempDir.DS.'installer.php';
-			$sCmd = 'php.exe --no-header --no-chdir '.$sTempDir.DS.'installer.php';
-		}
-		else {
-			$sCmd = 'php-cli --no-header --no-chdir '.$sTempDir.DS.'installer.php';
-		}
-		
-		$fHasExec = function_exists( 'exec' );
-		$fTriedExec = false;
-		$nReturn = null;
-		$sInstallerResponse = null;
-		
-		if ( $fHasExec && !defined( 'REQUEST_USE_ALTERNATIVE' ) ) {
-			exec( $sCmd, &$aInstallerOutput, &$nReturn );
-			$this->m_aOutput = array_merge( $this->m_aOutput, $aInstallerOutput );
-			
-			$sInstallerResponse = trim( implode( '', $aInstallerOutput ) );
-			$aInstallerResponse = unserialize( $sInstallerResponse );
-			
-			$fTriedExec = true;
-		}
-		
-		if ( ( $fTriedExec && $nReturn !== 0 ) || !$fHasExec || defined( 'REQUEST_USE_ALTERNATIVE' ) ) {
-			// @see http://codex.wordpress.org/Function_Reference/plugins_url
-			//$sInstallerUrl = OPTION_PLUGIN_URL;
-			
-			$sInstallerUrl = plugins_url( 'controllers/' , dirname(__FILE__) );
-			$sInstallerUrl = str_replace( 'https://', 'http://', $sInstallerUrl );
-			
-			$aTempParts = explode( 'src/controllers/', $sTempDir, 2 );
-			if ( count( $aTempParts ) < 2 ) {
-				$this->log( $sInstallerResponse );
-				$this->logMerge( array( $sInstallerResponse, $nReturn, $sTempDir, $sInstallerUrl ) );
-				$this->fail( 'Failed to construct installer request url from sTempDir ('.$sTempDir.')', $nReturn );
-			}
-			
-			$sInstallerUrl .= $aTempParts[1].'/installer.php';
-			
-			$sInstallerResponse = @file_get_contents( $sInstallerUrl );
-			$aInstallerResponse = unserialize( $sInstallerResponse );
-			
-			$this->log( $sInstallerResponse );
-			$nReturn = 0;
-		}
-		
 		$aRemoveOutput = array();
 		$nVal = removeTempDir( $sTempDir, &$aRemoveOutput );
 		$this->logMerge( $aRemoveOutput );
 		
-		if ( $nReturn !== 0 || $aInstallerResponse['success'] != true ) {
-			$this->fail( 'Failed to execute target: '.($aInstallerResponse['success']? 1: 0), $nReturn );
+		if ( $aInstallerResponse['success'] != true ) {
+			$this->fail( 'Failed to execute target: '.($aInstallerResponse['success']? 1: 0) );
 		}
 
 		$aData = isset( $aInstallerResponse['data'] )? $aInstallerResponse['data']: '';
-		//$aData['output'] = isset( $aInstallerResponse['output'] )? $aInstallerResponse['output']: array();
 		$this->success( $aData );
 	}
 	
@@ -148,16 +111,16 @@ class Controllers_Transport extends Controllers_Base {
 		
 		$oWpHelper = new Helper_WordPress();
 
-		if ( !isset( $_REQUEST['token'] ) ) {
+		if ( !isset( $_POST['token'] ) ) {
 			//header( "Location: $location", true, $status);
 			die( 'error' );
 		}
 		
-		if ( $_REQUEST['token'] != $oWpHelper->getTransient( 'worpit_login_token' ) ) {
+		if ( $_POST['token'] != $oWpHelper->getTransient( 'worpit_login_token' ) ) {
 			die( 'error: invalid token' );
 		}
 		
-		if ( version_compare( $wp_version, '3.1', '>=' ) && !isset( $_REQUEST['username'] ) ) {
+		if ( version_compare( $wp_version, '3.1', '>=' ) && !isset( $_POST['username'] ) ) {
 			$aUserRecords = get_users( 'role=administrator' );
 			if ( count( $aUserRecords ) == 0 ) {
 				$this->fail( 'Failed to find an administrator' );
@@ -173,11 +136,11 @@ class Controllers_Transport extends Controllers_Base {
 		}
 		else {
 			if ( version_compare( $wp_version, '3.2.2', '<=' ) ) {
-				$oUser = get_userdatabylogin( $_REQUEST['username'] );
+				$oUser = get_userdatabylogin( $_POST['username'] );
 			}
 			else {
 				//get_userdata
-				$oUser = get_user_by( 'login', $_REQUEST['username'] );
+				$oUser = get_user_by( 'login', $_POST['username'] );
 			}
 		}
 				

@@ -2,8 +2,6 @@
 
 require_once( dirname(__FILE__).'/src/loader.php' );
 
-worpitValidateSystem();
-
 /**
  * Alot of this may seem overkill. But we don't want to link a site until we've verified all the data
  * is correct as it is intended to be
@@ -13,9 +11,9 @@ $sPin = trim( get_option( Worpit_Plugin::$VariablePrefix.'pin' ) );
 $sAssigned = get_option( Worpit_Plugin::$VariablePrefix.'assigned' );
 $fAssigned = ($sAssigned == 'Y');
 
-$sRequestedKey = trim( $_REQUEST['key'] );
-$sRequestedPin = md5( trim( $_REQUEST['pin'] ) );
-$sRequestedAcc = trim( $_REQUEST['accname'] );
+$sRequestedKey = trim( $_GET['key'] );
+$sRequestedPin = md5( trim( $_GET['pin'] ) );
+$sRequestedAcc = trim( $_GET['accname'] );
 
 if ( $sRequestedKey == $sKey && !$fAssigned ) {
 	if ( !update_option( Worpit_Plugin::$VariablePrefix.'pin', $sRequestedPin ) ) {
@@ -57,5 +55,5 @@ else if ( $fAssigned ) {
 	die( '-1:AlreadyAssigned:'.$sAssigned );
 }
 else {
-	die( '-2:KeyMismatch:'.$sKey.':'.$sRequestedKey );
+	die( '-2:KeyMismatch:'.$sRequestedKey );
 }

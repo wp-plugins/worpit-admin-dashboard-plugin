@@ -10,6 +10,8 @@ define( 'VIEWS_PATH',	dirname(__FILE__).'/../views' );
 ini_set( 'log_errors', 1 );
 ini_set( 'display_errors', 0 );
 
+error_reporting( E_ALL );
+
 /**
  * Convert to Linux Path
  *
@@ -57,7 +59,7 @@ function worpitClassAutoLoader( $insClass ) {
 		$sFile .= '.php';
 
 		if ( !is_file( $sFile ) ) {
-			trigger_error( "Class ".$insClass." not found in src", E_USER_ERROR );
+			return false;
 		}
 
 		@include_once( $sFile );
@@ -104,6 +106,10 @@ function worpitValidateSystem() {
 	}
 	*/
 	
+	if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
+		die( '-4:InvalidPhpVersion' );
+	}
+	
 	if ( function_exists( 'is_multisite' ) && is_multisite() ) {
 		die( '-3:Multisite' );
 	}
@@ -143,13 +149,21 @@ function worpitFunctionExists( $insFunc ) {
 	return function_exists( $insFunc );
 }
 
+worpitValidateSystem();
 
 require_once( worpitFindWpLoad() );
 
 /**
- * Setup some autoloading magic
+ * Setup some autoloading magic; PHP => 5.1.2
  */
-spl_autoload_register( 'worpitClassAutoLoader' );
+if ( function_exists( 'worpitClassAutoLoader' ) ) {
+	spl_autoload_register( 'worpitClassAutoLoader' );
+}
+else {
+	require_once( dirname(__FILE__).'/controllers/base.php' );
+	require_once( dirname(__FILE__).'/controllers/transport.php' );
+	require_once( dirname(__FILE__).'/helper/wordpress.php' );
+}
 
 // TODO: setup some error handling and general logging.
 
@@ -163,8 +177,8 @@ require_once( dirname(__FILE__).'/functions/svn.php' );
 require_once( dirname(__FILE__).'/functions/JSON.php' );
 
 $sMethod = 'index';
-if ( isset( $_REQUEST['m'] ) && preg_match( '/[A-Z0-9_]+/i', $_REQUEST['m'] ) ) {
-	$sMethod = $_REQUEST['m'];
+if ( isset( $_GET['m'] ) && preg_match( '/[A-Z0-9_]+/i', $_GET['m'] ) ) {
+	$sMethod = $_GET['m'];
 }
 
 if ( !function_exists( 'json_encode' ) ) {
