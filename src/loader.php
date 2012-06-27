@@ -160,8 +160,23 @@ spl_autoload_register( 'worpitClassAutoLoader' );
 require_once( dirname(__FILE__).'/plugin/base.php' );
 require_once( dirname(__FILE__).'/functions/filesystem.php' );
 require_once( dirname(__FILE__).'/functions/svn.php' );
+require_once( dirname(__FILE__).'/functions/JSON.php' );
 
 $sMethod = 'index';
 if ( isset( $_REQUEST['m'] ) && preg_match( '/[A-Z0-9_]+/i', $_REQUEST['m'] ) ) {
 	$sMethod = $_REQUEST['m'];
+}
+
+if ( !function_exists( 'json_encode' ) ) {
+	function json_encode( $inmData ) {
+		$oJson = new JSON();
+		return $oJson->serialize( $inmData );
+	}
+}
+
+if ( !function_exists( 'json_decode' ) ) {
+	function json_decode( $insData ) {
+		$oJson = new JSON();
+		return $oJson->unserialize( $insData );
+	}
 }

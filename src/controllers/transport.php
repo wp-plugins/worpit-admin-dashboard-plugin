@@ -51,6 +51,11 @@ class Controllers_Transport extends Controllers_Base {
 				chmod( $sTempDir.'/'.$aUpload['name'], 0755 );
 			}
 		}
+		
+		/**
+		 *
+		 */
+		$_REQUEST['use_serialize'] = '1';
 
 		$sWritableRequestData = "<?php \n";
 		foreach ( $_REQUEST as $sKey => $sValue ) {
@@ -93,7 +98,7 @@ class Controllers_Transport extends Controllers_Base {
 			$this->m_aOutput = array_merge( $this->m_aOutput, $aInstallerOutput );
 			
 			$sInstallerResponse = trim( implode( '', $aInstallerOutput ) );
-			$aInstallerResponse = @json_decode( $sInstallerResponse, true );
+			$aInstallerResponse = unserialize( $sInstallerResponse );
 			
 			$fTriedExec = true;
 		}
@@ -115,7 +120,7 @@ class Controllers_Transport extends Controllers_Base {
 			$sInstallerUrl .= $aTempParts[1].'/installer.php';
 			
 			$sInstallerResponse = @file_get_contents( $sInstallerUrl );
-			$aInstallerResponse = @json_decode( $sInstallerResponse, true );
+			$aInstallerResponse = unserialize( $sInstallerResponse );
 			
 			$this->log( $sInstallerResponse );
 			$nReturn = 0;
@@ -125,12 +130,12 @@ class Controllers_Transport extends Controllers_Base {
 		$nVal = removeTempDir( $sTempDir, &$aRemoveOutput );
 		$this->logMerge( $aRemoveOutput );
 		
-		if ( $nReturn !== 0 || $aInstallerResponse['success'] !== true ) {
-			$this->fail( 'Failed to execute target: '.$aInstallerResponse['success'], $nReturn );
+		if ( $nReturn !== 0 || $aInstallerResponse['success'] != true ) {
+			$this->fail( 'Failed to execute target: '.($aInstallerResponse['success']? 1: 0), $nReturn );
 		}
 
-		$aData = isset( $aInstallerResponse['data'] )? $aInstallerResponse['data']: array();
-		$aData['output'] = isset( $aInstallerResponse['output'] )? $aInstallerResponse['output']: array();
+		$aData = isset( $aInstallerResponse['data'] )? $aInstallerResponse['data']: '';
+		//$aData['output'] = isset( $aInstallerResponse['output'] )? $aInstallerResponse['output']: array();
 		$this->success( $aData );
 	}
 	

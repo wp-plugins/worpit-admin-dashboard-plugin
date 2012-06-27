@@ -22,13 +22,14 @@ class Controllers_Base {
 	 *
 	 * @uses exit
 	 */
-	protected function success( $inaData = array(), $insMessage = '' ) {
+	protected function success( $insBase64Data = '', $insMessage = '' ) {
 		$aResponse = array(
 			'success'	=> true,
 			'message'	=> $insMessage,
-			'data'		=> $inaData
+			'data'		=> $insBase64Data,
+			'base64response'	=> 1
 		);
-		echo json_encode( $aResponse );
+		echo serialize( $aResponse );
 		
 		exit( 0 );
 	}
@@ -44,9 +45,10 @@ class Controllers_Base {
 			'success'	=> false,
 			'error'		=> $insMessage,
 			'errno'		=> $innErrno,
-			'output'	=> $this->m_aOutput
+			'output'	=> $this->m_aOutput,
+			'base64response'	=> 1
 		);
-		echo json_encode( $aResponse );
+		echo serialize( $aResponse );
 		
 		exit( $innErrno );
 	}

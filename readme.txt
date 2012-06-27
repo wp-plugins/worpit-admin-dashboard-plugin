@@ -4,13 +4,11 @@ Donate link: http://worpit.com/
 Tags: worpit, wordpress admin, backup, restore, bulk
 Requires at least: 3.2.0
 Tested up to: 3.4
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 
 == Description ==
 
 [Worpit: All-New WordPress Administration Dashboard](http://worpit.com/?src=wordpressplugin)
-
-**Worpit is not yet released. The product is still under active development - there is nothing to install yet!** 
 
 Worpit lets you admin all your WordPress website from a single, fast, convenient dashboard.
 
@@ -108,6 +106,10 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= 1.0.3 =
+
+* IMPROVED: data handling within the plugin to reduce errors with JSON. This is a critical update.
+
 = 1.0.2 =
 
 * Added enhanced logging of errors when an attempt is made to link a site to Worpit.
@@ -121,6 +123,10 @@ No. WorpDrive is available for a small monthly fee.
 * Worpit Dashboard Admin Initial Release.
 
 == Upgrade Notice ==
+
+= 1.0.3 =
+
+* IMPROVED: data handling within the plugin to reduce errors with JSON. This is a critical update.
 
 = 1.0.2 =
 
