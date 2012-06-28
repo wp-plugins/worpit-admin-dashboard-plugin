@@ -4,7 +4,7 @@
 Plugin Name: Worpit Admin Dashboard
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.0.4
+Version: 1.0.5
 Author: Worpit
 Author URI: http://worpit.com/
 */
@@ -44,7 +44,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	public function __construct() {
 		parent::__construct();
 		
-		self::$VERSION			= '1.0.4';
+		self::$VERSION			= '1.0.5';
 		
 		self::$PluginName		= basename(__FILE__);
 		self::$PluginPath		= plugin_basename( dirname(__FILE__) );
@@ -71,9 +71,21 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		
 		check_admin_referer( self::$ParentMenuId );
 		
-		//Someone clicked the button to acknowledge the update
+		//Someone clicked the button to acknowledge the installation of the plugin
 		if ( isset( $_POST['worpit_user_id'] ) && isset( $_POST['worpit_ack_plugin_notice'] ) ) {
 			$result = update_user_meta( $_POST['worpit_user_id'], self::$VariablePrefix.'ack_plugin_notice', 'Y' );
+			header( "Location: admin.php?page=".self::$ParentMenuId );
+			return;
+		}
+		
+		//Someone clicked the button to enable/disable hand-shaking
+		if ( isset( $_POST['worpit_admin_form_submit_handshake'] ) ) {
+			
+			if ( isset( $_POST['worpit_admin_handshake_enabled'] ) ) {
+				update_option( self::$VariablePrefix.'handshake_enabled',	'Y' );
+			} else {
+				update_option( self::$VariablePrefix.'handshake_enabled',	'N' );
+			}
 			header( "Location: admin.php?page=".self::$ParentMenuId );
 			return;
 		}
@@ -96,13 +108,31 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 							$sContents = @file_get_contents( 'http://worpitapp.com/dashboard/system/verification/reset/'.implode( '/', $aParts ) );
 						}
 
-						update_option( self::$VariablePrefix.'key',			Worpit_Plugin::Generate( 24, 7 ) );
-						update_option( self::$VariablePrefix.'pin',			'' );
-						update_option( self::$VariablePrefix.'assigned',	'N' );
-						update_option( self::$VariablePrefix.'assigned_to',	'' );
+						update_option( self::$VariablePrefix.'key',					Worpit_Plugin::Generate( 24, 7 ) );
+						update_option( self::$VariablePrefix.'pin',					'' );
+						update_option( self::$VariablePrefix.'assigned',			'N' );
+						update_option( self::$VariablePrefix.'assigned_to',			'' );
+						update_option( self::$VariablePrefix.'can_handshake',		'N' );
+						update_option( self::$VariablePrefix.'handshake_enabled',	'N' );
 					}
 					break;
 			}
+		}
+	}
+	
+	protected function handlePluginUpgrade() {
+		$sInstalledVersion = get_option( self::$VariablePrefix.'installed_version' );
+		if ( empty( $sInstalledVersion ) ) {
+			$sInstalledVersion = '0.1';
+		}
+		
+		if ( version_compare( $sInstalledVersion, '1.0.5' ) < 0 ) {
+			add_option( self::$VariablePrefix.'can_handshake',		'N' );
+			add_option( self::$VariablePrefix.'handshake_enabled',	'N' );
+		}
+		
+		if ( version_compare( $sInstalledVersion, self::VERSION ) < 0 ) {
+			update_option( Worpit_Plugin::$VariablePrefix.'installed_version', self::$VERSION );
 		}
 	}
 	
@@ -123,6 +153,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	public function onWpPluginsLoaded() {
 		parent::onWpPluginsLoaded();
+		
+		if ( is_admin() ) {
+			$this->handlePluginUpgrade();
+		}
 	}
 	
 	public function onWpAdminMenu() {
@@ -134,16 +168,19 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	public function onDisplayMainMenu() {
 		$aData = array(
-			'plugin_url'	=> self::$PluginUrl,
-			'key'			=> get_option( self::$VariablePrefix.'key' ),
-			'pin'			=> get_option( self::$VariablePrefix.'pin' ),
-			'assigned'		=> get_option( self::$VariablePrefix.'assigned' ),
-			'assigned_to'	=> get_option( self::$VariablePrefix.'assigned_to' ),
-			
-			'nonce_field'	=> self::$ParentMenuId,
-			'form_action'	=> 'admin.php?page='.self::$ParentMenuId,
+			'plugin_url'		=> self::$PluginUrl,
+			'key'				=> get_option( self::$VariablePrefix.'key' ),
+			'pin'				=> get_option( self::$VariablePrefix.'pin' ),
+			'assigned'			=> get_option( self::$VariablePrefix.'assigned' ),
+			'assigned_to'		=> get_option( self::$VariablePrefix.'assigned_to' ),
 				
-			'image_url'		=> $this->getImageUrl( '' )
+			'can_handshake'		=> get_option( self::$VariablePrefix.'can_handshake' ),
+			'handshake_enabled'	=> get_option( self::$VariablePrefix.'handshake_enabled' ),
+			
+			'nonce_field'		=> self::$ParentMenuId,
+			'form_action'		=> 'admin.php?page='.self::$ParentMenuId,
+				
+			'image_url'			=> $this->getImageUrl( '' )
 		);
 		$this->display( 'worpit_index', $aData );
 	}
@@ -188,10 +225,14 @@ class Worpit_Install {
 	}
 	
 	public function onWpActivatePlugin() {
-		add_option( Worpit_Plugin::$VariablePrefix.'key',			Worpit_Plugin::Generate( 24, 7 ) );
-		add_option( Worpit_Plugin::$VariablePrefix.'pin',			'' );
-		add_option( Worpit_Plugin::$VariablePrefix.'assigned',		'N' );
-		add_option( Worpit_Plugin::$VariablePrefix.'assigned_to',	'' );
+		add_option( Worpit_Plugin::$VariablePrefix.'key',				Worpit_Plugin::Generate( 24, 7 ) );
+		add_option( Worpit_Plugin::$VariablePrefix.'pin',				'' );
+		add_option( Worpit_Plugin::$VariablePrefix.'assigned',			'N' );
+		add_option( Worpit_Plugin::$VariablePrefix.'assigned_to',		'' );
+		add_option( Worpit_Plugin::$VariablePrefix.'can_handshake',		'N' );
+		add_option( Worpit_Plugin::$VariablePrefix.'handshake_enabled',	'N' );
+		
+		add_option( Worpit_Plugin::$VariablePrefix.'installed_version',	Worpit_Plugin::$VERSION );
 		
 		$this->executeSql();
 	}

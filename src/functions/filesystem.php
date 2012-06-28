@@ -5,36 +5,55 @@
  * @param string $insPrefix
  * @return boolean|string
  */
-function createTempDir( $insBaseDir = null, $insPrefix = '' ) {
-	$sTemp = rtrim( (is_null( $insBaseDir )? sys_get_temp_dir(): $insBaseDir), DS ).DS;
-	
-	$sCharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789';
-	do {
-		$sDir = $insPrefix;
-		for ( $i = 0; $i < 8; $i++ ) {
-			$sDir .= $sCharset[(rand() % strlen( $sCharset ))];
+if ( !function_exists( 'createTempDir' ) ) {
+	function createTempDir( $insBaseDir = null, $insPrefix = '' ) {
+		$sTemp = rtrim( (is_null( $insBaseDir )? sys_get_temp_dir(): $insBaseDir), DS ).DS;
+		
+		$sCharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789';
+		do {
+			$sDir = $insPrefix;
+			for ( $i = 0; $i < 8; $i++ ) {
+				$sDir .= $sCharset[(rand() % strlen( $sCharset ))];
+			}
 		}
+		while( is_dir( $sTemp.$sDir ) );
+		
+		if ( !mkdir( $sTemp.$sDir, 0777 ) ) {
+			return false;
+		}
+		
+		return $sTemp.$sDir;
 	}
-	while( is_dir( $sTemp.$sDir ) );
-	
-	if ( !mkdir( $sTemp.$sDir, 0777 ) ) {
-		return false;
-	}
-	
-	return $sTemp.$sDir;
 }
 
 /**
  * @param string $insDir
  * @param string $outsOutput
- * @return unknown
+ * @return boolean
  */
-function removeTempDir( $insDir, &$outsOutput = array() ) {
-	if ( stristr( PHP_OS, 'WIN' ) ) {
-		exec( 'rmdir '.$insDir.' /s /q', $outsOutput, $nReturnVal );
+if ( !function_exists( 'removeTempDir' ) ) {
+	function removeTempDir( $insDir ) {
+		if ( is_dir( $insDir ) ) {
+			return rrmdir( $insDir );
+		}
+		return false;
 	}
-	else {
-		exec( 'rm -rf '.$insDir, $outsOutput, $nReturnVal );
+}
+
+/**
+ * @param string $insDir
+ * @return void
+ */
+if ( !function_exists( 'rrmdir' ) ) {
+	function rrmdir( $insDir ) {
+		foreach ( glob( $insDir . '/*' ) as $sFile ) {
+			if ( is_dir( $sFile ) ) {
+				rrmdir( $sFile );
+			}
+			else {
+				unlink( $sFile );
+			}
+		}
+		return rmdir( $insDir );
 	}
-	return $nReturnVal;
 }

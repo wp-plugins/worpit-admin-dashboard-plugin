@@ -31,8 +31,13 @@
 		.assigned-state h4#isNotAssigned {
 			background: url("<?php echo $wpv_image_url; ?>pinvoke/status-amber.png") no-repeat 0 1px transparent;
 		}
-		.reset-authentication input {
+		.reset-authentication input,
+		.enable-handshake-authentication input {
 			float: left;
+			margin-right: 4px;
+		}
+		.cant-handshake {
+			opacity: 0.5;
 		}
 	</style>
 	
@@ -84,6 +89,40 @@
 			<div class="span12">
 				<div class="well">
 					
+					<div class="enable-handshake-authentication">
+						<h3>Allow Plugin Hand-Shaking</h3>
+						<p>By default, this option is not enabled because some configurations do not work well with it.</p>
+						<p>When the plugin connects to Worpit, it will test if hand-shaking authentication is supported, and if so, this will be enabled.</p>
+						<p><strong>Warning:</strong> Do not enable this option until you have synchronized your site with your Worpit account.</p>
+						<div class="<?php echo ( $wpv_can_handshake !== 'Y' )? 'cant-handshake' : ''; ?>">
+							<form action="<?php echo ( $wpv_can_handshake === 'Y' )? $wpv_form_action : ''; ?>" method="POST">
+								<?php wp_nonce_field( $wpv_nonce_field ); ?>
+								<input type="hidden" name="worpit_admin_form_submit" value="1" />
+								<input type="hidden" name="worpit_admin_form_submit_handshake" value="1" />
+								<label>
+									<input
+									type="checkbox"
+									name="worpit_admin_handshake_enabled"
+									value="Y"
+									class=""
+									id="worpit_admin_handshake_enabled"
+									<?php echo ( $wpv_handshake_enabled === 'Y' )? ' checked="checked"' : ''; ?>
+									<?php echo ( $wpv_can_handshake !== 'Y' )? ' disabled="disabled"' : ''; ?>
+									/> If this box is checked, plugin handshaking will be enabled. If you have problems syncing with Worpit, disable this option.
+								</label>
+								<button class="btn btn-warning" name="submit" type="submit" <?php echo ( $wpv_can_handshake !== 'Y' )? 'disabled="disabled"' : ''; ?>>Change Option</button>
+							</form>
+						</div>
+					</div>
+					
+				</div>
+			</div>
+		</div>
+		
+		<div class="row">
+			<div class="span12">
+				<div class="well">
+					
 					<div class="reset-authentication">
 						<h3>Reset Worpit Authentication Key</h3>
 						<p>In case you want to regenerate this key, for whatever reason, you may do so using the button below</p>
@@ -93,7 +132,7 @@
 								<?php wp_nonce_field( $wpv_nonce_field ); ?>
 								<input type="hidden" name="worpit_admin_form_submit" value="1" />
 								<label>
-									<input class="confirm-plugin-reset" type="checkbox" value="Y" style="margin-right:10px;" /> I'm sure I want to reset the Worpit plugin.
+									<input class="confirm-plugin-reset" type="checkbox" value="Y" style="margin-right:10px;" />I'm sure I want to reset the Worpit plugin.
 								</label>
 								<button class="btn btn-danger" disabled="disabled" name="submit_reset" type="submit">Reset Plugin</button>
 							</form>

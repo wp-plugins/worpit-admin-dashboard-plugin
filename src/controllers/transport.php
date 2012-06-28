@@ -3,7 +3,7 @@
 class Controllers_Transport extends Controllers_Base {
 
 	public function index() {
-
+		$this->success( array() );
 	}
 	
 	/**
@@ -15,8 +15,7 @@ class Controllers_Transport extends Controllers_Base {
 	 */
 	public function query() {
 		worpitAuthenticate( $_POST );
-		
-		//worpitVerifyPackageRequest( $_POST );
+		worpitVerifyPackageRequest( $_POST );
 		
 		$aData = array(
 			'_SERVER'				=> $_SERVER,
@@ -35,8 +34,7 @@ class Controllers_Transport extends Controllers_Base {
 	 */
 	public function execute() {
 		worpitAuthenticate( $_POST );
-		
-		//worpitVerifyPackageRequest( $_POST );
+		worpitVerifyPackageRequest( $_POST );
 
 		$sTempDir = createTempDir( dirname(__FILE__), 'pkg_' );
 	
@@ -111,13 +109,13 @@ class Controllers_Transport extends Controllers_Base {
 		
 		$oWpHelper = new Helper_WordPress();
 
-		if ( !isset( $_POST['token'] ) ) {
+		if ( !isset( $_GET['token'] ) ) {
 			//header( "Location: $location", true, $status);
-			die( 'error' );
+			die( 'WorpitError: Invalid request' );
 		}
 		
-		if ( $_POST['token'] != $oWpHelper->getTransient( 'worpit_login_token' ) ) {
-			die( 'error: invalid token' );
+		if ( $_GET['token'] != $oWpHelper->getTransient( 'worpit_login_token' ) ) {
+			die( 'WorpitError: Invalid token' );
 		}
 		
 		if ( version_compare( $wp_version, '3.1', '>=' ) && !isset( $_POST['username'] ) ) {

@@ -7,8 +7,9 @@ if ( !defined( 'DS' ) ) {
 define( 'LOADER_PATH',	dirname(__FILE__) );
 define( 'VIEWS_PATH',	dirname(__FILE__).'/../views' );
 
-ini_set( 'log_errors', 1 );
-ini_set( 'display_errors', 0 );
+ini_set( 'error_log',		dirname(__FILE__).'/../php_error_log' );
+ini_set( 'log_errors',		1 );
+ini_set( 'display_errors',	0 );
 
 error_reporting( E_ALL );
 
@@ -116,8 +117,15 @@ function worpitValidateSystem() {
 }
 
 function worpitVerifyPackageRequest( $inaData ) {
-	// TODO: Use cURL if available or openSSL if available.
+	if ( get_option( Worpit_Plugin::$VariablePrefix.'can_handshake' ) != 'Y' ) {
+		return true;
+	}
 	
+	if ( get_option( Worpit_Plugin::$VariablePrefix.'handshake_enabled' ) != 'Y' ) {
+		return true;
+	}
+	
+	// TODO: Use cURL if available or openSSL if available.
 	$sUrl = sprintf( 'http://worpitapp.com/dashboard/system/verification/check/%s/%s/%s',
 		$inaData['verification_code'], $inaData['package_name'], $inaData['pin']
 	);
@@ -125,6 +133,7 @@ function worpitVerifyPackageRequest( $inaData ) {
 	$sContents = @file_get_contents( $sUrl );
 	
 	if ( empty( $sContents ) || $sContents === false ) {
+		update_option( Worpit_Plugin::$VariablePrefix.'can_handshake', (worpitCheckCanHandshake()? 'Y': 'N') );
 		die( '-9996:VerifyCallFailed: '.$sUrl.' : '.$sContents );
 	}
 	
@@ -135,6 +144,22 @@ function worpitVerifyPackageRequest( $inaData ) {
 	
 	return true;
 }
+
+function worpitCheckCanHandshake() {
+	$sContents = @file_get_contents( 'http://worpitapp.com/dashboard/system/verification/test/' );
+	
+	if ( empty( $sContents ) || $sContents === false ) {
+		return false;
+	}
+	
+	$oJson = json_decode( $sContents );
+	
+	if ( !isset( $oJson->success ) || $oJson->success !== true ) {
+		return false;
+	}
+	return true;
+}
+
 
 function worpitFunctionExists( $insFunc ) {
 	if ( extension_loaded( 'suhosin' ) ) {
