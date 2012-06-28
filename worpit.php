@@ -4,7 +4,7 @@
 Plugin Name: Worpit Admin Dashboard
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.0.5
+Version: 1.0.6
 Author: Worpit
 Author URI: http://worpit.com/
 */
@@ -40,11 +40,11 @@ global $wpdb;
 class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	protected $m_oAuditor;
+
+	public static $VERSION = '1.0.6';
 	
 	public function __construct() {
 		parent::__construct();
-		
-		self::$VERSION			= '1.0.5';
 		
 		self::$PluginName		= basename(__FILE__);
 		self::$PluginPath		= plugin_basename( dirname(__FILE__) );
@@ -131,7 +131,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			add_option( self::$VariablePrefix.'handshake_enabled',	'N' );
 		}
 		
-		if ( version_compare( $sInstalledVersion, self::VERSION ) < 0 ) {
+		if ( version_compare( $sInstalledVersion, self::$VERSION ) < 0 ) {
 			update_option( Worpit_Plugin::$VariablePrefix.'installed_version', self::$VERSION );
 		}
 	}
