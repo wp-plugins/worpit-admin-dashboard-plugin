@@ -20,10 +20,10 @@ class Controllers_Transport extends Controllers_Base {
 		$aData = array(
 			'_SERVER'				=> $_SERVER,
 			'_ENV'					=> $_ENV,
-			'ini_get_all'			=> ini_get_all(),
-			'extensions_loaded'		=> get_loaded_extensions(),
-			'php_version'			=> phpversion(),
-			'has_exec'				=> function_exists( 'exec' )? 1: 0
+			'ini_get_all'			=> @ini_get_all(),
+			'extensions_loaded'		=> @get_loaded_extensions(),
+			'php_version'			=> @phpversion(),
+			'has_exec'				=> worpitFunctionExists( 'exec' )? 1: 0
 		);
 		
 		$this->success( $aData );

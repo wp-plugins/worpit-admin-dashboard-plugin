@@ -7,11 +7,9 @@ if ( !defined( 'DS' ) ) {
 define( 'LOADER_PATH',	dirname(__FILE__) );
 define( 'VIEWS_PATH',	dirname(__FILE__).'/../views' );
 
-ini_set( 'error_log',		dirname(__FILE__).'/../php_error_log' );
-ini_set( 'log_errors',		1 );
-ini_set( 'display_errors',	0 );
-
-error_reporting( E_ALL );
+if ( !defined( 'WP_ADMIN' ) ) {
+	define( 'WP_ADMIN', true );
+}
 
 /**
  * Convert to Linux Path
@@ -96,26 +94,6 @@ function worpitAuthenticate( $inaData ) {
 	return true;
 }
 
-function worpitValidateSystem() {
-	/*
-	if ( !function_exists( 'exec' ) ) {
-		die( '-5:NoExec' );
-	}
-	
-	if ( ini_get( 'safe_mode' ) ) {
-		die( '-4:SafeModeEnabled' );
-	}
-	*/
-	
-	if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
-		die( '-4:InvalidPhpVersion' );
-	}
-	
-	if ( function_exists( 'is_multisite' ) && is_multisite() ) {
-		die( '-3:Multisite' );
-	}
-}
-
 function worpitVerifyPackageRequest( $inaData ) {
 	if ( get_option( Worpit_Plugin::$VariablePrefix.'can_handshake' ) != 'Y' ) {
 		return true;
@@ -145,6 +123,30 @@ function worpitVerifyPackageRequest( $inaData ) {
 	return true;
 }
 
+function worpitValidateSystem() {
+	/*
+	if ( ini_get( 'safe_mode' ) ) {
+		die( '-4:SafeModeEnabled' );
+	}
+	*/
+	//WorpitApp IP: 69.36.185.61
+	//$_SERVER['REMOTE_ADDR'];
+
+	//-6,-7,-8 reserved
+
+	if ( count( $_GET ) == 0 ) {
+		die( '-5:GetRequestEmpty' );
+	}
+
+	if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
+		die( '-4:InvalidPhpVersion' );
+	}
+
+	if ( function_exists( 'is_multisite' ) && is_multisite() ) {
+		die( '-3:Multisite' );
+	}
+}
+
 function worpitCheckCanHandshake() {
 	$sContents = @file_get_contents( 'http://worpitapp.com/dashboard/system/verification/test/' );
 	
@@ -160,7 +162,6 @@ function worpitCheckCanHandshake() {
 	return true;
 }
 
-
 function worpitFunctionExists( $insFunc ) {
 	if ( extension_loaded( 'suhosin' ) ) {
 		$sBlackList = @ini_get( "suhosin.executor.func.blacklist" );
@@ -174,6 +175,16 @@ function worpitFunctionExists( $insFunc ) {
 	return function_exists( $insFunc );
 }
 
+if ( worpitFunctionExists( 'ini_set' ) ) {
+	@ini_set( 'error_log',		dirname(__FILE__).'/../php_error_log' );
+	@ini_set( 'log_errors',		1 );
+	@ini_set( 'display_errors',	0 );
+}
+
+if ( worpitFunctionExists( 'error_reporting' ) ) {
+	error_reporting( E_ALL );
+}
+
 worpitValidateSystem();
 
 require_once( worpitFindWpLoad() );
@@ -181,7 +192,7 @@ require_once( worpitFindWpLoad() );
 /**
  * Setup some autoloading magic; PHP => 5.1.2
  */
-if ( function_exists( 'worpitClassAutoLoader' ) ) {
+if ( worpitFunctionExists( 'spl_autoload_register' ) ) {
 	spl_autoload_register( 'worpitClassAutoLoader' );
 }
 else {
@@ -219,3 +230,13 @@ if ( !function_exists( 'json_decode' ) ) {
 		return $oJson->unserialize( $insData );
 	}
 }
+
+/**
+ secure-wordpress (http://www.websitedefender.com/)
+ #FIX: Set the following options to '0', and after execution, set them back to what they were
+ get_option('secure_wp_version') == '1'
+ get_option('secure_wp_rcu') == '1'
+ get_option('secure_wp_rpu') == '1'
+ get_option('secure_wp_rtu') == '1'
+ get_option('secure_wp_admin_version') == '1'
+*/

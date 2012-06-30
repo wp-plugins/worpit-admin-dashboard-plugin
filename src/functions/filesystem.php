@@ -18,8 +18,11 @@ if ( !function_exists( 'createTempDir' ) ) {
 		}
 		while( is_dir( $sTemp.$sDir ) );
 		
-		if ( !mkdir( $sTemp.$sDir, 0777 ) ) {
-			return false;
+		if ( !mkdir( $sTemp.$sDir, 0777, true ) ) {
+			if ( !mkdir( $sTemp.$sDir, 0755, true ) ) {
+				return false;
+			}
+			chmod( $sTemp.$sDir, 0777 );
 		}
 		
 		return $sTemp.$sDir;
