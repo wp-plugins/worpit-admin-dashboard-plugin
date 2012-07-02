@@ -17,14 +17,22 @@ class Controllers_Transport extends Controllers_Base {
 		worpitAuthenticate( $_POST );
 		worpitVerifyPackageRequest( $_POST );
 		
+		$sTempDir = createTempDir( dirname(__FILE__), 'pkg_' );
+		
 		$aData = array(
 			'_SERVER'				=> $_SERVER,
 			'_ENV'					=> $_ENV,
 			'ini_get_all'			=> @ini_get_all(),
 			'extensions_loaded'		=> @get_loaded_extensions(),
 			'php_version'			=> @phpversion(),
-			'has_exec'				=> worpitFunctionExists( 'exec' )? 1: 0
+			'has_exec'				=> worpitFunctionExists( 'exec' )? 1: 0,
+			'can_mkdir'				=> $sTempDir !== false? 1: 0,
+			'package_constants'		=> $this->getPackageConstants()
 		);
+		
+		if ( $sTempDir !== false ) {
+			removeTempDir( $sTempDir );
+		}
 		
 		$this->success( $aData );
 	}
@@ -36,20 +44,6 @@ class Controllers_Transport extends Controllers_Base {
 		worpitAuthenticate( $_POST );
 		worpitVerifyPackageRequest( $_POST );
 
-		$sTempDir = createTempDir( dirname(__FILE__), 'pkg_' );
-	
-		if ( $sTempDir === false ) {
-			$nVal = removeTempDir( $sTempDir, &$this->m_aOutput );
-			$this->fail( 'Failed to create temporary directory.' );
-		}
-		
-		foreach ( $_FILES as $sKey => $aUpload ) {
-			if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
-				move_uploaded_file( $aUpload['tmp_name'], $sTempDir.'/'.$aUpload['name'] );
-				chmod( $sTempDir.'/'.$aUpload['name'], 0644 );
-			}
-		}
-		
 		/**
 		 * @since 1.0.3
 		 */
@@ -59,37 +53,106 @@ class Controllers_Transport extends Controllers_Base {
 		 * @since 1.0.4
 		 */
 		$_POST['prevent_auto_run'] = '1';
-
-		$sWritableRequestData = "<?php \n";
-		foreach ( $_POST as $sKey => $sValue ) {
-			if ( in_array( $sKey, array( 'key', 'pin', 'action' ) ) ) {
-				continue;
+		
+		/**
+		 * @since 1.0.8
+		 */
+		if ( isset( $_REQUEST['using_ftp'] ) ) {
+			$sAbsTarget = dirname(__FILE__).DS.$_REQUEST['temp_dir_name'];
+			if ( !is_dir( $sAbsTarget ) ) {
+				$this->fail( 'Expected directory "'.$sAbsTarget.'" does not exist.' );
 			}
-			$sWritableRequestData .= "define( 'REQUEST_".strtoupper( $sKey )."', \"".$sValue."\" );"."\n";
-		}
-
-		$sPackageConstants = $this->getPackageConstants();
-		foreach ( $sPackageConstants as $sKey => $sValue ) {
-			$sWritableRequestData .= "define( 'OPTION_".strtoupper( $sKey )."', \"".$sValue."\" );"."\n";
-		}
-
-		if ( !file_put_contents( $sTempDir.'/request_data.php', $sWritableRequestData."\n" ) ) {
-			$nVal = removeTempDir( $sTempDir, &$aRemoveOutput );
-			$this->logMerge( $aRemoveOutput );
-			$this->fail( 'Failed to create dynamic request data config file.' );
+			
+			if ( !is_file( $sAbsTarget.DS.'installer.php' ) ) {
+				$this->fail( 'An installer was not found for the package located at "'.$sAbsTarget.'".' );
+			}
+			
+			if ( is_file( $sAbsTarget.DS.'request_data.php' ) && is_writable( $sAbsTarget.DS.'request_data.php' ) ) {
+				file_put_contents( $sAbsTarget.DS.'request_data.php', $this->getWritableRequestData( $_POST ) );
+			}
+			
+			include_once( $sAbsTarget.DS.'installer.php' );
 		}
 		else {
-			chmod( $sTempDir.'/request_data.php', 0644 );
+			$sTempDir = createTempDir( dirname(__FILE__), 'pkg_' );
+			
+			$sWritableRequestData = $this->getWritableRequestData( $_POST );
+
+			if ( $sTempDir === false ) {
+				$fAllowUploads = (bool)ini_get( 'file_uploads' );
+				
+				if ( $fAllowUploads && isset( $_REQUEST['eval_order'] ) ) {
+					$aFileContents = array();
+					foreach ( $_FILES as $sKey => $aUpload ) {
+						if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
+							if ( !is_readable( $aUpload['tmp_name'] ) ) {
+								$this->fail( 'Unable to create temp directory. Uploaded file is not readable: '.$aUpload['tmp_name'] );
+							}
+							$aFileContents[$aUpload['name']] = file_get_contents( $aUpload['tmp_name'] );
+						}
+					}
+					
+					/**
+					 * There is a greater likelyhood of there being a PHP error, so ideally we want the
+					 * operation to fail and to be able to read the error by using display_errors
+					 */
+					@error_reporting( E_ALL );
+					if ( worpitFunctionExists( 'ini_set' ) ) {
+						@ini_set( 'display_errors', 1 );
+						@ini_set( 'log_errors', 1 );
+					}
+					
+					eval( ' ?>'.$sWritableRequestData );
+					
+					$aEvalOrder = explode( ',', $_REQUEST['eval_order'] );
+					foreach( $aEvalOrder as $sEvalFile ) {
+						if ( isset( $aFileContents[$sEvalFile] ) ) {
+							eval( ' ?>'.$aFileContents[$sEvalFile] );
+						}
+					}
+					
+					if ( !class_exists( 'Worpit_Package_Installer', false ) ) {
+						$this->fail( 'Failed to find class "Worpit_Package_Installer".' );
+					}
+				}
+				else {
+					$this->fail( 'Unable to create temp directory. Either "eval" or "file_uploads" is unavailable, or "eval_order" was not provided.' );
+				}
+			}
+			else {
+				foreach ( $_FILES as $sKey => $aUpload ) {
+					if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
+						$sMoveTarget = $sTempDir.DS.$aUpload['name'];
+						if ( !move_uploaded_file( $aUpload['tmp_name'], $sMoveTarget ) ) {
+							$this->fail( sprintf( 'Failed to move uploaded file from %s to %s', $aUpload['tmp_name'], $sMoveTarget ) );
+						}
+						chmod( $sMoveTarget, 0644 );
+					}
+					else {
+						// one of the files never uploaded?
+					}
+				}
+				
+				if ( !file_put_contents( $sTempDir.DS.'request_data.php', $sWritableRequestData."\n" ) ) {
+					$nVal = removeTempDir( $sTempDir );
+					$this->logMerge( $aRemoveOutput );
+					$this->fail( 'Failed to create dynamic request data config file.' );
+				}
+				else {
+					chmod( $sTempDir.DS.'request_data.php', 0644 );
+				}
+				
+				include_once( $sTempDir.DS.'installer.php' );
+			}
 		}
 		
-		include_once( $sTempDir.DS.'installer.php' );
-		$oInstall = new Installer();
+		$oInstall = new Worpit_Package_Installer();
 		$aInstallerResponse = $oInstall->run();
 		
 		$this->log( $aInstallerResponse );
 
 		$aRemoveOutput = array();
-		$nVal = removeTempDir( $sTempDir, &$aRemoveOutput );
+		$nVal = removeTempDir( $sTempDir );
 		$this->logMerge( $aRemoveOutput );
 		
 		if ( $aInstallerResponse['success'] != true ) {

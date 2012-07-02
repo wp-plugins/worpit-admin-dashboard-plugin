@@ -9,11 +9,15 @@ class Controllers_Base {
 	}
 	
 	public function __destruct() {
+		if ( !count( $this->m_aOutput ) ) {
+			return;
+		}
+		
 		$sFile = dirname(__FILE__).'/../../logs/output.'.time().'.php';
 		if ( !is_dir( dirname( $sFile ) ) && @mkdir( dirname( $sFile ), 0755, true ) ) {
 			
 		}
-		@file_put_contents( $sFile, implode( "\n", $this->m_aOutput ) );
+		@file_put_contents( $sFile, print_r( $this->m_aOutput, true ) );
 	}
 
 	/**
@@ -30,6 +34,8 @@ class Controllers_Base {
 			'base64response'	=> 1
 		);
 		echo serialize( $aResponse );
+		
+		$this->m_aOutput = array();
 		
 		exit( 0 );
 	}
@@ -73,6 +79,7 @@ class Controllers_Base {
 	/**
 	 * This function returns an array of variables which will then be converted into constants.
 	 * The constants will be written to
+	 *
 	 * @return array
 	 */
 	public function getPackageConstants() {
@@ -122,5 +129,32 @@ class Controllers_Base {
 		);
 
 		return $aPackageConstants;
+	}
+
+	/**
+	 * @param array $inaData
+	 * @return string
+	 *
+	 * @since 1.0.8
+	 */
+	protected function getWritableRequestData( $inaData ) {
+		$sWritableRequestData = "<?php \n";
+		if ( count( $inaData ) == 0 ) {
+			return $sWritableRequestData;
+		}
+		
+		foreach ( $inaData as $sKey => $sValue ) {
+			if ( in_array( $sKey, array( 'key', 'pin', 'action' ) ) ) {
+				continue;
+			}
+			$sWritableRequestData .= "define( 'REQUEST_".strtoupper( $sKey )."', \"".$sValue."\" );"."\n";
+		}
+	
+		$sPackageConstants = $this->getPackageConstants();
+		foreach ( $sPackageConstants as $sKey => $sValue ) {
+			$sWritableRequestData .= "define( 'OPTION_".strtoupper( $sKey )."', \"".$sValue."\" );"."\n";
+		}
+		
+		return $sWritableRequestData;
 	}
 }

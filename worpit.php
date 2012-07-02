@@ -4,7 +4,7 @@
 Plugin Name: Worpit Admin Dashboard
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.0.7
+Version: 1.0.8
 Author: Worpit
 Author URI: http://worpit.com/
 */
@@ -41,7 +41,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	protected $m_oAuditor;
 
-	public static $VERSION = '1.0.7';
+	public static $VERSION = '1.0.8';
 	
 	public function __construct() {
 		parent::__construct();
@@ -80,11 +80,61 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		
 		//Someone clicked the button to enable/disable hand-shaking
 		if ( isset( $_POST['worpit_admin_form_submit_handshake'] ) ) {
-			
 			if ( isset( $_POST['worpit_admin_handshake_enabled'] ) ) {
 				update_option( self::$VariablePrefix.'handshake_enabled',	'Y' );
-			} else {
+			}
+			else {
 				update_option( self::$VariablePrefix.'handshake_enabled',	'N' );
+			}
+			header( "Location: admin.php?page=".self::$ParentMenuId );
+			return;
+		}
+		
+		//Someone clicked a button to debug, either gather, or send
+		if ( isset( $_POST['worpit_admin_form_submit_debug'] ) ) {
+			if ( isset( $_POST['submit_gather'] ) ) {
+				$sUniqueName = uniqid().'_'.time().'.txt';
+				$sTarget = dirname(__FILE__).'/'.$sUniqueName;
+				
+				$fCanWrite = true;
+				if ( !file_put_contents( $sTarget, 'TEST' ) ) {
+					$fCanWrite = false;
+				}
+				else {
+					if ( !is_file( $sTarget ) ) {
+						$fCanWrite = false;
+					}
+				}
+				
+				$aData = array(
+					'_SERVER'				=> $_SERVER,
+					'_ENV'					=> $_ENV,
+					'ini_get_all'			=> @ini_get_all(),
+					'extensions_loaded'		=> @get_loaded_extensions(),
+					'php_version'			=> @phpversion(),
+					'has_exec'				=> function_exists( 'exec' )? 1: 0,
+				);
+				
+				if ( !$fCanWrite ) {
+					echo "<h4>Your system configuration does not allow writing to the filesystem.</h4>";
+					echo "<p>Please take a moment and send the contents of this page to support@worpit.com</p>";
+					echo "<hr />";
+					var_dump( $aData );
+				}
+				else {
+					file_put_contents( $sTarget, print_r( $aData, true ) );
+					update_option( self::$VariablePrefix.'debug_file', $sUniqueName );
+				}
+			}
+			else if ( isset( $_POST['submit_information'] ) ) {
+				$sTarget = get_option( self::$VariablePrefix.'debug_file' );
+				$sTargetAbs = dirname(__FILE__).'/'.$sTarget;
+				if ( !empty( $sTarget ) && is_file( $sTargetAbs ) ) {
+					if ( wp_mail( 'support@worpit.com', 'Debug Configuration', 'See attachment', '', $sTargetAbs ) ) {
+						unlink( $sTargetAbs );
+						delete_option( self::$VariablePrefix.'debug_file' );
+					}
+				}
 			}
 			header( "Location: admin.php?page=".self::$ParentMenuId );
 			return;
@@ -94,17 +144,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			switch ( $_GET['page'] ) {
 				case parent::$ParentMenuId:
 					//$this->handleSubmit_Clear();
-					{
+					if ( isset( $_POST['worpit_admin_form_submit_resetplugin'] ) ) {
 						$sTo = get_option( self::$VariablePrefix.'assigned_to' );
 						$sKey = get_option( self::$VariablePrefix.'key' );
 						$sPin = get_option( self::$VariablePrefix.'pin' );
 						
 						if ( !empty( $sTo ) && !empty( $sKey ) && !empty( $sPin ) ) {
-							$aParts = array(
-								urlencode( get_option( self::$VariablePrefix.'assigned_to' ) ),
-								get_option( self::$VariablePrefix.'key' ),
-								get_option( self::$VariablePrefix.'pin' )
-							);
+							$aParts = array( urlencode( $sTo ), $sKey, $sPin );
 							$sContents = @file_get_contents( 'http://worpitapp.com/dashboard/system/verification/reset/'.implode( '/', $aParts ) );
 						}
 
@@ -115,7 +161,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 						update_option( self::$VariablePrefix.'can_handshake',		'N' );
 						update_option( self::$VariablePrefix.'handshake_enabled',	'N' );
 					}
-					break;
+				break;
 			}
 		}
 	}
@@ -167,6 +213,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 	
 	public function onDisplayMainMenu() {
+		$sDebugFile = get_option( self::$VariablePrefix.'debug_file' );
 		$aData = array(
 			'plugin_url'		=> self::$PluginUrl,
 			'key'				=> get_option( self::$VariablePrefix.'key' ),
@@ -176,6 +223,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				
 			'can_handshake'		=> get_option( self::$VariablePrefix.'can_handshake' ),
 			'handshake_enabled'	=> get_option( self::$VariablePrefix.'handshake_enabled' ),
+			'debug_file_url'	=> empty( $sDebugFile )? false: self::$PluginUrl.$sDebugFile,
 			
 			'nonce_field'		=> self::$ParentMenuId,
 			'form_action'		=> 'admin.php?page='.self::$ParentMenuId,

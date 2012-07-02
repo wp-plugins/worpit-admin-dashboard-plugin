@@ -1,9 +1,6 @@
 <div class="wrap">
 	<style type="text/css">
-		.well h3 {
-			margin-bottom: 10px;
-		}
-	
+		.well h3 { margin-bottom: 10px; }
 		span.the-key {
 			background-color: #FFFFFF;
 		    border: 1px solid #AAAAAA;
@@ -13,13 +10,11 @@
 		    margin-left: 10px;
 		    padding: 5px 8px;
 		}
-		
 		a#signupLinkWorpit {
 			font-size: smaller;
     		font-weight: normal;
     		text-decoration: underline;
 		}
-		
 		.assigned-state h4 {
 			padding-left: 25px;
 			margin-bottom: 15px;
@@ -34,11 +29,9 @@
 		.reset-authentication input,
 		.enable-handshake-authentication input {
 			float: left;
-			margin-right: 4px;
+			margin-right: 4px !important;
 		}
-		.cant-handshake {
-			opacity: 0.5;
-		}
+		.cant-handshake { opacity: 0.5; }
 	</style>
 	
 	<script type="text/javascript">
@@ -57,7 +50,6 @@
 				);
 			}
 		);
-
 	</script>
 
 	<div class="bootstrap-wpadmin">
@@ -69,8 +61,13 @@
 		<div class="row">
 			<div class="span12">
 				<div class="well">
-					<h3>The unqiue Worpit Authentication Key for this site is: <span class="the-key"><?php echo $wpv_key; ?></span></h3>
-					
+					<?php
+						if ( empty($wpv_key) ) {
+							echo '<h3>You need to generate your Authentication Key - reset your key using the red button below.</h3>';
+						} else {
+							echo '<h3>The unqiue Worpit Authentication Key for this site is: <span class="the-key">'.$wpv_key.'</span></h3>';
+						}
+					?>
 					<div class="assigned-state">
 						<?php if ( $wpv_assigned === 'Y' ): ?>
 							<h4 id="isAssigned">Assigned to Worpit account: <?php echo $wpv_assigned_to; ?></h4>
@@ -95,7 +92,7 @@
 						<p>When the plugin connects to Worpit, it will test if hand-shaking authentication is supported, and if so, this will be enabled.</p>
 						<p><strong>Warning:</strong> Do not enable this option until you have synchronized your site with your Worpit account.</p>
 						<div class="<?php echo ( $wpv_can_handshake !== 'Y' )? 'cant-handshake' : ''; ?>">
-							<form action="<?php echo ( $wpv_can_handshake === 'Y' )? $wpv_form_action : ''; ?>" method="POST">
+							<form action="<?php echo ( $wpv_can_handshake === 'Y' )? $wpv_form_action : ''; ?>" method="POST" name="form-hand-shaking" id="form-hand-shaking">
 								<?php wp_nonce_field( $wpv_nonce_field ); ?>
 								<input type="hidden" name="worpit_admin_form_submit" value="1" />
 								<input type="hidden" name="worpit_admin_form_submit_handshake" value="1" />
@@ -123,18 +120,53 @@
 			<div class="span12">
 				<div class="well">
 					
-					<div class="reset-authentication">
+					<div class="reset-authentication" name="">
 						<h3>Reset Worpit Authentication Key</h3>
 						<p>In case you want to regenerate this key, for whatever reason, you may do so using the button below</p>
 						<p><strong>Warning:</strong> Clicking this button <em>will disconnect this site if it has been assigned to a Worpit account</em>. <u>Not Recommended</u>.</p>
 						<div>
-							<form action="<?php echo $wpv_form_action; ?>" method="POST">
+							<form action="<?php echo $wpv_form_action; ?>" method="POST" name="form-reset-auth" id="form-reset-auth">
 								<?php wp_nonce_field( $wpv_nonce_field ); ?>
 								<input type="hidden" name="worpit_admin_form_submit" value="1" />
+								<input type="hidden" name="worpit_admin_form_submit_resetplugin" value="1" />
 								<label>
 									<input class="confirm-plugin-reset" type="checkbox" value="Y" style="margin-right:10px;" />I'm sure I want to reset the Worpit plugin.
 								</label>
 								<button class="btn btn-danger" disabled="disabled" name="submit_reset" type="submit">Reset Plugin</button>
+							</form>
+						</div>
+					</div>
+					
+				</div>
+			</div>
+		</div>
+		
+		<div class="row">
+			<div class="span12">
+				<div class="well">
+					
+					<div class="send-debug">
+						<h3>Send Worpit Debug Information</h3>
+						<p>No two WordPress sites are created equal. The sheer variations of configurations are mind-blowing, so writing Worpit to work for everyone is not
+						trivial.</p>
+						<p>So if your site is having issues with Worpit, don't fret. You can help us out by sending us some information about your configuration using
+						the buttons below.</p>
+						<p>We <strong>wont collect sensitive information</strong> about you or any passwords etc. We're only interested in information about the plugins you're
+						using, your WordPress version, your PHP and server configuration. Further, you will be able to review what will be sent before you send it.</p>
+						<div>
+							<form action="<?php echo $wpv_form_action; ?>" method="POST" name="form-send-debug" id="form-send-debug">
+								<?php wp_nonce_field( $wpv_nonce_field ); ?>
+								<input type="hidden" name="worpit_admin_form_submit" value="1" />
+								<input type="hidden" name="worpit_admin_form_submit_debug" value="1" />
+								<button class="btn btn-inverse" name="submit_gather" type="submit" style="margin-right:8px;">Gather Information</button>
+								
+								<?php if ( !$wpv_debug_file_url ): ?>
+									<button class="btn btn-info" name="view_information" type="submit" style="margin-right:8px;" disabled="disabled">View Information</button>
+								<?php else: ?>
+									<a href="<?php echo $wpv_debug_file_url; ?>" class="btn btn-info" name="view_information" type="submit" style="margin-right:8px;" target="_blank">View Information</a>
+								<?php endif; ?>
+								
+								<button class="btn btn-success" name="submit_information" type="submit" style="margin-right:8px;" <?php if ( !$wpv_debug_file_url ): ?>disabled="disabled"<?php endif; ?>>Send Debug Information</button>
 							</form>
 						</div>
 					</div>

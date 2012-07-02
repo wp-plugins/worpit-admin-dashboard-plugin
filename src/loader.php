@@ -77,12 +77,12 @@ function worpitAuthenticate( $inaData ) {
 
 	$sKey = get_option( Worpit_Plugin::$VariablePrefix.'key' );
 	if ( $sKey != trim( $inaData['key'] ) ) {
-		die( '-9998:InvalidKey:'.$inaData['key'].':'.$sKey );
+		die( '-9998:InvalidKey:'.$inaData['key'] );
 	}
 
 	$sPin = get_option( Worpit_Plugin::$VariablePrefix.'pin' );
 	if ( $sPin !== md5( trim( $inaData['pin'] ) ) ) {
-		die( '-9997:InvalidPin:'.$inaData['pin'].':'.$sPin );
+		die( '-9997:InvalidPin:'.$inaData['pin'] );
 	}
 
 	if ( isset( $inaData['timeout'] ) ) {
@@ -230,13 +230,3 @@ if ( !function_exists( 'json_decode' ) ) {
 		return $oJson->unserialize( $insData );
 	}
 }
-
-/**
- secure-wordpress (http://www.websitedefender.com/)
- #FIX: Set the following options to '0', and after execution, set them back to what they were
- get_option('secure_wp_version') == '1'
- get_option('secure_wp_rcu') == '1'
- get_option('secure_wp_rpu') == '1'
- get_option('secure_wp_rtu') == '1'
- get_option('secure_wp_admin_version') == '1'
-*/
