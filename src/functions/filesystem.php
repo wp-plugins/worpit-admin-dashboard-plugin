@@ -18,8 +18,8 @@ if ( !function_exists( 'createTempDir' ) ) {
 		}
 		while( is_dir( $sTemp.$sDir ) );
 		
-		$nCurrentBasePerms = fileperms( $insBaseDir );
-		chmod( $insBaseDir, 0755 );
+		//$nCurrentBasePerms = fileperms( $insBaseDir );
+		//chmod( $insBaseDir, 0755 );
 		
 		$fSuccess = true;
 		if ( !mkdir( $sTemp.$sDir, 0755, true ) ) {
