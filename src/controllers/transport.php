@@ -57,8 +57,8 @@ class Controllers_Transport extends Controllers_Base {
 		/**
 		 * @since 1.0.8
 		 */
-		if ( isset( $_REQUEST['using_ftp'] ) ) {
-			$sAbsTarget = dirname(__FILE__).DS.$_REQUEST['temp_dir_name'];
+		if ( isset( $_POST['using_ftp'] ) ) {
+			$sAbsTarget = dirname(__FILE__).DS.$_POST['temp_dir_name'];
 			if ( !is_dir( $sAbsTarget ) ) {
 				$this->fail( 'Expected directory "'.$sAbsTarget.'" does not exist.' );
 			}
@@ -74,7 +74,10 @@ class Controllers_Transport extends Controllers_Base {
 			include_once( $sAbsTarget.DS.'installer.php' );
 		}
 		else {
-			$sTempDir = createTempDir( dirname(__FILE__), 'pkg_' );
+			$sTempDir = false;
+			if ( !isset( $_POST['force_use_eval'] ) ) {
+				$sTempDir = createTempDir( dirname(__FILE__), 'pkg_' );
+			}
 			
 			$sWritableRequestData = $this->getWritableRequestData( $_POST );
 
@@ -146,14 +149,19 @@ class Controllers_Transport extends Controllers_Base {
 			}
 		}
 		
+		if ( !class_exists( 'Worpit_Package_Installer', false ) ) {
+			$this->fail( 'The Worpit_Package_Installer class does not exist.' );
+		}
+		
 		$oInstall = new Worpit_Package_Installer();
 		$aInstallerResponse = $oInstall->run();
 		
 		$this->log( $aInstallerResponse );
 
 		$aRemoveOutput = array();
-		$nVal = removeTempDir( $sTempDir );
-		$this->logMerge( $aRemoveOutput );
+		if ( $sTempDir !== false ) {
+			removeTempDir( $sTempDir );
+		}
 		
 		if ( $aInstallerResponse['success'] != true ) {
 			$this->fail( 'Failed to execute target: '.($aInstallerResponse['success']? 1: 0) );

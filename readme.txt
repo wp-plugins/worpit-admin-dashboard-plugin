@@ -4,7 +4,7 @@ Donate link: http://worpit.com/
 Tags: worpit, wordpress admin, backup, restore, bulk
 Requires at least: 3.2.0
 Tested up to: 3.4
-Stable tag: 1.0.8
+Stable tag: 1.0.9
 
 == Description ==
 
@@ -106,7 +106,7 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
-= 1.0.8 =
+= 1.0.9 =
 
 * Latest stable release.
 
@@ -116,7 +116,7 @@ No. WorpDrive is available for a small monthly fee.
 
 == Upgrade Notice ==
 
-= 1.0.8 =
+= 1.0.9 =
 
 * Latest stable release.
 

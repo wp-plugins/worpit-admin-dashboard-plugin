@@ -66,3 +66,33 @@ if ( !function_exists( 'rrmdir' ) ) {
 		return rmdir( $insDir );
 	}
 }
+
+/**
+ * @param string $insStartDir
+ * @param integer $innLevels
+ * @param string $insForFilename
+ * @return boolean|string
+ */
+if ( !function_exists( 'backwardsRecursiveFileSearch' ) ) {
+	function backwardsRecursiveFileSearch( $insStartDir, $innLevels, $insForFilename ) {
+		$sSearchDir = $insStartDir;
+		$nLimiter = 0;
+		$fFound = false;
+		
+		do {
+			if ( is_file( $sSearchDir.'/'.$insForFilename ) ) {
+				$fFound = true;
+				break;
+			}
+			$sSearchDir .= '/..';
+			$nLimiter++;
+		}
+		while ( $nLimiter < $innLevels );
+		
+		if ( !$fFound ) {
+			return false;
+		}
+				
+		return file_get_contents( $sSearchDir.'/'.$insForFilename );
+	}
+}

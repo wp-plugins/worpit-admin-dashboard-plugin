@@ -4,7 +4,7 @@
 Plugin Name: Worpit Admin Dashboard
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.0.8
+Version: 1.0.9
 Author: Worpit
 Author URI: http://worpit.com/
 */
@@ -41,7 +41,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	protected $m_oAuditor;
 
-	public static $VERSION = '1.0.8';
+	public static $VERSION = '1.0.9';
 	
 	public function __construct() {
 		parent::__construct();
@@ -106,6 +106,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 					}
 				}
 				
+				include_once( dirname(__FILE__).'/src/functions/filesystem.php' );
+				
 				$aData = array(
 					'_SERVER'				=> $_SERVER,
 					'_ENV'					=> $_ENV,
@@ -113,7 +115,38 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 					'extensions_loaded'		=> @get_loaded_extensions(),
 					'php_version'			=> @phpversion(),
 					'has_exec'				=> function_exists( 'exec' )? 1: 0,
+					'fileperms'				=> array(
+						array(
+							'target'	=> dirname(__FILE__).'/src/controllers/',
+							'perms'		=> fileperms( dirname(__FILE__).'/src/controllers/' ),
+							'is_dir'	=> is_dir( dirname(__FILE__).'/src/controllers/' )? 1: 0
+						),
+						array(
+							'target'	=> dirname(__FILE__).'/src/',
+							'perms'		=> fileperms( dirname(__FILE__).'/src/' ),
+							'is_dir'	=> is_dir( dirname(__FILE__).'/src/' )? 1: 0
+						),
+						array(
+							'target'	=> __FILE__,
+							'perms'		=> fileperms( __FILE__ ),
+							'is_dir'	=> is_dir( __FILE__ )? 1: 0
+						),
+						array(
+							'target'	=> dirname(__FILE__),
+							'perms'		=> fileperms( dirname(__FILE__) ),
+							'is_dir'	=> is_dir( dirname(__FILE__) )? 1: 0
+						),
+						array(
+							'target'	=> dirname(__FILE__).'/../',
+							'perms'		=> fileperms( dirname(__FILE__).'/../' ),
+							'is_dir'	=> is_dir( dirname(__FILE__).'/../' )? 1: 0
+						)
+					)
 				);
+				
+				$aData['.htaccess'] = backwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, '.htaccess' );
+				$aData['error_log'] = backwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'error_log' );
+				$aData['php_error_log'] = backwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'php_error_log' );
 				
 				if ( !$fCanWrite ) {
 					echo "<h4>Your system configuration does not allow writing to the filesystem.</h4>";
