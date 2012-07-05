@@ -22,7 +22,7 @@ if ( !function_exists( 'createTempDir' ) ) {
 		//chmod( $insBaseDir, 0755 );
 		
 		$fSuccess = true;
-		if ( !mkdir( $sTemp.$sDir, 0755, true ) ) {
+		if ( !@mkdir( $sTemp.$sDir, 0755, true ) ) {
 			$fSuccess = false;
 		}
 		

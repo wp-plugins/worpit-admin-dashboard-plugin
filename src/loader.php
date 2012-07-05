@@ -27,7 +27,7 @@ function worpitFindWpLoad() {
 	$fFound = false;
 
 	do {
-		if ( is_file( $sLoaderPath.DS.$sFilename ) ) {
+		if ( @is_file( $sLoaderPath.DS.$sFilename ) ) {
 			$fFound = true;
 			break;
 		}
@@ -57,7 +57,7 @@ function worpitClassAutoLoader( $insClass ) {
 		}
 		$sFile .= '.php';
 
-		if ( !is_file( $sFile ) ) {
+		if ( !@is_file( $sFile ) ) {
 			return false;
 		}
 

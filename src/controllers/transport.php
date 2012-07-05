@@ -108,9 +108,13 @@ class Controllers_Transport extends Controllers_Base {
 					eval( ' ?>'.$sWritableRequestData );
 					
 					$aEvalOrder = explode( ',', $_REQUEST['eval_order'] );
+					
 					foreach( $aEvalOrder as $sEvalFile ) {
 						if ( isset( $aFileContents[$sEvalFile] ) ) {
 							eval( ' ?>'.$aFileContents[$sEvalFile] );
+						}
+						else {
+							$this->fail( 'Missing required file: '.$sEvalFile.' from uploaded files: '.implode( ',', array_keys( $aFileContents ) ) );
 						}
 					}
 					
