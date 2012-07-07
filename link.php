@@ -19,16 +19,20 @@ if ( !isset( $_GET['a'] ) || $_GET['a'] != 'check' ) {
 	}
 }
 
-$sKey = trim( get_option( Worpit_Plugin::$VariablePrefix.'key' ) );
+$sKey = get_option( Worpit_Plugin::$VariablePrefix.'key' );
 $sPin = trim( get_option( Worpit_Plugin::$VariablePrefix.'pin' ) );
 $sAssigned = get_option( Worpit_Plugin::$VariablePrefix.'assigned' );
 $fAssigned = ($sAssigned == 'Y');
 
-$sRequestedKey = trim( $_GET['key'] );
-$sRequestedPin = md5( trim( $_GET['pin'] ) );
-$sRequestedAcc = trim( $_GET['accname'] );
+if ( empty( $sKey ) && !$fAssigned ) {
+	die( '-12:KeyIsEmpty' );
+}
 
-if ( $sRequestedKey == $sKey && !$fAssigned ) {
+$sRequestedKey = isset( $_GET['key'] )? trim( $_GET['key'] ): '';
+$sRequestedPin = isset( $_GET['pin'] )? md5( trim( $_GET['pin'] ) ): '';
+$sRequestedAcc = isset( $_GET['accname'] )? trim( $_GET['accname'] ): '';
+
+if ( $sRequestedKey == trim( $sKey ) && !$fAssigned ) {
 	if ( !update_option( Worpit_Plugin::$VariablePrefix.'pin', $sRequestedPin ) ) {
 		die( '-10:UpdateOptionFailed:'.Worpit_Plugin::$VariablePrefix.'pin:'.$sRequestedPin );
 	}
@@ -44,7 +48,7 @@ if ( $sRequestedKey == $sKey && !$fAssigned ) {
 	 */
 	$sOption = get_option( Worpit_Plugin::$VariablePrefix.'key' );
 	if ( $sOption != $sRequestedKey ) {
-		die( '-11:GetOptionFailed:'.Worpit_Plugin::$VariablePrefix.'key:'.$sRequestedPin );
+		die( '-11:GetOptionFailed:'.Worpit_Plugin::$VariablePrefix.'key:'.$sRequestedKey );
 	}
 	
 	$sOption = get_option( Worpit_Plugin::$VariablePrefix.'pin' );
