@@ -20,7 +20,7 @@ With Worpit you can:
 *	Install a brand new WordPress website automatically, anywhere you have cPanel web hosting
 *	Install the Worpit WordPress plugin from WordPress.org, or have Worpit do it for you automatically
 *	Log into your WordPress sites without remembering your WordPress login details.
-*	Worpit is new, but there's much more to come! And what's more, it's FREE!
+*	Worpit is new, but there's much more to come! And what's more, it's free to try!
 
 No more logging in to each individual website to perform the same, repetitive tasks.
 
@@ -28,9 +28,9 @@ No more logging in to each individual website to perform the same, repetitive ta
 
 = Is Worpit Free? =
 
-Yes. Currently if you manage up to 3 WordPress websites you can use Worpit completely free.
+Yes, you can try it for free with one WordPress site.
 
-[You can sign up free here](http://worpitapp.com/?src=wordpressplugin)
+[You can sign up free here](http://worpitapp.com/?src=plugin_readme)
 
 = Is Worpit secure? =
 
@@ -75,7 +75,7 @@ We then take this information and display it to you on the Worpit dashboard - th
 
 = If Worpit is free why is there a payment option? =
 
-If you have more than 3 Worpit sites, we consider you a professional/business user and contributing to 
+If want to manage more than 1 WordPress site, we feel contributing to 
 the development of the Worpit product is a fair request.
 
 = What is WorpDrive? =
