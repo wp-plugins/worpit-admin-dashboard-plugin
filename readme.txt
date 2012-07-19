@@ -1,4 +1,4 @@
-=== Worpit - Manage WordPress Better Plugin ===
+=== Worpit Plugin - Manage WordPress Better  ===
 Contributors: paultgoodchild, dlgoodchild
 Donate link: http://worpit.com/
 Tags: worpit, manage, wordpress manage, wordpress admin, backup, restore, bulk
@@ -8,9 +8,7 @@ Stable tag: 1.0.13
 
 == Description ==
 
-[Worpit: Manage WordPress Better](http://worpit.com/?src=wordpressplugin)
-
-Worpit lets you manage all your WordPress website from a single, fast, convenient dashboard.
+[Worpit: Manage WordPress Better](http://worpit.com/?src=wpt_readme) lets you manage all your WordPress website from a single, fast, convenient dashboard.
 
 With Worpit you can:
 
@@ -30,7 +28,7 @@ No more logging in to each individual website to perform the same, repetitive ta
 
 Yes, you can try it for free with one WordPress site.
 
-[You can sign up free here](http://worpitapp.com/?src=plugin_readme)
+[You can sign up free here](http://worpitapp.com/?src=wpt_readme)
 
 = Is Worpit secure? =
 
