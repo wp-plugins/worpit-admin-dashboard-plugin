@@ -1,26 +1,26 @@
-=== Worpit WordPress Admin Dashboard Plugin ===
+=== Worpit - Manage WordPress Better Plugin ===
 Contributors: paultgoodchild, dlgoodchild
 Donate link: http://worpit.com/
-Tags: worpit, wordpress admin, backup, restore, bulk
+Tags: worpit, manage, wordpress manage, wordpress admin, backup, restore, bulk
 Requires at least: 3.2.0
 Tested up to: 3.4
 Stable tag: 1.0.13
 
 == Description ==
 
-[Worpit: All-New WordPress Administration Dashboard](http://worpit.com/?src=wordpressplugin)
+[Worpit: Manage WordPress Better](http://worpit.com/?src=wordpressplugin)
 
-Worpit lets you admin all your WordPress website from a single, fast, convenient dashboard.
+Worpit lets you manage all your WordPress website from a single, fast, convenient dashboard.
 
 With Worpit you can:
 
-*	Monitor all your WordPress websites from a single Admin Dashboard
+*	Monitor all your WordPress websites from a single Manage WordPress Dashboard
 *	One-click update a plugin, a theme or even the WordPress Core.
 *	Update all plugins, all themes, all WordPress cores across all sites, or just a selection at once.
 *	Install a brand new WordPress website automatically, anywhere you have cPanel web hosting
 *	Install the Worpit WordPress plugin from WordPress.org, or have Worpit do it for you automatically
 *	Log into your WordPress sites without remembering your WordPress login details.
-*	Worpit is new, but there's much more to come! And what's more, it's FREE!
+*	Worpit is new, but there's much more to come! And what's more, it's free to try!
 
 No more logging in to each individual website to perform the same, repetitive tasks.
 
@@ -28,9 +28,9 @@ No more logging in to each individual website to perform the same, repetitive ta
 
 = Is Worpit Free? =
 
-Yes. Currently if you manage up to 3 WordPress websites you can use Worpit completely free.
+Yes, you can try it for free with one WordPress site.
 
-[You can sign up free here](http://worpitapp.com/?src=wordpressplugin)
+[You can sign up free here](http://worpitapp.com/?src=plugin_readme)
 
 = Is Worpit secure? =
 
@@ -75,7 +75,7 @@ We then take this information and display it to you on the Worpit dashboard - th
 
 = If Worpit is free why is there a payment option? =
 
-If you have more than 3 Worpit sites, we consider you a professional/business user and contributing to 
+If want to manage more than 1 WordPress site, we feel contributing to 
 the development of the Worpit product is a fair request.
 
 = What is WorpDrive? =
@@ -112,7 +112,7 @@ No. WorpDrive is available for a small monthly fee.
 
 = 1.0 =
 
-* Worpit Dashboard Admin Initial Release.
+* Worpit - Manage WordPress Better Initial Release.
 
 == Upgrade Notice ==
 
@@ -122,4 +122,4 @@ No. WorpDrive is available for a small monthly fee.
 
 = 1.0 =
 
-* Worpit Dashboard Admin Initial Release.
+* Worpit - Manage WordPress Better Initial Release.
