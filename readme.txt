@@ -1,20 +1,20 @@
-=== Worpit WordPress Admin Dashboard Plugin ===
+=== Worpit - Manage WordPress Better Plugin ===
 Contributors: paultgoodchild, dlgoodchild
 Donate link: http://worpit.com/
-Tags: worpit, wordpress admin, backup, restore, bulk
+Tags: worpit, manage, wordpress manage, wordpress admin, backup, restore, bulk
 Requires at least: 3.2.0
 Tested up to: 3.4
 Stable tag: 1.0.13
 
 == Description ==
 
-[Worpit: All-New WordPress Administration Dashboard](http://worpit.com/?src=wordpressplugin)
+[Worpit: Manage WordPress Better](http://worpit.com/?src=wordpressplugin)
 
-Worpit lets you admin all your WordPress website from a single, fast, convenient dashboard.
+Worpit lets you manage all your WordPress website from a single, fast, convenient dashboard.
 
 With Worpit you can:
 
-*	Monitor all your WordPress websites from a single Admin Dashboard
+*	Monitor all your WordPress websites from a single Manage WordPress Dashboard
 *	One-click update a plugin, a theme or even the WordPress Core.
 *	Update all plugins, all themes, all WordPress cores across all sites, or just a selection at once.
 *	Install a brand new WordPress website automatically, anywhere you have cPanel web hosting
@@ -112,7 +112,7 @@ No. WorpDrive is available for a small monthly fee.
 
 = 1.0 =
 
-* Worpit Dashboard Admin Initial Release.
+* Worpit - Manage WordPress Better Initial Release.
 
 == Upgrade Notice ==
 
@@ -122,4 +122,4 @@ No. WorpDrive is available for a small monthly fee.
 
 = 1.0 =
 
-* Worpit Dashboard Admin Initial Release.
+* Worpit - Manage WordPress Better Initial Release.

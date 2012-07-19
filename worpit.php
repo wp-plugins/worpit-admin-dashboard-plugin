@@ -1,7 +1,7 @@
 <?php
 
 /*
-Plugin Name: Worpit Admin Dashboard
+Plugin Name: Worpit - Manage WordPress Better Plugin
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
 Version: 1.0.13
