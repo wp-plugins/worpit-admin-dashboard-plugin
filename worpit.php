@@ -4,7 +4,7 @@
 Plugin Name: Worpit - Manage WordPress Better Plugin
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.0.13
+Version: 1.0.14
 Author: Worpit
 Author URI: http://worpit.com/
 */
@@ -41,7 +41,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	protected $m_oAuditor;
 
-	public static $VERSION = '1.0.13';
+	public static $VERSION = '1.0.14';
 	
 	public function __construct() {
 		parent::__construct();

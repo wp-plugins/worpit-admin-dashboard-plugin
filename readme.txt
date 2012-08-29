@@ -4,7 +4,7 @@ Donate link: http://worpit.com/
 Tags: worpit, manage, wordpress manage, wordpress admin, backup, restore, bulk
 Requires at least: 3.2.0
 Tested up to: 3.4
-Stable tag: 1.0.13
+Stable tag: 1.0.14
 
 == Description ==
 
@@ -15,10 +15,12 @@ With Worpit you can:
 *	Monitor all your WordPress websites from a single Manage WordPress Dashboard
 *	One-click update a plugin, a theme or even the WordPress Core.
 *	Update all plugins, all themes, all WordPress cores across all sites, or just a selection at once.
+*	Optimize all your WordPress sites without extra plugins: [clean up WordPress](http://worpit.com/2012/07/optimize-clean-up-wordpress-worpit/?src=wpt_readme) 
+and [optimize the WordPress database](http://worpit.com/2012/07/how-to-optimize-wordpress-databases-with-worpit/?src=wpt_readme).
 *	Install a brand new WordPress website automatically, anywhere you have cPanel web hosting
 *	Install the Worpit WordPress plugin from WordPress.org, or have Worpit do it for you automatically
 *	Log into your WordPress sites without remembering your WordPress login details.
-*	Worpit is new, but there's much more to come! And what's more, it's free to try!
+*	Worpit is new, but there's much more to come! And what's more, it's free to get started!
 
 No more logging in to each individual website to perform the same, repetitive tasks.
 
@@ -74,7 +76,7 @@ We then take this information and display it to you on the Worpit dashboard - th
 = If Worpit is free why is there a payment option? =
 
 If want to manage more than 1 WordPress site, we feel contributing to 
-the development of the Worpit product is a fair request.
+the development of the Worpit product is fair.
 
 = What is WorpDrive? =
 
@@ -103,6 +105,10 @@ No. WorpDrive is available for a small monthly fee.
 5. Worpit provides 4 ways to install the plugin making it easy to get started.
 
 == Changelog ==
+
+= 1.0.14 =
+
+* No functional change, just some wording on plugin.
 
 = 1.0.13 =
 

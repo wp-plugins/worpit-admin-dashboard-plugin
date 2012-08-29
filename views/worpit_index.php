@@ -182,7 +182,7 @@
 						<div class="span11">
 							<h2>About Worpit</h2>
 							<div>
-								<p>Worpit is <strong>completely free</strong> when you want to admin up to 3 WordPress websites -
+								<p>Worpit is <strong>completely free</strong> to get started with 1 site and after you signup, you can get a free 3 site trial when you tweet about it -
 								<a href="http://bit.ly/LIjb8h" id="signupLinkWorpit" target="_blank">Sign Up for a Worpit WordPress admin account here</a>.</p>
 							</div>
 							<h3>Worpit Features [<a href="http://worpit.com/features/?src=worpitplugin" target="_blank">full details</a>]</h3>
@@ -191,7 +191,7 @@
 					<div class="row">
 						<div class="span5">
 							<ul>
-								<li>3 Free Sites For Life</li>
+								<li>Free to get started with one site (optional 3 site trial)</li>
 								<li>Manage all your WordPress sites in 1 place</li>
 								<li>One-click Updates for WordPress.org Plugins, Themes and WordPress Core</li>
 								<li>One-Click login to admin each WordPress website</li>
