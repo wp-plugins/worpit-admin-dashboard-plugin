@@ -4,7 +4,7 @@
 Plugin Name: Worpit - Manage WordPress Better Plugin
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.0.14
+Version: 1.0.15
 Author: Worpit
 Author URI: http://worpit.com/
 */
@@ -41,7 +41,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	protected $m_oAuditor;
 
-	public static $VERSION = '1.0.14';
+	public static $VERSION = '1.0.15';
 	
 	public function __construct() {
 		parent::__construct();
@@ -59,8 +59,56 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			$oInstall = new Worpit_Install();
 			$oUninstall = new Worpit_Uninstall();
 		}
+
+		// If the plugin is being initialised from Worpit App
+		if ( isset( $_POST['key'] ) && isset( $_POST['pin'] ) ) {
+			
+			if ( $this->worpitAuthenticate( $_POST ) ) {
+				
+				add_action( 'plugins_loaded', array($this, 'removeSecureWpHooks'), 1 );
+				add_action( 'init', array($this, 'setAuthorizedUser'), 0 );
+			}
+		}
 		
 // 		$this->m_oAuditor = new Worpit_Auditor();
+	}
+	
+	protected function worpitAuthenticate( $inaData ) {
+
+		$sOption = get_option( self::$VariablePrefix.'assigned' );
+		$fAssigned = ($sOption == 'Y');
+		if ( !$fAssigned ) {
+			return false;
+		}
+	
+		$sKey = get_option( self::$VariablePrefix.'key' );
+		if ( $sKey != trim( $inaData['key'] ) ) {
+			return false;
+		}
+	
+		$sPin = get_option( self::$VariablePrefix.'pin' );
+		if ( $sPin !== md5( trim( $inaData['pin'] ) ) ) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public function removeSecureWpHooks() {
+			
+		global $SecureWP;
+	
+		if ( class_exists( 'SecureWP' ) && isset( $SecureWP ) && is_object( $SecureWP ) ) {
+			remove_action( 'init', array($SecureWP, 'replace_wp_version'), 1 );
+			remove_action( 'init', array($SecureWP, 'remove_core_update'), 1 );
+			remove_action( 'init', array($SecureWP, 'remove_plugin_update'), 1 );
+			remove_action( 'init', array($SecureWP, 'remove_theme_update'), 1 );
+			remove_action( 'init', array($SecureWP, 'remove_wp_version_on_admin'), 1 );
+		}
+	}//removeSecureWpHooks
+	
+	public function setAuthorizedUser() {
+		wp_set_current_user( 1 );
 	}
 
 	protected function handlePluginFormSubmit() {
