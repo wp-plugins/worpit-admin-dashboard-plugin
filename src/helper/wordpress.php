@@ -1,6 +1,6 @@
 <?php
 
-class Helper_WordPress {
+class Worpit_Helper_WordPress {
 	
 	protected $m_sWpVersion;
 	

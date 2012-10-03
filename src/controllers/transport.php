@@ -1,6 +1,6 @@
 <?php
 
-class Controllers_Transport extends Controllers_Base {
+class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 
 	public function index() {
 		$this->success( array() );
@@ -55,28 +55,36 @@ class Controllers_Transport extends Controllers_Base {
 		$_POST['prevent_auto_run'] = '1';
 		
 		/**
+		 * @since 1.0.14
+		 */
+		$_POST['rel_package_dir'] = '';
+		$_POST['abs_package_dir'] = '';
+		
+		/**
 		 * @since 1.0.8
 		 */
 		if ( isset( $_POST['using_ftp'] ) ) {
-			$sAbsTarget = dirname(__FILE__).DS.$_POST['temp_dir_name'];
+			$sAbsTarget = dirname(__FILE__).WORPIT_DS.$_POST['temp_dir_name'];
 			if ( !is_dir( $sAbsTarget ) ) {
 				$this->fail( 'Expected directory "'.$sAbsTarget.'" does not exist.' );
 			}
 			
-			if ( !is_file( $sAbsTarget.DS.'installer.php' ) ) {
+			if ( !is_file( $sAbsTarget.WORPIT_DS.'installer.php' ) ) {
 				$this->fail( 'An installer was not found for the package located at "'.$sAbsTarget.'".' );
 			}
 			
-			if ( is_file( $sAbsTarget.DS.'request_data.php' ) && is_writable( $sAbsTarget.DS.'request_data.php' ) ) {
-				file_put_contents( $sAbsTarget.DS.'request_data.php', $this->getWritableRequestData( $_POST ) );
+			if ( is_file( $sAbsTarget.WORPIT_DS.'request_data.php' ) && is_writable( $sAbsTarget.WORPIT_DS.'request_data.php' ) ) {
+				file_put_contents( $sAbsTarget.WORPIT_DS.'request_data.php', $this->getWritableRequestData( $_POST ) );
 			}
 			
-			include_once( $sAbsTarget.DS.'installer.php' );
+			include_once( $sAbsTarget.WORPIT_DS.'installer.php' );
 		}
 		else {
 			$sTempDir = false;
 			if ( !isset( $_POST['force_use_eval'] ) ) {
 				$sTempDir = createTempDir( dirname(__FILE__), 'pkg_' );
+				$_POST['rel_package_dir'] = str_replace( dirname(__FILE__), '', $sTempDir );
+				$_POST['abs_package_dir'] = $sTempDir;
 			}
 			
 			$sWritableRequestData = $this->getWritableRequestData( $_POST );
@@ -94,17 +102,7 @@ class Controllers_Transport extends Controllers_Base {
 							$aFileContents[$aUpload['name']] = file_get_contents( $aUpload['tmp_name'] );
 						}
 					}
-					
-					/**
-					 * There is a greater likelyhood of there being a PHP error, so ideally we want the
-					 * operation to fail and to be able to read the error by using display_errors
-					 */
-					@error_reporting( E_ALL );
-					if ( worpitFunctionExists( 'ini_set' ) ) {
-						@ini_set( 'display_errors', 1 );
-						@ini_set( 'log_errors', 1 );
-					}
-					
+										
 					eval( ' ?>'.$sWritableRequestData );
 					
 					$aEvalOrder = explode( ',', $_REQUEST['eval_order'] );
@@ -129,7 +127,7 @@ class Controllers_Transport extends Controllers_Base {
 			else {
 				foreach ( $_FILES as $sKey => $aUpload ) {
 					if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
-						$sMoveTarget = $sTempDir.DS.$aUpload['name'];
+						$sMoveTarget = $sTempDir.WORPIT_DS.$aUpload['name'];
 						if ( !move_uploaded_file( $aUpload['tmp_name'], $sMoveTarget ) ) {
 							$this->fail( sprintf( 'Failed to move uploaded file from %s to %s', $aUpload['tmp_name'], $sMoveTarget ) );
 						}
@@ -140,16 +138,16 @@ class Controllers_Transport extends Controllers_Base {
 					}
 				}
 				
-				if ( !file_put_contents( $sTempDir.DS.'request_data.php', $sWritableRequestData."\n" ) ) {
+				if ( !file_put_contents( $sTempDir.WORPIT_DS.'request_data.php', $sWritableRequestData."\n" ) ) {
 					$nVal = removeTempDir( $sTempDir );
 					$this->logMerge( $aRemoveOutput );
 					$this->fail( 'Failed to create dynamic request data config file.' );
 				}
 				else {
-					chmod( $sTempDir.DS.'request_data.php', 0644 );
+					chmod( $sTempDir.WORPIT_DS.'request_data.php', 0644 );
 				}
 				
-				include_once( $sTempDir.DS.'installer.php' );
+				include_once( $sTempDir.WORPIT_DS.'installer.php' );
 			}
 		}
 		
@@ -163,12 +161,12 @@ class Controllers_Transport extends Controllers_Base {
 		$this->log( $aInstallerResponse );
 
 		$aRemoveOutput = array();
-		if ( $sTempDir !== false ) {
+		if ( $sTempDir !== false && @$_POST['async'] != '1' ) {
 			removeTempDir( $sTempDir );
 		}
 		
-		if ( $aInstallerResponse['success'] != true ) {
-			$this->fail( 'Failed to execute target: '.($aInstallerResponse['success']? 1: 0) );
+		if ( !$aInstallerResponse['success'] ) {
+			$this->fail( 'Package failed.' );
 		}
 
 		$aData = isset( $aInstallerResponse['data'] )? $aInstallerResponse['data']: '';
@@ -182,7 +180,7 @@ class Controllers_Transport extends Controllers_Base {
 	public function login() {
 		global $wp_version;
 		
-		$oWpHelper = new Helper_WordPress();
+		$oWpHelper = new Worpit_Helper_WordPress();
 
 		if ( !isset( $_GET['token'] ) ) {
 			//header( "Location: $location", true, $status);

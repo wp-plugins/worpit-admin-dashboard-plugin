@@ -55,7 +55,7 @@
 	<div class="bootstrap-wpadmin">
 		<div class="page-header">
 			<a href="http://worpit.com/"><div class="icon32" id="worpit-icon"><br /></div></a>
-			<h2>Worpit WordPress Admin Client Configuration</h2>
+			<h2>Worpit Client Configuration :: Manage WordPress Better</h2>
 		</div>
 		
 		<div class="row">
@@ -63,18 +63,18 @@
 				<div class="well">
 					<?php
 						if ( empty($wpv_key) ) {
-							echo '<h3>You need to generate your Authentication Key - reset your key using the red button below.</h3>';
+							echo '<h3>You need to generate your Access Key - reset your key using the red button below.</h3>';
 						} else {
-							echo '<h3>The unqiue Worpit Authentication Key for this site is: <span class="the-key">'.$wpv_key.'</span></h3>';
+							echo '<h3>The unqiue Worpit Access Key for this site is: <span class="the-key">'.$wpv_key.'</span></h3>';
 						}
 					?>
 					<div class="assigned-state">
 						<?php if ( $wpv_assigned === 'Y' ): ?>
-							<h4 id="isAssigned">Assigned to Worpit account: <?php echo $wpv_assigned_to; ?></h4>
+							<h4 id="isAssigned">Currently connected to Worpit account: <?php echo $wpv_assigned_to; ?></h4>
 							
 						<?php else: ?>
-							<h4 id="isNotAssigned">Currently waiting assignment request from a Worpit account. [ <a href="http://bit.ly/LIjb8h" id="signupLinkWorpit" target="_blank">Don't have a Worpit account? Get It Free!</a> ]</h4>
-							<p><strong>Important:</strong> if you don't intend to add this site now, disable this plugin to prevent this site being added to another Worpit account.</p>
+							<h4 id="isNotAssigned">Currently waiting for connection from a Worpit account. [ <a href="http://bit.ly/LIjb8h" id="signupLinkWorpit" target="_blank">Don't have a Worpit account? Get It Free!</a> ]</h4>
+							<p><strong>Important:</strong> if you don't plan to add this site now, disable this plugin to prevent this site from being added to another Worpit account.</p>
 						<?php endif; ?>
 					</div>
 					
@@ -88,8 +88,8 @@
 					
 					<div class="enable-handshake-authentication">
 						<h3>Allow Plugin Hand-Shaking</h3>
-						<p>By default, this option is not enabled because some configurations do not work well with it.</p>
-						<p>When the plugin connects to Worpit, it will test if hand-shaking authentication is supported, and if so, this will be enabled.</p>
+						<p>Normally, this option is not turned on because some websites do not work well with it.</p>
+						<p>If you do turn it on, it will increase your plugin security - the plugin will "phone home" to Worpit App with every connection to see that the request came from Worpit App.</p>
 						<p><strong>Warning:</strong> Do not enable this option until you have synchronized your site with your Worpit account.</p>
 						<div class="<?php echo ( $wpv_can_handshake !== 'Y' )? 'cant-handshake' : ''; ?>">
 							<form action="<?php echo ( $wpv_can_handshake === 'Y' )? $wpv_form_action : ''; ?>" method="POST" name="form-hand-shaking" id="form-hand-shaking">
@@ -121,9 +121,9 @@
 				<div class="well">
 					
 					<div class="reset-authentication" name="">
-						<h3>Reset Worpit Authentication Key</h3>
-						<p>In case you want to regenerate this key, for whatever reason, you may do so using the button below</p>
-						<p><strong>Warning:</strong> Clicking this button <em>will disconnect this site if it has been assigned to a Worpit account</em>. <u>Not Recommended</u>.</p>
+						<h3>Reset Worpit Access Key</h3>
+						<p>You can break the connection with Worpit and regenerate a new access key, using the button below</p>
+						<p><strong>Warning:</strong> Clicking this button <em>will disconnect this site if it has been added to a Worpit account</em>. <u>Not Recommended</u>.</p>
 						<div>
 							<form action="<?php echo $wpv_form_action; ?>" method="POST" name="form-reset-auth" id="form-reset-auth">
 								<?php wp_nonce_field( $wpv_nonce_field ); ?>

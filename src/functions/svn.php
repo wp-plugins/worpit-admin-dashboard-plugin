@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @param string $insCmd
+ * @param string $insTarget
+ * @param string $insUser
+ * @param string $insPass
+ * @param string $insExtra
+ * @param integer $innTimeout
+ * @return string
+ */
 function buildSubversionRequest( $insCmd, $insTarget, $insUser, $insPass, $insExtra = '', $innTimeout = 0 ) {
 	$aCommand = array(
 		'svn',

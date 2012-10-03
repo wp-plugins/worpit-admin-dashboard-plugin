@@ -47,7 +47,7 @@ class Worpit_Plugin_Base {
 	}
 	
 	protected function display( $insView, $inaData = array() ) {
-		$sFile = dirname(__FILE__).DS.'..'.DS.'..'.DS.self::$ViewDir.DS.$insView.self::$ViewExt;
+		$sFile = dirname(__FILE__).WORPIT_DS.'..'.WORPIT_DS.'..'.WORPIT_DS.self::$ViewDir.WORPIT_DS.$insView.self::$ViewExt;
 		
 		if ( !is_file( $sFile ) ) {
 			echo "View not found: ".$sFile;
@@ -85,11 +85,11 @@ class Worpit_Plugin_Base {
 	}
 	
 	protected function getImageUrl( $insImage ) {
-		return self::$PluginUrl.'images'.DS.$insImage;
+		return self::$PluginUrl.'images'.WORPIT_DS.$insImage;
 	}
 	
 	protected function getCssUrl( $insStylesheet ) {
-		return self::$PluginUrl.'css'.DS.$insStylesheet;
+		return self::$PluginUrl.'css'.WORPIT_DS.$insStylesheet;
 	}
 	
 	protected function getSubmenuPageTitle( $insTitle ) {

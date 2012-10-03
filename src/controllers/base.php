@@ -1,6 +1,6 @@
 <?php
 
-class Controllers_Base {
+class Worpit_Controllers_Base {
 	
 	protected $m_aOutput = array();
 	
@@ -9,15 +9,27 @@ class Controllers_Base {
 	}
 	
 	public function __destruct() {
+
+	}
+	
+	/**
+	 * @since 1.0.14
+	 *
+	 * @return string
+	 */
+	protected function writeOutputLog() {
 		if ( !count( $this->m_aOutput ) ) {
-			return;
+			return '';
 		}
 		
 		$sFile = dirname(__FILE__).'/../../logs/output.'.time().'.php';
 		if ( !is_dir( dirname( $sFile ) ) && @mkdir( dirname( $sFile ), 0755, true ) ) {
-			
+		
 		}
-		@file_put_contents( $sFile, print_r( $this->m_aOutput, true ) );
+		
+		$sLogContents = print_r( $this->m_aOutput, true );
+		@file_put_contents( $sFile, $sLogContents );
+		return $sLogContents;
 	}
 
 	/**
@@ -28,14 +40,15 @@ class Controllers_Base {
 	 */
 	protected function success( $insBase64Data = '', $insMessage = '' ) {
 		$aResponse = array(
-			'success'	=> true,
-			'message'	=> $insMessage,
-			'data'		=> $insBase64Data,
+			'success'			=> true,
+			'message'			=> $insMessage,
+			'data'				=> $insBase64Data,
 			'base64response'	=> 1
 		);
-		echo serialize( $aResponse );
 		
-		$this->m_aOutput = array();
+		echo '<worpitresponse>'.serialize( $aResponse ).'</worpitresponse>';
+		echo "\n";
+		echo '<worpitoutput>'.$this->writeOutputLog().'</worpitoutput>';
 		
 		exit( 0 );
 	}
@@ -48,13 +61,15 @@ class Controllers_Base {
 	 */
 	protected function fail( $insMessage, $innErrno = -1 ) {
 		$aResponse = array(
-			'success'	=> false,
-			'error'		=> $insMessage,
-			'errno'		=> $innErrno,
-			'output'	=> $this->m_aOutput,
+			'success'			=> false,
+			'error'				=> $insMessage,
+			'errno'				=> $innErrno,
 			'base64response'	=> 1
 		);
-		echo serialize( $aResponse );
+		
+		echo '<worpitresponse>'.serialize( $aResponse ).'</worpitresponse>';
+		echo "\n";
+		echo '<worpitoutput>'.$this->writeOutputLog().'</worpitoutput>';
 		
 		exit( $innErrno );
 	}
@@ -110,22 +125,22 @@ class Controllers_Base {
 			'siteurl'				=> get_option( 'siteurl' ),
 			'document_root'			=> $_SERVER['DOCUMENT_ROOT'],
 
-			'abspath'				=> clp( ABSPATH ),
-			'includes_dir'			=> clp( ABSPATH . WPINC ),
+			'abspath'				=> worpitCLP( ABSPATH ),
+			'includes_dir'			=> worpitCLP( ABSPATH . WPINC ),
 
-			'content_dir'			=> clp( WP_CONTENT_DIR ),
-			'plugin_dir'			=> clp( WP_PLUGIN_DIR ),
+			'content_dir'			=> worpitCLP( WP_CONTENT_DIR ),
+			'plugin_dir'			=> worpitCLP( WP_PLUGIN_DIR ),
 
 			'content_url'			=> WP_CONTENT_URL,
 			'plugin_url'			=> WP_PLUGIN_URL,
 
-			'plugin_worpit'			=> str_replace( clp( WP_PLUGIN_DIR ).'/', '', clp( dirname(__FILE__) ) ).'/worpit.php',
+			'plugin_worpit'			=> str_replace( worpitCLP( WP_PLUGIN_DIR ).'/', '', worpitCLP( dirname(__FILE__) ) ).'/worpit.php',
 
 			'site_dir'				=> $sSiteDir,
-			'abs_site_dir'			=> clp( $_SERVER['DOCUMENT_ROOT'] ).rtrim( $sSiteDir, '/' ),
+			'abs_site_dir'			=> worpitCLP( $_SERVER['DOCUMENT_ROOT'] ).rtrim( $sSiteDir, '/' ),
 
 			'home_dir'				=> $sHomeDir,
-			'abs_home_dir'			=> clp( $_SERVER['DOCUMENT_ROOT'] ).rtrim( $sHomeDir, '/' ),
+			'abs_home_dir'			=> worpitCLP( $_SERVER['DOCUMENT_ROOT'] ).rtrim( $sHomeDir, '/' ),
 		);
 
 		return $aPackageConstants;
@@ -138,21 +153,34 @@ class Controllers_Base {
 	 * @since 1.0.8
 	 */
 	protected function getWritableRequestData( $inaData ) {
+		$sColumnLength = 40;
 		$sWritableRequestData = "<?php \n";
 		if ( count( $inaData ) == 0 ) {
 			return $sWritableRequestData;
 		}
 		
+		$fRuntimeEscape = ( get_magic_quotes_gpc() || get_magic_quotes_runtime() );
+		
 		foreach ( $inaData as $sKey => $sValue ) {
 			if ( in_array( $sKey, array( 'key', 'pin', 'action' ) ) ) {
 				continue;
 			}
-			$sWritableRequestData .= "define( 'REQUEST_".strtoupper( $sKey )."', \"".$sValue."\" );"."\n";
+			if ( $fRuntimeEscape ) {
+				$sValue = stripslashes( $sValue );
+			}
+			$sSpacing = str_repeat( "\t", ceil( ($sColumnLength - ( strlen( $sKey ) + 19)) / 4 ) );
+			$sWritableRequestData .= "define( 'REQUEST_".strtoupper( $sKey )."',".$sSpacing."\"".$sValue."\" );"."\n";
 		}
-	
+		$sWritableRequestData .= "\n";
+		
 		$sPackageConstants = $this->getPackageConstants();
 		foreach ( $sPackageConstants as $sKey => $sValue ) {
-			$sWritableRequestData .= "define( 'OPTION_".strtoupper( $sKey )."', \"".$sValue."\" );"."\n";
+			if ( $fRuntimeEscape ) {
+				$sValue = stripslashes( $sValue );
+				$sWritableRequestData .= "# Stripping Data\n";
+			}
+			$sSpacing = str_repeat( "\t", ceil( ($sColumnLength - ( strlen( $sKey ) + 19)) / 4 ) );
+			$sWritableRequestData .= "define( 'OPTION_".strtoupper( $sKey )."',".$sSpacing."\"".$sValue."\" );"."\n";
 		}
 		
 		return $sWritableRequestData;

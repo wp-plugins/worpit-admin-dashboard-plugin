@@ -4,7 +4,7 @@ Donate link: http://worpit.com/
 Tags: worpit, manage, wordpress manage, wordpress admin, backup, restore, bulk
 Requires at least: 3.2.0
 Tested up to: 3.4
-Stable tag: 1.0.15
+Stable tag: 1.1.0
 
 == Description ==
 
@@ -80,7 +80,7 @@ the development of the Worpit product is fair.
 
 = What is WorpDrive? =
 
-WorpDrive is a new, [far more clever approach to WordPress backup and restore](http://worpdrive.com), 
+WorpDrive is a new, [far more clever approach to WordPress backup and restore](http://worpdrive.com/?src=wpt_readme), 
 and is a premium product available from with the Worpit control panel.
 
 It doesn't use FTP, Amazon S3, or any of the traditional painful approaches to website backup, 
@@ -106,6 +106,11 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= 1.1.0 =
+
+* Minimum required version to support [WorpDrive WordPress Backup and Recovery Service](http://worpdrive.com/?src=wpt_readme)
+* Better stability features that also allow for better handling of errors and unexpected plugin output.
+
 = 1.0.15 =
 
 * Removes interference from the 'Secure WordPess' plugin when the Worpit plugin initialises due to a request from the Worpit App service.
@@ -124,10 +129,7 @@ No. WorpDrive is available for a small monthly fee.
 
 == Upgrade Notice ==
 
-= 1.0.13 =
+= 1.1.0 =
 
-* Latest stable release.
-
-= 1.0 =
-
-* Worpit - Manage WordPress Better Initial Release.
+* Minimum required version to support [WorpDrive WordPress Backup and Recovery Service](http://worpdrive.com/?src=wpt_readme)
+* Better stability features that also allow for better handling of errors and unexpected plugin output.

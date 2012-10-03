@@ -1,232 +1,76 @@
 <?php
 
-if ( !defined( 'DS' ) ) {
-	define( 'DS',		DIRECTORY_SEPARATOR );
-}
+define( 'WORPIT_DS',						DIRECTORY_SEPARATOR );
+define( 'WORPIT_LOADER_PATH',				dirname(__FILE__) );
+define( 'WORPIT_VIEWS_PATH',				realpath( dirname(__FILE__).'/../views' ) );
+define( 'WORPIT_PHP_ERROR_LOG',				realpath( dirname(__FILE__).'/../php_error_log' ) );
+define( 'WORPIT_USER_AGENT',				'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.52 Safari/536.5' ); // 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)'
+define( 'WORPIT_VERIFICATION_TEST_URL', 	'http://worpitapp.com/dashboard/system/verification/test/' );
+define( 'WORPIT_VERIFICATION_CHECK_URL', 	'http://worpitapp.com/dashboard/system/verification/check/' );
 
-define( 'LOADER_PATH',	dirname(__FILE__) );
-define( 'VIEWS_PATH',	dirname(__FILE__).'/../views' );
-
+/**
+ * We want to mimic that we are WordPress admin when running any of this code.
+ * It should be clear to know that the core plugin file "worpit.php" does not
+ * include this file -infact it should never include this file.
+ */
 if ( !defined( 'WP_ADMIN' ) ) {
 	define( 'WP_ADMIN', true );
 }
 
 /**
- * Convert to Linux Path
- *
- * @param $insPath
+ * Thirdparty inclusions
  */
-function clp( $insPath ) {
-	return str_replace( '\\', '/', $insPath );
-}
+require_once( dirname(__FILE__).'/functions/JSON.php' );
 
-function worpitFindWpLoad() {
-	$sLoaderPath = dirname(__FILE__);
-	$sFilename = 'wp-load.php';
-	$nLimiter = 0;
-	$fFound = false;
+/**
+ * Worpit specific functions
+ */
+require_once( dirname(__FILE__).'/functions/core.php' );
+require_once( dirname(__FILE__).'/functions/filesystem.php' );
+require_once( dirname(__FILE__).'/functions/svn.php' );
 
-	do {
-		if ( @is_file( $sLoaderPath.DS.$sFilename ) ) {
-			$fFound = true;
-			break;
-		}
-		$sLoaderPath .= DS.'..';
-		$nLimiter++;
-	}
-	while ( $nLimiter < 10 );
+/**
+ * Core classes
+ */
+require_once( dirname(__FILE__).'/controllers/base.php' );
+require_once( dirname(__FILE__).'/controllers/transport.php' );
+require_once( dirname(__FILE__).'/helper/wordpress.php' );
+require_once( dirname(__FILE__).'/plugin/base.php' );
 
-	if ( !$fFound ) {
-		die( '-9999:Failed to find WP env ('.$sLoaderPath.DS.$sFilename.')' );
-	}
-	
-	return $sLoaderPath.DS.$sFilename;
-}
-
-function worpitClassAutoLoader( $insClass ) {
-	$sFile = '';
-	$aNamespace = explode( '_', strtolower( $insClass ) );
-	array_unshift( $aNamespace, 'src' );
-
-	if ( count( $aNamespace ) > 1 && $aNamespace[0] == 'src' ) {
-		$sFile = LOADER_PATH;
-		array_shift( $aNamespace );
-
-		foreach ( $aNamespace as $sPath ) {
-			$sFile .= DS.strtolower( $sPath );
-		}
-		$sFile .= '.php';
-
-		if ( !@is_file( $sFile ) ) {
-			return false;
-		}
-
-		@include_once( $sFile );
-		if ( !class_exists( $insClass, false ) ) {
-			//trigger_error( "Class ".$insClass." not found", E_USER_ERROR );
-		}
-	}
-}
-
-function worpitAuthenticate( $inaData ) {
-	$sOption = get_option( Worpit_Plugin::$VariablePrefix.'assigned' );
-	$fAssigned = ($sOption == 'Y');
-	if ( !$fAssigned ) {
-		die( '-9999:NotAssigned:'.$sOption );
-	}
-
-	$sKey = get_option( Worpit_Plugin::$VariablePrefix.'key' );
-	if ( $sKey != trim( $inaData['key'] ) ) {
-		die( '-9998:InvalidKey:'.$inaData['key'] );
-	}
-
-	$sPin = get_option( Worpit_Plugin::$VariablePrefix.'pin' );
-	if ( $sPin !== md5( trim( $inaData['pin'] ) ) ) {
-		die( '-9997:InvalidPin:'.$inaData['pin'] );
-	}
-
-	if ( isset( $inaData['timeout'] ) ) {
-		@set_time_limit( intval( $inaData['timeout'] ) );
-	}
-	else {
-		@set_time_limit( 60 );
-	}
-	return true;
-}
-
-function worpitVerifyPackageRequest( $inaData ) {
-	if ( get_option( Worpit_Plugin::$VariablePrefix.'can_handshake' ) != 'Y' ) {
-		return true;
-	}
-	
-	if ( get_option( Worpit_Plugin::$VariablePrefix.'handshake_enabled' ) != 'Y' ) {
-		return true;
-	}
-	
-	// TODO: Use cURL if available or openSSL if available.
-	$sUrl = sprintf( 'http://worpitapp.com/dashboard/system/verification/check/%s/%s/%s',
-		$inaData['verification_code'], $inaData['package_name'], $inaData['pin']
-	);
-	
-	$sContents = @file_get_contents( $sUrl );
-	
-	if ( empty( $sContents ) || $sContents === false ) {
-		update_option( Worpit_Plugin::$VariablePrefix.'can_handshake', (worpitCheckCanHandshake()? 'Y': 'N') );
-		die( '-9996:VerifyCallFailed: '.$sUrl.' : '.$sContents );
-	}
-	
-	$oJson = json_decode( $sContents );
-	if ( !isset( $oJson->success ) || $oJson->success !== true ) {
-		die( '-9995:VerifyInvalid: '.$sUrl.' : '.$sContents );
-	}
-	
-	return true;
-}
-
-function worpitValidateSystem() {
-	/*
-	if ( ini_get( 'safe_mode' ) ) {
-		die( '-4:SafeModeEnabled' );
-	}
-	*/
-	//WorpitApp IP: 69.36.185.61
-	//$_SERVER['REMOTE_ADDR'];
-
-	//-6,-7,-8 reserved
-
-	if ( count( $_GET ) == 0 ) {
-		die( '-5:GetRequestEmpty' );
-	}
-
-	if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
-		die( '-4:InvalidPhpVersion' );
-	}
-
-	if ( function_exists( 'is_multisite' ) && is_multisite() ) {
-		die( '-3:Multisite' );
-	}
-}
-
-function worpitCheckCanHandshake() {
-	$sContents = @file_get_contents( 'http://worpitapp.com/dashboard/system/verification/test/' );
-	
-	if ( empty( $sContents ) || $sContents === false ) {
-		return false;
-	}
-	
-	$oJson = json_decode( $sContents );
-	
-	if ( !isset( $oJson->success ) || $oJson->success !== true ) {
-		return false;
-	}
-	return true;
-}
-
-function worpitFunctionExists( $insFunc ) {
-	if ( extension_loaded( 'suhosin' ) ) {
-		$sBlackList = @ini_get( "suhosin.executor.func.blacklist" );
-		if ( !empty( $sBlackList ) ) {
-			$aBlackList = explode( ',', $sBlackList );
-			$aBlackList = array_map( 'trim', $aBlackList );
-			$aBlackList = array_map( 'strtolower', $aBlackList );
-			return ( function_exists( $insFunc ) == true && array_search( $insFunc, $aBlackList ) === false );
-		}
-	}
-	return function_exists( $insFunc );
-}
-
+/**
+ * We want full error reporting and handling so that eventually we can help people fix their blogs and also
+ * because our responses are wrapped, then we can
+ */
 if ( worpitFunctionExists( 'ini_set' ) ) {
-	@ini_set( 'error_log',		dirname(__FILE__).'/../php_error_log' );
+	@ini_set( 'error_log',		WORPIT_PHP_ERROR_LOG );
 	@ini_set( 'log_errors',		1 );
-	@ini_set( 'display_errors',	0 );
+	@ini_set( 'display_errors',	1 );
 }
 
+/**
+ * Hardcore error reporting so that we know about as much as possible. All our responses are wrapped up so we're ok!
+ */
 if ( worpitFunctionExists( 'error_reporting' ) ) {
 	error_reporting( E_ALL );
 }
 
+/**
+ * Begin
+ */
 worpitValidateSystem();
 
 require_once( worpitFindWpLoad() );
 
 /**
- * Setup some autoloading magic; PHP => 5.1.2
+ * Log request in as an admin.
  */
-if ( worpitFunctionExists( 'spl_autoload_register' ) ) {
-	spl_autoload_register( 'worpitClassAutoLoader' );
-}
-else {
-	require_once( dirname(__FILE__).'/controllers/base.php' );
-	require_once( dirname(__FILE__).'/controllers/transport.php' );
-	require_once( dirname(__FILE__).'/helper/wordpress.php' );
+if ( function_exists( 'wp_set_current_user' ) ) {
+	wp_set_current_user( 1 );
 }
 
 // TODO: setup some error handling and general logging.
 
-/**
- * Include some required files that won't get picked up by the autoloader, and
- * also there's no point in going through that route anyway.
- */
-require_once( dirname(__FILE__).'/plugin/base.php' );
-require_once( dirname(__FILE__).'/functions/filesystem.php' );
-require_once( dirname(__FILE__).'/functions/svn.php' );
-require_once( dirname(__FILE__).'/functions/JSON.php' );
-
 $sMethod = 'index';
 if ( isset( $_GET['m'] ) && preg_match( '/[A-Z0-9_]+/i', $_GET['m'] ) ) {
 	$sMethod = $_GET['m'];
-}
-
-if ( !function_exists( 'json_encode' ) ) {
-	function json_encode( $inmData ) {
-		$oJson = new JSON();
-		return $oJson->serialize( $inmData );
-	}
-}
-
-if ( !function_exists( 'json_decode' ) ) {
-	function json_decode( $insData ) {
-		$oJson = new JSON();
-		return $oJson->unserialize( $insData );
-	}
 }

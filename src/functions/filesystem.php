@@ -1,13 +1,16 @@
 <?php
 
 /**
+ * Returns the temporary directory without a trailing slash.
+ *
  * @param string $insBaseDir
  * @param string $insPrefix
+ * @param string $outsRandomDir
  * @return boolean|string
  */
 if ( !function_exists( 'createTempDir' ) ) {
-	function createTempDir( $insBaseDir = null, $insPrefix = '' ) {
-		$sTemp = rtrim( (is_null( $insBaseDir )? sys_get_temp_dir(): $insBaseDir), DS ).DS;
+	function createTempDir( $insBaseDir = null, $insPrefix = '', &$outsRandomDir = '' ) {
+		$sTemp = rtrim( (is_null( $insBaseDir )? sys_get_temp_dir(): $insBaseDir), WORPIT_DS ).WORPIT_DS;
 		
 		$sCharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789';
 		do {
@@ -16,10 +19,9 @@ if ( !function_exists( 'createTempDir' ) ) {
 				$sDir .= $sCharset[(rand() % strlen( $sCharset ))];
 			}
 		}
-		while( is_dir( $sTemp.$sDir ) );
+		while ( is_dir( $sTemp.$sDir ) );
 		
-		//$nCurrentBasePerms = fileperms( $insBaseDir );
-		//chmod( $insBaseDir, 0755 );
+		$outsRandomDir = $sDir;
 		
 		$fSuccess = true;
 		if ( !@mkdir( $sTemp.$sDir, 0755, true ) ) {

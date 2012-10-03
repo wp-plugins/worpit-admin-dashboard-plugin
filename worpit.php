@@ -4,7 +4,7 @@
 Plugin Name: Worpit - Manage WordPress Better Plugin
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.0.15
+Version: 1.1.0
 Author: Worpit
 Author URI: http://worpit.com/
 */
@@ -33,7 +33,9 @@ Author URI: http://worpit.com/
 require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 include_once( dirname(__FILE__).'/src/plugin/base.php' );
 
-define( 'DS', DIRECTORY_SEPARATOR );
+if ( !defined( 'WORPIT_DS' ) ) {
+	define( 'WORPIT_DS', DIRECTORY_SEPARATOR );
+}
 
 global $wpdb;
 
@@ -41,7 +43,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	protected $m_oAuditor;
 
-	public static $VERSION = '1.0.15';
+	public static $VERSION = '1.1.0';
 	
 	public function __construct() {
 		parent::__construct();
@@ -49,7 +51,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		self::$PluginName		= basename(__FILE__);
 		self::$PluginPath		= plugin_basename( dirname(__FILE__) );
 		self::$PluginBasename	= plugin_basename( __FILE__ );
-		self::$PluginDir		= WP_PLUGIN_DIR.DS.self::$PluginPath.DS;
+		self::$PluginDir		= WP_PLUGIN_DIR.WORPIT_DS.self::$PluginPath.WORPIT_DS;
 		self::$PluginUrl		= WP_PLUGIN_URL.'/'.self::$PluginPath.'/';
 		
 		if ( is_admin() ) {
@@ -63,16 +65,23 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		// If the plugin is being initialised from Worpit App
 		if ( isset( $_POST['key'] ) && isset( $_POST['pin'] ) ) {
 			
-			if ( $this->worpitAuthenticate( $_POST ) ) {
+			if ( $this->worpitAuthenticate( $_POST ) ) { //It's a request coming from Worpit...
 				
 				add_action( 'plugins_loaded', array($this, 'removeSecureWpHooks'), 1 );
+				add_action( 'plugins_loaded', array($this, 'removeBetterWpSecurityHooks'), 1 );
 				add_action( 'init', array($this, 'setAuthorizedUser'), 0 );
 			}
 		}
 		
 // 		$this->m_oAuditor = new Worpit_Auditor();
 	}
-	
+
+	/**
+	 * A modified copy of that in transport.php to verfiy the key and the pin 
+	 * 
+	 * @param $inaData - $_POST
+	 * @return boolean
+	 */
 	protected function worpitAuthenticate( $inaData ) {
 
 		$sOption = get_option( self::$VariablePrefix.'assigned' );
@@ -94,6 +103,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		return true;
 	}
 	
+	/**
+	 * Remove actions setup by Secure WP plugin that interfere with Worpit synchronizing packages.
+	 * 
+	 * Should be hooked before 'init' priority 1.
+	 */
 	public function removeSecureWpHooks() {
 			
 		global $SecureWP;
@@ -107,10 +121,29 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 	}//removeSecureWpHooks
 	
+	/**
+	 * Remove actions setup by Better WP Security plugin that interfere with Worpit synchronizing packages.
+	 * 
+	 * Check secure.php for changes to these hooks. 
+	 */
+	public function removeBetterWpSecurityHooks() {
+		
+		global $bwps;
+		
+		if ( class_exists( 'bwps_secure' ) && isset( $bwps ) && is_object( $bwps ) ) {
+		
+			remove_action( 'plugins_loaded', array( $bwps, 'randomVersion' ) );
+			remove_action( 'plugins_loaded', array( $bwps, 'pluginupdates' ) );
+			remove_action( 'plugins_loaded', array( $bwps, 'themeupdates' ) );
+			remove_action( 'plugins_loaded', array( $bwps, 'coreupdates' ) );
+		}
+		
+	}
+	
 	public function setAuthorizedUser() {
 		wp_set_current_user( 1 );
 	}
-
+	
 	protected function handlePluginFormSubmit() {
 		
 		if ( !current_user_can( 'manage_options' ) || !isset( $_POST['worpit_admin_form_submit'] ) ) {
@@ -343,6 +376,20 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			';
 		
 			$this->getAdminNotice( $sNotice, 'error', true );
+		}
+		
+		//if the user is searching from WorpitApp.com
+		if ( isset( $_GET['worpitapp'] ) && $_GET['worpitapp'] == 'install' ) {
+			$sNotice = '
+					<form method="post" action="admin.php?page=worpit-admin">
+						<p>Looking for your Worpit Authentication Key?
+						<input type="submit" value="Get your Authentication Key here" name="submit" class="button-primary">
+						</p>
+					</form>
+			';
+		
+			$this->getAdminNotice( $sNotice, 'updated', true );
+			
 		}
 	}//onWpAdminNotices
 }
