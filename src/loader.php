@@ -62,6 +62,13 @@ worpitValidateSystem();
 require_once( worpitFindWpLoad() );
 
 /**
+ * Ensure that Worpit Plugin is accessible right after the WP system has been initiated.
+ */
+if ( !class_exists( 'Worpit_Plugin' ) ) {
+	worpitFatal( 1, 'PluginInactive' );
+}
+
+/**
  * Log request in as an admin.
  */
 if ( function_exists( 'wp_set_current_user' ) ) {

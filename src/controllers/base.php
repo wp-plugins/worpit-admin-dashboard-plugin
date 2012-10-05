@@ -28,7 +28,7 @@ class Worpit_Controllers_Base {
 		}
 		
 		$sLogContents = print_r( $this->m_aOutput, true );
-		@file_put_contents( $sFile, $sLogContents );
+		//@file_put_contents( $sFile, $sLogContents );
 		return $sLogContents;
 	}
 

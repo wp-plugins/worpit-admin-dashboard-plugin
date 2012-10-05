@@ -105,11 +105,7 @@ function worpitAuthenticate( $inaData ) {
  * @return boolean
  */
 function worpitVerifyPackageRequest( $inaData ) {
-	if ( worpitGetOption( 'can_handshake' ) != 'Y' ) {
-		return true;
-	}
-
-	if ( worpitGetOption( 'handshake_enabled' ) != 'Y' ) {
+	if ( worpitGetOption( 'can_handshake' ) != 'Y' || worpitGetOption( 'handshake_enabled' ) != 'Y' ) {
 		return true;
 	}
 	
@@ -117,11 +113,13 @@ function worpitVerifyPackageRequest( $inaData ) {
 	$fRemoteRead = worpitRemoteReadBasic( $sUrl, $sContents );
 	
 	if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
-		update_option( Worpit_Plugin::$VariablePrefix.'can_handshake', (worpitCheckCanHandshake()? 'Y': 'N') );
+		$fCanHandshake = worpitCheckCanHandshake();
+		update_option( Worpit_Plugin::$VariablePrefix.'can_handshake', ($fCanHandshake? 'Y': 'N') );
+		update_option( Worpit_Plugin::$VariablePrefix.'handshake_enabled', ($fCanHandshake? 'Y': 'N') );
 		worpitFatal( 9996, 'VerifyCallFailed: '.$sUrl.' : '.$sContents );
 	}
 
-	$oJson = json_decode( $sContents );
+	$oJson = json_decode( trim( $sContents ) );
 	if ( !isset( $oJson->success ) || $oJson->success !== true ) {
 		worpitFatal( 9995, 'VerifyInvalid: '.$sUrl.' : '.$sContents );
 	}
@@ -158,6 +156,9 @@ function worpitValidateSystem() {
 }
 
 /**
+ * This method is used by the verify package, therefore if the content is not json
+ * parseable (i.e. HEADER = true), this will severely bust the verification process.
+ *
  * @param string $insUrl
  * @param string $outsResponse
  * @return boolean
@@ -178,7 +179,7 @@ function worpitRemoteReadBasic( $insUrl, &$outsResponse = '' ) {
 		curl_setopt( $oCurl, CURLOPT_MAXREDIRS,			10 );
 		curl_setopt( $oCurl, CURLOPT_CONNECTTIMEOUT,	15 );
 		curl_setopt( $oCurl, CURLOPT_TIMEOUT,			20 );
-		curl_setopt( $oCurl, CURLOPT_HEADER,			true );
+		curl_setopt( $oCurl, CURLOPT_HEADER,			false );
 
 		if ( preg_match( '/^https/i', $insUrl ) ) {
 			curl_setopt( $oCurl, CURLOPT_SSL_VERIFYPEER,	false );
@@ -203,9 +204,9 @@ function worpitRemoteReadBasic( $insUrl, &$outsResponse = '' ) {
 	else if ( ini_get( 'allow_url_fopen' ) == '1' ) {
 		$aOptions = array(
 			'http' => array(
-				'user_agent'    => WORPIT_USER_AGENT,
-				'max_redirects' => 10,
-				'timeout'       => 20,
+				'user_agent'	=> WORPIT_USER_AGENT,
+				'max_redirects'	=> 10,
+				'timeout'		=> 20,
 			)
 		);
 		$oContext = stream_context_create( $aOptions );
@@ -312,12 +313,12 @@ function worpitHttpRequest( $verb = 'GET', $ip, $port = 80, $uri = '/', $getdata
 */
 function worpitCheckCanHandshake() {
 	$fRemoteRead = worpitRemoteReadBasic( WORPIT_VERIFICATION_TEST_URL, $sContents );
-
+	
 	if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
 		return false;
 	}
 
-	$oJson = json_decode( $sContents );
+	$oJson = json_decode( trim( $sContents ) );
 
 	if ( !isset( $oJson->success ) || $oJson->success !== true ) {
 		return false;
