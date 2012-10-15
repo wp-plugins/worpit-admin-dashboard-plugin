@@ -4,7 +4,7 @@ Donate link: http://worpit.com/
 Tags: worpit, manage, wordpress manage, wordpress admin, backup, restore, bulk
 Requires at least: 3.2.0
 Tested up to: 3.4
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 
 == Description ==
 
@@ -106,6 +106,12 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= 1.1.2 =
+
+* Adds a .htaccess to the plugin root folder to cater for people who don't have their own .htaccess to prevent directory listing
+* Fixes compatibility with other plugins who have the same function names in some cases.
+* Work around Maintenance Mode plugin so Worpit functions still work even in maintenance mode.
+
 = 1.1.1 =
 
 * Fix for handshaking features.
@@ -133,7 +139,8 @@ No. WorpDrive is available for a small monthly fee.
 
 == Upgrade Notice ==
 
-= 1.1.1 =
+= 1.1.2 =
 
+* Adds a .htaccess to the plugin root folder to cater for people who don't have their own .htaccess to prevent directory listing
+* Fixes compatibility with other plugins who have the same function names in some cases.
 * Minimum required version to support [WorpDrive WordPress Backup and Recovery Service](http://worpdrive.com/?src=wpt_readme)
-* Better stability features that also allow for better handling of errors and unexpected plugin output.

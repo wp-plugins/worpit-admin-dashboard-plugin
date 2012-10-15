@@ -8,8 +8,8 @@
  * @param string $outsRandomDir
  * @return boolean|string
  */
-if ( !function_exists( 'createTempDir' ) ) {
-	function createTempDir( $insBaseDir = null, $insPrefix = '', &$outsRandomDir = '' ) {
+if ( !function_exists( 'worpitCreateTempDir' ) ) {
+	function worpitCreateTempDir( $insBaseDir = null, $insPrefix = '', &$outsRandomDir = '' ) {
 		$sTemp = rtrim( (is_null( $insBaseDir )? sys_get_temp_dir(): $insBaseDir), WORPIT_DS ).WORPIT_DS;
 		
 		$sCharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789';
@@ -37,10 +37,10 @@ if ( !function_exists( 'createTempDir' ) ) {
  * @param string $outsOutput
  * @return boolean
  */
-if ( !function_exists( 'removeTempDir' ) ) {
-	function removeTempDir( $insDir ) {
+if ( !function_exists( 'worpitRemoveTempDir' ) ) {
+	function worpitRemoveTempDir( $insDir ) {
 		if ( is_dir( $insDir ) ) {
-			return rrmdir( $insDir );
+			return worpitRemoveDir( $insDir );
 		}
 		return false;
 	}
@@ -50,11 +50,11 @@ if ( !function_exists( 'removeTempDir' ) ) {
  * @param string $insDir
  * @return void
  */
-if ( !function_exists( 'rrmdir' ) ) {
-	function rrmdir( $insDir ) {
+if ( !function_exists( 'worpitRemoveDir' ) ) {
+	function worpitRemoveDir( $insDir ) {
 		foreach ( glob( $insDir . '/*' ) as $sFile ) {
 			if ( is_dir( $sFile ) ) {
-				rrmdir( $sFile );
+				worpitRemoveDir( $sFile );
 			}
 			else {
 				unlink( $sFile );
@@ -70,8 +70,8 @@ if ( !function_exists( 'rrmdir' ) ) {
  * @param string $insForFilename
  * @return boolean|string
  */
-if ( !function_exists( 'backwardsRecursiveFileSearch' ) ) {
-	function backwardsRecursiveFileSearch( $insStartDir, $innLevels, $insForFilename ) {
+if ( !function_exists( 'worpitBackwardsRecursiveFileSearch' ) ) {
+	function worpitBackwardsRecursiveFileSearch( $insStartDir, $innLevels, $insForFilename ) {
 		$sSearchDir = $insStartDir;
 		$nLimiter = 0;
 		$fFound = false;

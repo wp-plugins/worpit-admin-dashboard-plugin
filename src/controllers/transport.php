@@ -17,7 +17,7 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 		worpitAuthenticate( $_POST );
 		worpitVerifyPackageRequest( $_POST );
 		
-		$sTempDir = createTempDir( dirname(__FILE__), '.pkg_' );
+		$sTempDir = worpitCreateTempDir( dirname(__FILE__), '.pkg_' );
 		
 		$aData = array(
 			'_SERVER'				=> $_SERVER,
@@ -31,7 +31,7 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 		);
 		
 		if ( $sTempDir !== false ) {
-			removeTempDir( $sTempDir );
+			worpitRemoveTempDir( $sTempDir );
 		}
 		
 		$this->success( $aData );
@@ -82,7 +82,7 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 		else {
 			$sTempDir = false;
 			if ( !isset( $_POST['force_use_eval'] ) ) {
-				$sTempDir = createTempDir( dirname(__FILE__), '.pkg_' );
+				$sTempDir = worpitCreateTempDir( dirname(__FILE__), '.pkg_' );
 				$_POST['rel_package_dir'] = str_replace( dirname(__FILE__), '', $sTempDir );
 				$_POST['abs_package_dir'] = $sTempDir;
 			}
@@ -139,7 +139,7 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 				}
 				
 				if ( !file_put_contents( $sTempDir.WORPIT_DS.'request_data.php', $sWritableRequestData."\n" ) ) {
-					$nVal = removeTempDir( $sTempDir );
+					$nVal = worpitRemoveTempDir( $sTempDir );
 					$this->logMerge( $aRemoveOutput );
 					$this->fail( 'Failed to create dynamic request data config file.' );
 				}
@@ -162,7 +162,7 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 
 		$aRemoveOutput = array();
 		if ( $sTempDir !== false && @$_POST['async'] != '1' ) {
-			removeTempDir( $sTempDir );
+			worpitRemoveTempDir( $sTempDir );
 		}
 		
 		if ( !$aInstallerResponse['success'] ) {

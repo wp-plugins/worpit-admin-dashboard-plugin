@@ -1,10 +1,10 @@
 <?php
 
 /*
-Plugin Name: Worpit - Manage WordPress Better Plugin
+Plugin Name: Worpit - Manage WordPress Better
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.1.1
+Version: 1.1.2
 Author: Worpit
 Author URI: http://worpit.com/
 */
@@ -43,7 +43,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	protected $m_oAuditor;
 
-	public static $VERSION = '1.1.1';
+	public static $VERSION = '1.1.2';
 	
 	public function __construct() {
 		parent::__construct();
@@ -69,6 +69,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				
 				add_action( 'plugins_loaded', array($this, 'removeSecureWpHooks'), 1 );
 				add_action( 'plugins_loaded', array($this, 'removeBetterWpSecurityHooks'), 1 );
+				add_action( 'plugins_loaded', array($this, 'removeMaintenanceModeHook'), 1 );
 				add_action( 'init', array($this, 'setAuthorizedUser'), 0 );
 			}
 		}
@@ -77,8 +78,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 
 	/**
-	 * A modified copy of that in transport.php to verfiy the key and the pin 
-	 * 
+	 * A modified copy of that in transport.php to verfiy the key and the pin
+	 *
 	 * @param $inaData - $_POST
 	 * @return boolean
 	 */
@@ -105,7 +106,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	/**
 	 * Remove actions setup by Secure WP plugin that interfere with Worpit synchronizing packages.
-	 * 
+	 *
 	 * Should be hooked before 'init' priority 1.
 	 */
 	public function removeSecureWpHooks() {
@@ -123,8 +124,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	/**
 	 * Remove actions setup by Better WP Security plugin that interfere with Worpit synchronizing packages.
-	 * 
-	 * Check secure.php for changes to these hooks. 
+	 *
+	 * Check secure.php for changes to these hooks.
 	 */
 	public function removeBetterWpSecurityHooks() {
 		
@@ -139,6 +140,18 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 		
 	}
+	
+	/**
+	 * Removes any interruption from the Maintenance Mode plugin while Worpit is executing a package.
+	 */
+	public function removeMaintenanceModeHook() {
+		
+		global $myMaMo;
+		
+		if ( class_exists( 'MaintenanceMode' ) && isset( $myMaMo ) && is_object( $myMaMo ) ) {
+			remove_action('plugins_loaded', array( $myMaMo, 'ApplyMaintenanceMode') );
+		}
+	}//removeMaintenanceModeHook
 	
 	public function setAuthorizedUser() {
 		wp_set_current_user( 1 );
@@ -225,9 +238,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 					)
 				);
 				
-				$aData['.htaccess'] = backwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, '.htaccess' );
-				$aData['error_log'] = backwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'error_log' );
-				$aData['php_error_log'] = backwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'php_error_log' );
+				$aData['.htaccess'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, '.htaccess' );
+				$aData['error_log'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'error_log' );
+				$aData['php_error_log'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'php_error_log' );
 				
 				if ( !$fCanWrite ) {
 					echo "<h4>Your system configuration does not allow writing to the filesystem.</h4>";
