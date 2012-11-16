@@ -19,6 +19,9 @@ class Worpit_Plugin_Base {
 	static public $ViewExt				= '.php';
 	static public $ViewDir				= 'views';
 	
+	protected $m_sParentMenuIdSuffix;
+	protected $m_aAllPluginOptions;
+	
 	public function __construct() {
 		add_action( 'init',				array( &$this, 'onWpInit' ), 1 );
 		add_action( 'admin_init',		array( &$this, 'onWpAdminInit' ) );
@@ -28,6 +31,10 @@ class Worpit_Plugin_Base {
 			add_action( 'admin_notices', array( &$this, 'onWpAdminNotices' ) );
 		}
 	}
+
+	protected function getFullParentMenuId() {
+		return self::$ParentMenuId;
+	}//getFullParentMenuId
 
 	/**
 	 * Override this method to handle all the admin notices
@@ -129,9 +136,26 @@ class Worpit_Plugin_Base {
 	}
 	
 	public function onWpAdminMenu() {
-		add_menu_page( self::$ParentTitle, self::$ParentName, self::$ParentPermissions, self::$ParentMenuId, array( $this, 'onDisplayMainMenu' ), $this->getImageUrl( 'worpit_16x16.png' ) );
+
+		$sFullParentMenuId = $this->getFullParentMenuId();
+		add_menu_page( self::$ParentTitle, self::$ParentName, self::$ParentPermissions, $sFullParentMenuId, array( $this, 'onDisplayMainMenu' ), $this->getImageUrl( 'worpit_16x16.png' ) );
+		
+		//Create and Add the submenu items
+		$this->createPluginSubMenuItems();
+		if ( !empty($this->m_aPluginMenu) ) {
+			foreach ( $this->m_aPluginMenu as $sMenuTitle => $aMenu ) {
+				list( $sMenuItemText, $sMenuItemId, $sMenuCallBack ) = $aMenu;
+				add_submenu_page( $sFullParentMenuId, $sMenuTitle, $sMenuItemText, self::$ParentPermissions, $sMenuItemId, array( &$this, $sMenuCallBack ) );
+			}
+		}
+		
+		$this->fixSubmenu();
 	}
-	
+
+	protected function createPluginSubMenuItems(){
+		$this->m_aPluginMenu = array();
+	}//createPluginSubMenuItems
+
 	public function onDisplayMainMenu() {
 		$aData = array(
 			'plugin_url'	=> self::$PluginUrl
@@ -216,5 +240,28 @@ class Worpit_Plugin_Base {
 				}
 				var oTimer = setTimeout( "redirect()", "'.($innTimeout * 1000).'" );
 			</script>';
+	}
+	
+	static public function getOption( $insKey ) {
+		return get_option( self::$VariablePrefix.$insKey );
+	}
+
+	static public function addOption( $insKey, $insValue ) {
+		return add_option( self::$VariablePrefix.$insKey, $insValue );
+	}
+
+	static public function updateOption( $insKey, $insValue ) {
+		if ( self::getOption( $insKey ) == $insValue ) {
+			return true;
+		}
+		$fResult = update_option( self::$VariablePrefix.$insKey, $insValue );
+		if ( !$fResult ) {
+			$this->m_fUpdateSuccessTracker = false;
+			$this->m_aFailedUpdateOptions[] = self::$VariablePrefix.$insKey;
+		}
+	}
+
+	static public function deleteOption( $insKey ) {
+		return delete_option( self::$VariablePrefix.$insKey );
 	}
 }

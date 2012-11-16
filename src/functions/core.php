@@ -175,8 +175,8 @@ function worpitRemoteReadBasic( $insUrl, &$outsResponse = '' ) {
 		curl_setopt( $oCurl, CURLOPT_URL,				$insUrl );
 		curl_setopt( $oCurl, CURLOPT_USERAGENT,			WORPIT_USER_AGENT );
 		curl_setopt( $oCurl, CURLOPT_RETURNTRANSFER,	1 );
-		curl_setopt( $oCurl, CURLOPT_FOLLOWLOCATION,	true );
-		curl_setopt( $oCurl, CURLOPT_MAXREDIRS,			10 );
+		@curl_setopt( $oCurl, CURLOPT_FOLLOWLOCATION,	true );
+		@curl_setopt( $oCurl, CURLOPT_MAXREDIRS,		10 );
 		curl_setopt( $oCurl, CURLOPT_CONNECTTIMEOUT,	15 );
 		curl_setopt( $oCurl, CURLOPT_TIMEOUT,			20 );
 		curl_setopt( $oCurl, CURLOPT_HEADER,			false );

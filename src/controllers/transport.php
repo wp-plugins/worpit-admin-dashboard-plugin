@@ -45,16 +45,6 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 		worpitVerifyPackageRequest( $_POST );
 
 		/**
-		 * @since 1.0.3
-		 */
-		$_POST['use_serialize'] = '1';
-		
-		/**
-		 * @since 1.0.4
-		 */
-		$_POST['prevent_auto_run'] = '1';
-		
-		/**
 		 * @since 1.0.14
 		 */
 		$_POST['rel_package_dir'] = '';

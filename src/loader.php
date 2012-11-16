@@ -27,7 +27,6 @@ require_once( dirname(__FILE__).'/functions/JSON.php' );
  */
 require_once( dirname(__FILE__).'/functions/core.php' );
 require_once( dirname(__FILE__).'/functions/filesystem.php' );
-require_once( dirname(__FILE__).'/functions/svn.php' );
 
 /**
  * Core classes

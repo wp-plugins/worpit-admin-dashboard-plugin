@@ -4,13 +4,13 @@
 Plugin Name: Worpit - Manage WordPress Better
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.1.2
+Version: 1.1.3
 Author: Worpit
 Author URI: http://worpit.com/
 */
 
 /**
- * Copyright (c) 2011 Worpit <helpdesk@worpit.com>
+ * Copyright (c) 2012 Worpit <helpdesk@worpit.com>
  * All rights reserved.
  *
  * "Worpit" is distributed under the GNU General Public License, Version 2,
@@ -32,6 +32,7 @@ Author URI: http://worpit.com/
 
 require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 include_once( dirname(__FILE__).'/src/plugin/base.php' );
+include_once( dirname(__FILE__).'/src/plugin/custom_options.php' );
 
 if ( !defined( 'WORPIT_DS' ) ) {
 	define( 'WORPIT_DS', DIRECTORY_SEPARATOR );
@@ -43,7 +44,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	protected $m_oAuditor;
 
-	public static $VERSION = '1.1.2';
+	static public $VERSION = '1.1.3';
+	
+	static public $CustomOptionsDbName = 'custom_options';
+	static public $CustomOptions; //the array of options written to WP Options
+	
+	protected $m_aWordPressSecurityOptions;
 	
 	public function __construct() {
 		parent::__construct();
@@ -65,7 +71,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		// If the plugin is being initialised from Worpit App
 		if ( isset( $_POST['key'] ) && isset( $_POST['pin'] ) ) {
 			
-			if ( $this->worpitAuthenticate( $_POST ) ) { //It's a request coming from Worpit...
+			if ( $this->worpitAuthenticate( $_POST ) ) { //It's a valid request coming from Worpit...
 				
 				add_action( 'plugins_loaded', array($this, 'removeSecureWpHooks'), 1 );
 				add_action( 'plugins_loaded', array($this, 'removeBetterWpSecurityHooks'), 1 );
@@ -74,7 +80,86 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			}
 		}
 		
+		self::Load_CustomOptionsData();
+		new Worpit_Plugin_Custom_Options(self::$CustomOptions);
+
+		if(  isset($_GET['test']) && is_admin() )
+			var_dump(self::$CustomOptions);
+		
 // 		$this->m_oAuditor = new Worpit_Auditor();
+	}
+	
+	/**
+	 * To force it to re-load from the WordPress options table pass true.
+	 * @param $infForceReload
+	 */
+	public static function Load_CustomOptionsData( $infForceReload = false ) {
+		
+		if ( isset( self::$CustomOptions ) && !$infForceReload ) {
+			return true; //no need to reload the data if we have it already.
+		}
+		
+		$oOptionVal = self::getOption( self::$CustomOptionsDbName );
+		if ( $oOptionVal !== false ) { //these options have been set before
+			self::$CustomOptions = $oOptionVal;
+		}
+		else {
+			//first time create of options
+			self::$CustomOptions = array();
+		}
+		
+		self::validateCustomOptions();
+		self::Store_CustomOptionsData();
+		
+	}
+	
+	/**
+	 * Add new options here and they'll be added automatically in all future runs.
+	 */
+	protected static function validateCustomOptions() {
+		self::Load_CustomOptionsData();
+		$aDefaultOptions = array(
+			'sec_hide_wp_version'			=>	'N',
+			'sec_hide_wlmanifest_link'		=>	'N',
+			'sec_hide_rsd_link'				=>	'N',
+			'sec_set_random_script_version'	=>	'N',
+			'sec_random_script_version'		=>	'',
+		);
+		
+		foreach( $aDefaultOptions as $sKey => $sValue ) {
+			if ( !array_key_exists( $sKey, self::$CustomOptions ) ) {
+				self::$CustomOptions[$sKey] = $sValue;
+			}
+		}
+	}
+	
+	public static function Store_CustomOptionsData() {
+		return self::updateOption( self::$CustomOptionsDbName, self::$CustomOptions );
+	}
+	
+	/**
+	 * Give an associative array.
+	 * 	'key1' => 'value1'
+	 * 	'key2' => 'value2'
+	 * 
+	 * @param $inaNewOptions
+	 */
+	public static function Update_CustomOptions( $inaNewOptions ) {
+		self::Load_CustomOptionsData();
+		
+		foreach( $inaNewOptions as $sNewKey => $sNewValue ) {
+			self::$CustomOptions[$sNewKey] = $sNewValue;
+		}
+		return self::Store_CustomOptionsData();
+	}
+	
+	/**
+	 * @param $insKey
+	 */
+	public static function Get_CustomOption( $insKey, $infForceReload = false ) {
+		
+		self::Load_CustomOptionsData($infReload);
+		return self::$CustomOptions[$insKey];
 	}
 
 	/**
@@ -138,8 +223,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			remove_action( 'plugins_loaded', array( $bwps, 'themeupdates' ) );
 			remove_action( 'plugins_loaded', array( $bwps, 'coreupdates' ) );
 		}
-		
-	}
+	}//removeBetterWpSecurityHooks
 	
 	/**
 	 * Removes any interruption from the Maintenance Mode plugin while Worpit is executing a package.
@@ -156,6 +240,38 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	public function setAuthorizedUser() {
 		wp_set_current_user( 1 );
 	}
+	
+	protected function initPluginOptions() {
+		/*
+		foreach ( $this->m_aAllPluginOptions as &$aOptionsSection ) {
+			
+			if ( !isset( $aOptionsSection['section_options'] ) ) {
+				continue;
+			}
+			
+			foreach( $aOptionsSection['section_options'] as $aOption ) {
+				list( $sName, $sValue, $sDefault, $sType ) = $aOption;
+				
+				self::$CustomOptions[ $sName ] = $sDefault;
+			}
+		}
+
+		$this->m_aWordPressSecurityOptions = 	array(
+				'section_title' => 'Worpit Security Settings',
+				'section_options' => array(
+					array( 'sec_hide_wp_version',			'',		'N', 	'checkbox',		'Hide WP Version', 'Do not publish WordPress version', 'asdf' ),
+					array( 'sec_hide_wlmanifest_link',		'',		'N', 	'checkbox',		'Version', 'Do', 'asdf' ),
+					array( 'sec_hide_rsd_link',				'',		'N', 	'checkbox',		'Version', 'Do', 'asdf' ),
+					array( 'sec_set_random_script_version',	'',		'N', 	'checkbox',		'Version', 'Do', 'asdf' ),
+					array( 'sec_random_script_version',		'',		'', 	'text',			'Version', 'Do', 'asdf' ),
+			),
+		);
+
+		$this->m_aAllPluginOptions = array( &$this->m_aWordPressSecurityOptions );
+
+		return true;
+		*/
+	}//initPluginOptions
 	
 	protected function handlePluginFormSubmit() {
 		
@@ -311,6 +427,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	public function onWpInit() {
 		parent::onWpInit();
+		add_action( 'wp_footer', array( $this, 'printPluginUri') );
 	}
 	
 	public function onWpAdminInit() {
@@ -338,6 +455,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		//add_submenu_page( self::ParentMenuId, $this->getSubmenuPageTitle( 'Bootstrap CSS' ), 'Bootstrap CSS', self::ParentPermissions, $this->getSubmenuId( 'bootstrap-css' ), array( &$this, 'onDisplayPlugin' ) );
 		//$this->fixSubmenu();
 	}
+
+	protected function createPluginSubMenuItems(){
+		$this->m_aPluginMenu = array(
+			//Menu Page Title => Menu Item name, page ID (slug), callback function for this page - i.e. what to do/load.
+			//$this->getSubmenuPageTitle( 'View Settings' ) => array( 'View Settings', $this->getSubmenuId('view-settings'), 'onDisplayViewSettings' )
+		);
+	}//createPluginSubMenuItems
 	
 	public function onDisplayMainMenu() {
 		$sDebugFile = get_option( self::$VariablePrefix.'debug_file' );
@@ -358,6 +482,29 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			'image_url'			=> $this->getImageUrl( '' )
 		);
 		$this->display( 'worpit_index', $aData );
+	}
+	
+	public function onDisplayViewSettings() {
+		
+		//populates plugin options with existing configuration
+		$this->populateAllPluginOptions();
+		
+		//Specify what set of options are available for this page
+		$aAvailableOptions = array( &$this->m_aWordPressSecurityOptions ) ;
+		
+		$sDebugFile = get_option( self::$VariablePrefix.'debug_file' );
+		$aData = array(
+			'plugin_url'		=> self::$PluginUrl,
+			'assigned'			=> $this->getOption( 'assigned' ),
+			'assigned_to'		=> $this->getOption( 'assigned_to' ),
+			'aAllOptions'		=> $aAvailableOptions,
+				
+			'can_handshake'		=> get_option( self::$VariablePrefix.'can_handshake' ),
+			'handshake_enabled'	=> get_option( self::$VariablePrefix.'handshake_enabled' ),
+				
+			'image_url'			=> $this->getImageUrl( '' )
+		);
+		$this->display( 'worpit_view_settings', $aData );
 	}
 
 	/**
@@ -405,6 +552,14 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			
 		}
 	}//onWpAdminNotices
+
+	public function printPluginUri() {
+		
+		if ( $this->getOption('assigned') === 'N' ) {
+			echo '<!-- Worpit Plugin: '.plugins_url( '/', __FILE__ ) .' -->';
+		}
+	}
+
 }
 
 class Worpit_Install {
@@ -440,12 +595,6 @@ class Worpit_Uninstall {
 	}
 	
 	public function onWpDeactivatePlugin() {
-		/*
-		delete_option( Worpit_Plugin::$VariablePrefix.'key' );
-		delete_option( Worpit_Plugin::$VariablePrefix.'pin' );
-		delete_option( Worpit_Plugin::$VariablePrefix.'assigned' );
-		delete_option( Worpit_Plugin::$VariablePrefix.'assigned_to' );
-		*/
 	}
 }
 
