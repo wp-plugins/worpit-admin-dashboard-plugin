@@ -3,15 +3,7 @@
 class Worpit_Controllers_Base {
 	
 	protected $m_aOutput = array();
-	
-	public function __construct() {
 		
-	}
-	
-	public function __destruct() {
-
-	}
-	
 	/**
 	 * @since 1.0.14
 	 *
@@ -144,45 +136,5 @@ class Worpit_Controllers_Base {
 		);
 
 		return $aPackageConstants;
-	}
-
-	/**
-	 * @param array $inaData
-	 * @return string
-	 *
-	 * @since 1.0.8
-	 */
-	protected function getWritableRequestData( $inaData ) {
-		$sColumnLength = 40;
-		$sWritableRequestData = "<?php \n";
-		if ( count( $inaData ) == 0 ) {
-			return $sWritableRequestData;
-		}
-		
-		$fRuntimeEscape = ( get_magic_quotes_gpc() || get_magic_quotes_runtime() );
-		
-		foreach ( $inaData as $sKey => $sValue ) {
-			if ( in_array( $sKey, array( 'key', 'pin', 'action' ) ) ) {
-				continue;
-			}
-			if ( $fRuntimeEscape ) {
-				$sValue = stripslashes( $sValue );
-			}
-			$sSpacing = str_repeat( "\t", ceil( ($sColumnLength - ( strlen( $sKey ) + 19)) / 4 ) );
-			$sWritableRequestData .= "define( 'REQUEST_".strtoupper( $sKey )."',".$sSpacing."\"".$sValue."\" );"."\n";
-		}
-		$sWritableRequestData .= "\n";
-		
-		$sPackageConstants = $this->getPackageConstants();
-		foreach ( $sPackageConstants as $sKey => $sValue ) {
-			if ( $fRuntimeEscape ) {
-				$sValue = stripslashes( $sValue );
-				$sWritableRequestData .= "# Stripping Data\n";
-			}
-			$sSpacing = str_repeat( "\t", ceil( ($sColumnLength - ( strlen( $sKey ) + 19)) / 4 ) );
-			$sWritableRequestData .= "define( 'OPTION_".strtoupper( $sKey )."',".$sSpacing."\"".$sValue."\" );"."\n";
-		}
-		
-		return $sWritableRequestData;
 	}
 }

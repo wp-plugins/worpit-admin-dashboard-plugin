@@ -7,6 +7,7 @@ define( 'WORPIT_PHP_ERROR_LOG',				realpath( dirname(__FILE__).'/../php_error_lo
 define( 'WORPIT_USER_AGENT',				'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.52 Safari/536.5' ); // 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)'
 define( 'WORPIT_VERIFICATION_TEST_URL', 	'http://worpitapp.com/dashboard/system/verification/test/' );
 define( 'WORPIT_VERIFICATION_CHECK_URL', 	'http://worpitapp.com/dashboard/system/verification/check/' );
+define( 'WORPIT_RETRIEVE_URL', 				'http://worpitapp.com/dashboard/system/package/retrieve/' );
 
 /**
  * We want to mimic that we are WordPress admin when running any of this code.

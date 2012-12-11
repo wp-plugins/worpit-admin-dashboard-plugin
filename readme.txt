@@ -3,8 +3,8 @@ Contributors: paultgoodchild, dlgoodchild
 Donate link: http://worpit.com/
 Tags: worpit, manage, wordpress manage, wordpress admin, backup, restore, bulk
 Requires at least: 3.2.0
-Tested up to: 3.4
-Stable tag: 1.1.3
+Tested up to: 3.5
+Stable tag: 1.2.0
 
 == Description ==
 
@@ -20,7 +20,7 @@ and [optimize the WordPress database](http://worpit.com/2012/07/how-to-optimize-
 *	Install a brand new WordPress website automatically, anywhere you have cPanel web hosting
 *	Install the Worpit WordPress plugin from WordPress.org, or have Worpit do it for you automatically
 *	Log into your WordPress sites without remembering your WordPress login details.
-*	Worpit is new, but there's much more to come! And what's more, it's free to get started!
+*	Worpit is new, but there's much more to come! And what's more, it's free to get started.
 
 No more logging in to each individual website to perform the same, repetitive tasks.
 
@@ -106,6 +106,11 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= 1.2.0 =
+
+* Plugin re-architecture to use HTTP GET instead of POST to receive directives from worpitapp.com
+* Tested with WordPress 3.5
+
 = 1.1.3 =
 
 * Adds custom options for setting various security related WordPress settings.
@@ -144,6 +149,7 @@ No. WorpDrive is available for a small monthly fee.
 
 == Upgrade Notice ==
 
-= 1.1.3 =
+= 1.2.0 =
 
-* Minimum required version to support [WorpDrive WordPress Backup and Recovery Service](http://worpdrive.com/?src=wpt_readme)
+* Major plugin re-architecture to use HTTP GET instead of POST to receive directives from worpitapp.com
+* Tested with WordPress 3.5

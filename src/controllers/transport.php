@@ -36,6 +36,52 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 		
 		$this->success( $aData );
 	}
+
+	/**
+	 * Alternative method to executing a package.
+	 * This will take priority over the execute in the near future.
+	 * The reason for this is because some host do not allow uploading of .php files
+	 */
+	public function retrieve() {
+		worpitAuthenticate( $_POST );
+		worpitVerifyPackageRequest( $_POST );
+		
+		if ( !function_exists( 'download_url' ) ) {
+			return $this->fail( 'The download_url function is not available' );
+		}
+		
+		if ( !function_exists( 'is_wp_error' ) ) {
+			return $this->fail( 'The is_wp_error function is not available' );
+		}
+		
+		$sUrl = WORPIT_RETRIEVE_URL.$_GET['package_id'].'/'.worpitGetOption( 'key' ).'/'.worpitGetOption( 'pin' );
+		$sTmpFile = download_url( $sUrl );
+		
+		if ( is_wp_error( $sTmpFile ) ) {
+			if ( !is_object( $sTmpFile ) && is_file( $sTmpFile ) ) {
+				@unlink( $sTmpFile );
+			}
+			return $this->fail( sprintf( 'The package could not be downloaded from "%s": %s', $sUrl, is_object( $sTmpFile )? $sTmpFile->get_error_message(): '#not-an-object#' ) );
+		}
+		
+		include_once( $sTmpFile );
+		if ( !class_exists( 'Worpit_Package_Installer', false ) ) {
+			return $this->fail( 'Worpit_Package_Installer does not exist: '.$sTmpFile );
+		}
+		@unlink( $sTmpFile );
+		
+		$oInstall = new Worpit_Package_Installer();
+		$aInstallerResponse = $oInstall->run();
+		
+		$this->log( $aInstallerResponse );
+		
+		if ( !$aInstallerResponse['success'] ) {
+			return $this->fail( 'Package failed.' );
+		}
+		
+		$aData = isset( $aInstallerResponse['data'] )? $aInstallerResponse['data']: '';
+		return $this->success( $aData );
+	}
 	
 	/**
 	 * Core package execution.
@@ -50,95 +96,50 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 		$_POST['rel_package_dir'] = '';
 		$_POST['abs_package_dir'] = '';
 		
-		/**
-		 * @since 1.0.8
-		 */
-		if ( isset( $_POST['using_ftp'] ) ) {
-			$sAbsTarget = dirname(__FILE__).WORPIT_DS.$_POST['temp_dir_name'];
-			if ( !is_dir( $sAbsTarget ) ) {
-				$this->fail( 'Expected directory "'.$sAbsTarget.'" does not exist.' );
-			}
-			
-			if ( !is_file( $sAbsTarget.WORPIT_DS.'installer.php' ) ) {
-				$this->fail( 'An installer was not found for the package located at "'.$sAbsTarget.'".' );
-			}
-			
-			if ( is_file( $sAbsTarget.WORPIT_DS.'request_data.php' ) && is_writable( $sAbsTarget.WORPIT_DS.'request_data.php' ) ) {
-				file_put_contents( $sAbsTarget.WORPIT_DS.'request_data.php', $this->getWritableRequestData( $_POST ) );
-			}
-			
-			include_once( $sAbsTarget.WORPIT_DS.'installer.php' );
+		$sTempDir = false;
+		if ( !isset( $_POST['force_use_eval'] ) ) {
+			$sTempDir = worpitCreateTempDir( dirname(__FILE__), '.pkg_' );
+			$_POST['rel_package_dir'] = str_replace( dirname(__FILE__), '', $sTempDir );
+			$_POST['abs_package_dir'] = $sTempDir;
 		}
-		else {
-			$sTempDir = false;
-			if ( !isset( $_POST['force_use_eval'] ) ) {
-				$sTempDir = worpitCreateTempDir( dirname(__FILE__), '.pkg_' );
-				$_POST['rel_package_dir'] = str_replace( dirname(__FILE__), '', $sTempDir );
-				$_POST['abs_package_dir'] = $sTempDir;
-			}
+		
+		if ( $sTempDir === false ) {
+			$fAllowUploads = (bool)ini_get( 'file_uploads' );
 			
-			$sWritableRequestData = $this->getWritableRequestData( $_POST );
-
-			if ( $sTempDir === false ) {
-				$fAllowUploads = (bool)ini_get( 'file_uploads' );
-				
-				if ( $fAllowUploads && isset( $_REQUEST['eval_order'] ) ) {
-					$aFileContents = array();
-					foreach ( $_FILES as $sKey => $aUpload ) {
-						if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
-							if ( !is_readable( $aUpload['tmp_name'] ) ) {
-								$this->fail( 'Unable to create temp directory. Uploaded file is not readable: '.$aUpload['tmp_name'] );
-							}
-							$aFileContents[$aUpload['name']] = file_get_contents( $aUpload['tmp_name'] );
+			if ( $fAllowUploads ) {
+				$aFileContents = array();
+				foreach ( $_FILES as $sKey => $aUpload ) {
+					if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
+						if ( !is_readable( $aUpload['tmp_name'] ) ) {
+							$this->fail( 'Unable to create temp directory. Uploaded file is not readable: '.$aUpload['tmp_name'] );
 						}
-					}
-										
-					eval( ' ?>'.$sWritableRequestData );
-					
-					$aEvalOrder = explode( ',', $_REQUEST['eval_order'] );
-					
-					foreach( $aEvalOrder as $sEvalFile ) {
-						if ( isset( $aFileContents[$sEvalFile] ) ) {
-							eval( ' ?>'.$aFileContents[$sEvalFile] );
-						}
-						else {
-							$this->fail( 'Missing required file: '.$sEvalFile.' from uploaded files: '.implode( ',', array_keys( $aFileContents ) ) );
-						}
-					}
-					
-					if ( !class_exists( 'Worpit_Package_Installer', false ) ) {
-						$this->fail( 'Failed to find class "Worpit_Package_Installer".' );
+						eval( ' ?>'.file_get_contents( $aUpload['tmp_name'] ) );
 					}
 				}
-				else {
-					$this->fail( 'Unable to create temp directory. Either "eval" or "file_uploads" is unavailable, or "eval_order" was not provided.' );
+				
+				if ( !class_exists( 'Worpit_Package_Installer', false ) ) {
+					$this->fail( 'Failed to find class "Worpit_Package_Installer".' );
 				}
 			}
 			else {
-				foreach ( $_FILES as $sKey => $aUpload ) {
-					if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
-						$sMoveTarget = $sTempDir.WORPIT_DS.$aUpload['name'];
-						if ( !move_uploaded_file( $aUpload['tmp_name'], $sMoveTarget ) ) {
-							$this->fail( sprintf( 'Failed to move uploaded file from %s to %s', $aUpload['tmp_name'], $sMoveTarget ) );
-						}
-						chmod( $sMoveTarget, 0644 );
+				$this->fail( 'Unable to create temp directory. Either "eval" or "file_uploads" is unavailable, or "eval_order" was not provided.' );
+			}
+		}
+		else {
+			foreach ( $_FILES as $sKey => $aUpload ) {
+				if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
+					$sMoveTarget = $sTempDir.WORPIT_DS.$aUpload['name'];
+					if ( !move_uploaded_file( $aUpload['tmp_name'], $sMoveTarget ) ) {
+						$this->fail( sprintf( 'Failed to move uploaded file from %s to %s', $aUpload['tmp_name'], $sMoveTarget ) );
 					}
-					else {
-						// one of the files never uploaded?
-					}
-				}
-				
-				if ( !file_put_contents( $sTempDir.WORPIT_DS.'request_data.php', $sWritableRequestData."\n" ) ) {
-					$nVal = worpitRemoveTempDir( $sTempDir );
-					$this->logMerge( $aRemoveOutput );
-					$this->fail( 'Failed to create dynamic request data config file.' );
+					chmod( $sMoveTarget, 0644 );
 				}
 				else {
-					chmod( $sTempDir.WORPIT_DS.'request_data.php', 0644 );
+					// one of the files never uploaded?
 				}
-				
-				include_once( $sTempDir.WORPIT_DS.'installer.php' );
 			}
+			
+			include_once( $sTempDir.WORPIT_DS.'installer.php' );
 		}
 		
 		if ( !class_exists( 'Worpit_Package_Installer', false ) ) {
