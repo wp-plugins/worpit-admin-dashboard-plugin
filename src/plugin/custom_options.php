@@ -37,7 +37,7 @@ class Worpit_Plugin_Custom_Options {
 		}
 		
 		//Set random version on script and style query
-		if ( true || $this->m_aCustomOptions['sec_set_random_script_version'] == 'Y' ) {
+		if ( $this->m_aCustomOptions['sec_set_random_script_version'] == 'Y' ) {
 			add_filter( 'script_loader_src', array( $this, 'replaceScriptVersion'), 15, 1 );
 			add_filter( 'style_loader_src', array( $this, 'replaceScriptVersion'), 15, 1 );
 		}
@@ -63,12 +63,9 @@ class Worpit_Plugin_Custom_Options {
 			return $insSrcUrl;
 		}
 		
-		$sUrlParts = explode( '?', $insSrcUrl );
+		$sVersion = empty( $this->m_aCustomOptions['sec_random_script_version'] )? rand(): $this->m_aCustomOptions['sec_random_script_version'];
 		
-		$sVersion = $this->m_aCustomOptions['sec_random_script_version'];
-		$sVersion = empty($sVersion)? $sVersion : '?ver='.$sVersion;
-		
-		return preg_replace( "/\?ver=$wp_version/", $sVersion, $insSrcUrl );
+		return str_replace( '?ver='.$wp_version, '?ver='.$sVersion, $insSrcUrl );
 	}
 	
 }

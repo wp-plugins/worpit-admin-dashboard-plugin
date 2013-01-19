@@ -76,7 +76,7 @@ class Worpit_Plugin_Base {
 	
 	protected function isSelfAdminPage() {
 		$sSubPageNow = isset( $_GET['page'] )? $_GET['page']: '';
-		if ( is_admin() && !empty( $sSubPageNow ) && ( preg_match( '/^'.self::$ParentMenuId.'/i', $sSubPageNow ) !== false ) ) {
+		if ( is_admin() && !empty( $sSubPageNow ) && preg_match( '/^'.self::$ParentMenuId.'/i', $sSubPageNow ) ) {
 			return true;
 		}
 		return false;

@@ -4,7 +4,7 @@
 Plugin Name: Worpit - Manage WordPress Better
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.2.0
+Version: 1.2.1
 Author: Worpit
 Author URI: http://worpit.com/
 */
@@ -44,7 +44,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	protected $m_oAuditor;
 
-	static public $VERSION = '1.2.0';
+	static public $VERSION = '1.2.1';
 	
 	static public $CustomOptionsDbName = 'custom_options';
 	static public $CustomOptions; //the array of options written to WP Options
@@ -439,6 +439,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			wp_enqueue_style( 'worpit-admin' );
 		}
 		
+		if ( current_user_can( 'manage_options' ) && self::getOption('do_activation_redirect', false) ) {
+			self::deleteOption( 'do_activation_redirect');
+			if ( self::getOption( 'assigned', 'N' ) == 'N' ) {
+				wp_redirect( 'admin.php?page=worpit-admin' );
+			}
+		}
 	}
 	
 	public function onWpPluginsLoaded() {
@@ -579,6 +585,9 @@ class Worpit_Install {
 		add_option( Worpit_Plugin::$VariablePrefix.'installed_version',	Worpit_Plugin::$VERSION );
 		
 		$this->executeSql();
+		
+		// Allows for redirect to plugin page once the plugin is activated.
+		Worpit_Plugin::addOption( 'do_activation_redirect', true );
 	}
 	
 	protected function executeSql() {
