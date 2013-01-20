@@ -4,7 +4,7 @@
 Plugin Name: Worpit - Manage WordPress Better
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.2.1
+Version: 1.2.2
 Author: Worpit
 Author URI: http://worpit.com/
 */
@@ -44,7 +44,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	protected $m_oAuditor;
 
-	static public $VERSION = '1.2.1';
+	static public $VERSION = '1.2.2';
 	
 	static public $CustomOptionsDbName = 'custom_options';
 	static public $CustomOptions; //the array of options written to WP Options
@@ -59,6 +59,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		self::$PluginBasename	= plugin_basename( __FILE__ );
 		self::$PluginDir		= WP_PLUGIN_DIR.WORPIT_DS.self::$PluginPath.WORPIT_DS;
 		self::$PluginUrl		= WP_PLUGIN_URL.'/'.self::$PluginPath.'/';
+		
+		if ( ( isset( $_POST['getworpitpluginurl'] ) && $_POST['getworpitpluginurl'] == 1 )
+			|| ( isset( $_GET['getworpitpluginurl'] ) && $_GET['getworpitpluginurl'] == 1 ) ) {
+			add_action( 'plugins_loaded', array($this, 'returnWorpitPluginUrl'), 1 );
+		}
 		
 		if ( is_admin() ) {
 			/**
@@ -87,6 +92,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			var_dump(self::$CustomOptions);
 		
 // 		$this->m_oAuditor = new Worpit_Auditor();
+	}
+	
+	public function returnWorpitPluginUrl() {
+		
+		die( '<worpitresponse>'. plugins_url( '/', __FILE__ ) .'</worpitresponse>' );
 	}
 	
 	/**
