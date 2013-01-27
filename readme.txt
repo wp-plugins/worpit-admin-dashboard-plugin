@@ -4,7 +4,7 @@ Donate link: http://worpit.com/
 Tags: worpit, manage, wordpress manage, wordpress admin, backup, restore, bulk
 Requires at least: 3.2.0
 Tested up to: 3.5
-Stable tag: 1.2.2
+Stable tag: 1.2.3
 
 == Description ==
 
@@ -105,6 +105,10 @@ No. WorpDrive is available for a small monthly fee.
 5. Worpit provides 4 ways to install the plugin making it easy to get started.
 
 == Changelog ==
+
+= 1.2.3 =
+
+* TWEAKED: Plugin's custom access rules.
 
 = 1.2.2 =
 
