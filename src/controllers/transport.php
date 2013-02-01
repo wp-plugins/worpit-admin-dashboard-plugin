@@ -98,7 +98,7 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 		
 		$sTempDir = false;
 		if ( !isset( $_POST['force_use_eval'] ) ) {
-			$sTempDir = worpitCreateTempDir( dirname(__FILE__), '.pkg_' );
+			$sTempDir = worpitCreateTempDir( dirname(__FILE__), 'pkg_' );
 			$_POST['rel_package_dir'] = str_replace( dirname(__FILE__), '', $sTempDir );
 			$_POST['abs_package_dir'] = $sTempDir;
 		}
@@ -122,7 +122,7 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 				}
 			}
 			else {
-				$this->fail( 'Unable to create temp directory. Either "eval" or "file_uploads" is unavailable, or "eval_order" was not provided.' );
+				$this->fail( 'Unable to create temp directory. Either "eval" or "file_uploads" is unavailable.' );
 			}
 		}
 		else {

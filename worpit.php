@@ -4,7 +4,7 @@
 Plugin Name: Worpit - Manage WordPress Better
 Plugin URI: http://worpit.com/
 Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.2.3
+Version: 1.3.0
 Author: Worpit
 Author URI: http://worpit.com/
 */
@@ -44,7 +44,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	protected $m_oAuditor;
 
-	static public $VERSION = '1.2.3';
+	static public $VERSION = '1.3';
 	
 	static public $CustomOptionsDbName = 'custom_options';
 	static public $CustomOptions; //the array of options written to WP Options
@@ -75,36 +75,28 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 		// If the plugin is being initialised from Worpit App
 		if ( isset( $_POST['key'] ) && isset( $_POST['pin'] ) ) {
-			
 			if ( $this->worpitAuthenticate( $_POST ) ) { //It's a valid request coming from Worpit...
-				
-				add_action( 'plugins_loaded', array($this, 'removeSecureWpHooks'), 1 );
-				add_action( 'plugins_loaded', array($this, 'removeBetterWpSecurityHooks'), 1 );
-				add_action( 'plugins_loaded', array($this, 'removeMaintenanceModeHook'), 1 );
-				add_action( 'init', array($this, 'setAuthorizedUser'), 0 );
+				add_action( 'plugins_loaded', array( $this, 'removeSecureWpHooks' ), 1 );
+				add_action( 'plugins_loaded', array( $this, 'removeBetterWpSecurityHooks' ), 1 );
+				add_action( 'plugins_loaded', array( $this, 'removeMaintenanceModeHook' ), 1 );
+				add_action( 'init', array( $this, 'setAuthorizedUser' ), 0 );
 			}
 		}
 		
+		add_action( 'init', array( $this, 'doAPI' ), 1 );
+		
 		self::Load_CustomOptionsData();
-		new Worpit_Plugin_Custom_Options(self::$CustomOptions);
+		new Worpit_Plugin_Custom_Options( self::$CustomOptions );
 
-		if(  isset($_GET['test']) && is_admin() )
-			var_dump(self::$CustomOptions);
-		
-// 		$this->m_oAuditor = new Worpit_Auditor();
-	}
-	
-	public function returnWorpitPluginUrl() {
-		
-		die( '<worpitresponse>'. plugins_url( '/', __FILE__ ) .'</worpitresponse>' );
+		// $this->m_oAuditor = new Worpit_Auditor();
 	}
 	
 	/**
 	 * To force it to re-load from the WordPress options table pass true.
-	 * @param $infForceReload
+	 * @param $infForceReload		(optional)
+	 * @return void
 	 */
 	public static function Load_CustomOptionsData( $infForceReload = false ) {
-		
 		if ( isset( self::$CustomOptions ) && !$infForceReload ) {
 			return true; //no need to reload the data if we have it already.
 		}
@@ -120,7 +112,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		
 		self::validateCustomOptions();
 		self::Store_CustomOptionsData();
-		
 	}
 	
 	/**
@@ -143,6 +134,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 	}
 	
+	/**
+	 * @return boolean|void
+	 */
 	public static function Store_CustomOptionsData() {
 		return self::updateOption( self::$CustomOptionsDbName, self::$CustomOptions );
 	}
@@ -153,6 +147,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * 	'key2' => 'value2'
 	 *
 	 * @param $inaNewOptions
+	 * @return string
 	 */
 	public static function Update_CustomOptions( $inaNewOptions ) {
 		self::Load_CustomOptionsData();
@@ -164,22 +159,47 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 	
 	/**
-	 * @param $insKey
+	 * @param string $insKey
+	 * @param boolean $infForceReload		(optional)
+	 * @return string
 	 */
-	public static function Get_CustomOption( $insKey, $infForceReload = false ) {
-		
-		self::Load_CustomOptionsData($infReload);
+	static public function Get_CustomOption( $insKey, $infForceReload = false ) {
+		self::Load_CustomOptionsData( $infReload );
 		return self::$CustomOptions[$insKey];
+	}
+	
+	/**
+	 * @uses die
+	 * @return void
+	 */
+	public function doAPI() {
+		if ( isset( $_GET['worpit_link'] ) && !empty( $_GET['worpit_link'] ) ) {
+			define( 'WORPIT_DIRECT_API', 1 );
+			include_once( dirname(__FILE__).'/link.php' );
+			die();
+		}
+		else if ( isset( $_GET['worpit_api'] ) && !empty( $_GET['worpit_api'] ) ) {
+			define( 'WORPIT_DIRECT_API', 1 );
+			include_once( dirname(__FILE__).'/transport.php' );
+			die();
+		}
+	}
+	
+	/**
+	 * @uses die
+	 * @return void
+	 */
+	public function returnWorpitPluginUrl() {
+		die( '<worpitresponse>'. plugins_url( '/', __FILE__ ) .'</worpitresponse>' );
 	}
 
 	/**
 	 * A modified copy of that in transport.php to verfiy the key and the pin
 	 *
-	 * @param $inaData - $_POST
+	 * @param array $inaData		Usually receives $_POST
 	 * @return boolean
 	 */
 	protected function worpitAuthenticate( $inaData ) {
-
 		$sOption = get_option( self::$VariablePrefix.'assigned' );
 		$fAssigned = ($sOption == 'Y');
 		if ( !$fAssigned ) {
@@ -203,17 +223,17 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * Remove actions setup by Secure WP plugin that interfere with Worpit synchronizing packages.
 	 *
 	 * Should be hooked before 'init' priority 1.
+	 * @return void
 	 */
 	public function removeSecureWpHooks() {
-			
 		global $SecureWP;
 	
 		if ( class_exists( 'SecureWP' ) && isset( $SecureWP ) && is_object( $SecureWP ) ) {
-			remove_action( 'init', array($SecureWP, 'replace_wp_version'), 1 );
-			remove_action( 'init', array($SecureWP, 'remove_core_update'), 1 );
-			remove_action( 'init', array($SecureWP, 'remove_plugin_update'), 1 );
-			remove_action( 'init', array($SecureWP, 'remove_theme_update'), 1 );
-			remove_action( 'init', array($SecureWP, 'remove_wp_version_on_admin'), 1 );
+			remove_action( 'init', array( $SecureWP, 'replace_wp_version' ), 1 );
+			remove_action( 'init', array( $SecureWP, 'remove_core_update' ), 1 );
+			remove_action( 'init', array( $SecureWP, 'remove_plugin_update' ), 1 );
+			remove_action( 'init', array( $SecureWP, 'remove_theme_update' ), 1 );
+			remove_action( 'init', array( $SecureWP, 'remove_wp_version_on_admin' ), 1 );
 		}
 	}//removeSecureWpHooks
 	
@@ -221,9 +241,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * Remove actions setup by Better WP Security plugin that interfere with Worpit synchronizing packages.
 	 *
 	 * Check secure.php for changes to these hooks.
+	 * @return void
 	 */
 	public function removeBetterWpSecurityHooks() {
-		
 		global $bwps;
 		
 		if ( class_exists( 'bwps_secure' ) && isset( $bwps ) && is_object( $bwps ) ) {
@@ -232,21 +252,25 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			remove_action( 'plugins_loaded', array( $bwps, 'pluginupdates' ) );
 			remove_action( 'plugins_loaded', array( $bwps, 'themeupdates' ) );
 			remove_action( 'plugins_loaded', array( $bwps, 'coreupdates' ) );
+			remove_action( 'plugins_loaded', array( $bwps, 'siteinit' ) );
 		}
-	}//removeBetterWpSecurityHooks
+	}
 	
 	/**
 	 * Removes any interruption from the Maintenance Mode plugin while Worpit is executing a package.
+	 * @return void
 	 */
 	public function removeMaintenanceModeHook() {
-		
 		global $myMaMo;
 		
 		if ( class_exists( 'MaintenanceMode' ) && isset( $myMaMo ) && is_object( $myMaMo ) ) {
 			remove_action('plugins_loaded', array( $myMaMo, 'ApplyMaintenanceMode') );
 		}
-	}//removeMaintenanceModeHook
+	}
 	
+	/**
+	 * @return void
+	 */
 	public function setAuthorizedUser() {
 		wp_set_current_user( 1 );
 	}
@@ -281,10 +305,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 		return true;
 		*/
-	}//initPluginOptions
+	}
 	
+	/**
+	 * (non-PHPdoc)
+	 * @see Worpit_Plugin_Base::handlePluginFormSubmit()
+	 */
 	protected function handlePluginFormSubmit() {
-		
 		if ( !current_user_can( 'manage_options' ) || !isset( $_POST['worpit_admin_form_submit'] ) ) {
 			return;
 		}
@@ -419,6 +446,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 	}
 	
+	/**
+	 * (non-PHPdoc)
+	 * @see Worpit_Plugin_Base::handlePluginUpgrade()
+	 */
 	protected function handlePluginUpgrade() {
 		$sInstalledVersion = get_option( self::$VariablePrefix.'installed_version' );
 		if ( empty( $sInstalledVersion ) ) {
@@ -435,11 +466,19 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 	}
 	
+	/**
+	 * (non-PHPdoc)
+	 * @see Worpit_Plugin_Base::onWpInit()
+	 */
 	public function onWpInit() {
 		parent::onWpInit();
 		add_action( 'wp_footer', array( $this, 'printPluginUri') );
 	}
 	
+	/**
+	 * (non-PHPdoc)
+	 * @see Worpit_Plugin_Base::onWpAdminInit()
+	 */
 	public function onWpAdminInit() {
 		parent::onWpAdminInit();
 
@@ -457,6 +496,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 	}
 	
+	/**
+	 * (non-PHPdoc)
+	 * @see Worpit_Plugin_Base::onWpPluginsLoaded()
+	 */
 	public function onWpPluginsLoaded() {
 		parent::onWpPluginsLoaded();
 		
@@ -465,6 +508,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 	}
 	
+	/**
+	 * (non-PHPdoc)
+	 * @see Worpit_Plugin_Base::onWpAdminMenu()
+	 */
 	public function onWpAdminMenu() {
 		parent::onWpAdminMenu();
 		
@@ -472,13 +519,21 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		//$this->fixSubmenu();
 	}
 
+	/**
+	 * (non-PHPdoc)
+	 * @see Worpit_Plugin_Base::createPluginSubMenuItems()
+	 */
 	protected function createPluginSubMenuItems(){
 		$this->m_aPluginMenu = array(
 			//Menu Page Title => Menu Item name, page ID (slug), callback function for this page - i.e. what to do/load.
 			//$this->getSubmenuPageTitle( 'View Settings' ) => array( 'View Settings', $this->getSubmenuId('view-settings'), 'onDisplayViewSettings' )
 		);
-	}//createPluginSubMenuItems
+	}
 	
+	/**
+	 * (non-PHPdoc)
+	 * @see Worpit_Plugin_Base::onDisplayMainMenu()
+	 */
 	public function onDisplayMainMenu() {
 		$sDebugFile = get_option( self::$VariablePrefix.'debug_file' );
 		$aData = array(
@@ -500,8 +555,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		$this->display( 'worpit_index', $aData );
 	}
 	
+	/**
+	 *
+	 */
 	public function onDisplayViewSettings() {
-		
 		//populates plugin options with existing configuration
 		$this->populateAllPluginOptions();
 		
@@ -525,9 +582,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 	/**
 	 * Override this method to handle all the admin notices
+	 *
+	 * (non-PHPdoc)
+	 * @see Worpit_Plugin_Base::onWpAdminNotices()
 	 */
 	public function onWpAdminNotices() {
-		
 		//Do we have admin priviledges?
 		if ( !current_user_can( 'manage_options' ) ) {
 			return;
@@ -557,20 +616,21 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		//if the user is searching from WorpitApp.com
 		if ( isset( $_GET['worpitapp'] ) && $_GET['worpitapp'] == 'install' ) {
 			$sNotice = '
-					<form method="post" action="admin.php?page=worpit-admin">
-						<p>Looking for your Worpit Authentication Key?
-						<input type="submit" value="Get your Authentication Key here" name="submit" class="button-primary">
-						</p>
-					</form>
+				<form method="post" action="admin.php?page=worpit-admin">
+					<p>Looking for your Worpit Authentication Key?
+					<input type="submit" value="Get your Authentication Key here" name="submit" class="button-primary">
+					</p>
+				</form>
 			';
 		
 			$this->getAdminNotice( $sNotice, 'updated', true );
-			
 		}
-	}//onWpAdminNotices
+	}
 
+	/**
+	 *@return void
+	 */
 	public function printPluginUri() {
-		
 		if ( $this->getOption('assigned') === 'N' ) {
 			echo '<!-- Worpit Plugin: '.plugins_url( '/', __FILE__ ) .' -->';
 		}

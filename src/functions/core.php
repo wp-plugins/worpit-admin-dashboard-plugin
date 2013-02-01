@@ -149,10 +149,6 @@ function worpitValidateSystem() {
 	if ( version_compare( PHP_VERSION, '5.0.0', '<' ) ) {
 		worpitFatal( 4, 'InvalidPhpVersion' );
 	}
-
-	if ( function_exists( 'is_multisite' ) && is_multisite() ) {
-		worpitFatal( 3, 'Multisite' );
-	}
 }
 
 /**

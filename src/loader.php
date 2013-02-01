@@ -1,13 +1,17 @@
 <?php
 
-define( 'WORPIT_DS',						DIRECTORY_SEPARATOR );
-define( 'WORPIT_LOADER_PATH',				dirname(__FILE__) );
-define( 'WORPIT_VIEWS_PATH',				realpath( dirname(__FILE__).'/../views' ) );
-define( 'WORPIT_PHP_ERROR_LOG',				realpath( dirname(__FILE__).'/../php_error_log' ) );
-define( 'WORPIT_USER_AGENT',				'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.52 Safari/536.5' ); // 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)'
-define( 'WORPIT_VERIFICATION_TEST_URL', 	'http://worpitapp.com/dashboard/system/verification/test/' );
-define( 'WORPIT_VERIFICATION_CHECK_URL', 	'http://worpitapp.com/dashboard/system/verification/check/' );
-define( 'WORPIT_RETRIEVE_URL', 				'http://worpitapp.com/dashboard/system/package/retrieve/' );
+/**
+ * Configure defines required for Worpit, and make safe incase loader is ever included
+ * more than once.
+ */
+if ( !defined( 'WORPIT_DS' ) )						define( 'WORPIT_DS',						DIRECTORY_SEPARATOR );
+if ( !defined( 'WORPIT_LOADER_PATH' ) )				define( 'WORPIT_LOADER_PATH',				dirname(__FILE__) );
+if ( !defined( 'WORPIT_VIEWS_PATH' ) )				define( 'WORPIT_VIEWS_PATH',				realpath( dirname(__FILE__).'/../views' ) );
+if ( !defined( 'WORPIT_PHP_ERROR_LOG' ) ) 			define( 'WORPIT_PHP_ERROR_LOG',				realpath( dirname(__FILE__).'/../php_error_log' ) );
+if ( !defined( 'WORPIT_USER_AGENT' ) )				define( 'WORPIT_USER_AGENT',				'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.52 Safari/536.5' );
+if ( !defined( 'WORPIT_VERIFICATION_TEST_URL' ) )	define( 'WORPIT_VERIFICATION_TEST_URL', 	'http://worpitapp.com/dashboard/system/verification/test/' );
+if ( !defined( 'WORPIT_VERIFICATION_CHECK_URL' ) )	define( 'WORPIT_VERIFICATION_CHECK_URL',	'http://worpitapp.com/dashboard/system/verification/check/' );
+if ( !defined( 'WORPIT_RETRIEVE_URL' ) )			define( 'WORPIT_RETRIEVE_URL', 				'http://worpitapp.com/dashboard/system/package/retrieve/' );
 
 /**
  * We want to mimic that we are WordPress admin when running any of this code.
@@ -20,8 +24,11 @@ if ( !defined( 'WP_ADMIN' ) ) {
 
 /**
  * Thirdparty inclusions
+ * We know that other plugins include similar classes, so we want to minimise conflicts.
  */
-require_once( dirname(__FILE__).'/functions/JSON.php' );
+if ( !class_exists( 'JSON', false ) ) {
+	require_once( dirname(__FILE__).'/functions/JSON.php' );
+}
 
 /**
  * Worpit specific functions
@@ -59,20 +66,26 @@ if ( worpitFunctionExists( 'error_reporting' ) ) {
  */
 worpitValidateSystem();
 
-require_once( worpitFindWpLoad() );
-
-/**
- * Ensure that Worpit Plugin is accessible right after the WP system has been initiated.
- */
-if ( !class_exists( 'Worpit_Plugin' ) ) {
-	worpitFatal( 1, 'PluginInactive' );
-}
-
-/**
- * Log request in as an admin.
- */
-if ( function_exists( 'wp_set_current_user' ) ) {
-	wp_set_current_user( 1 );
+if ( !defined( 'WORPIT_DIRECT_API' ) ) {
+	/**
+	 * Already loaded when going through the WP frontend.
+	 */
+	require_once( worpitFindWpLoad() );
+	
+	/**
+	 * Ensure that Worpit Plugin is accessible right after the WP system has been initiated.
+	 * When going through the WP frontend, this will always be defined by this point.
+	 */
+	if ( !class_exists( 'Worpit_Plugin' ) ) {
+		worpitFatal( 1, 'PluginInactive' );
+	}
+	
+	/**
+	 * Log request in as an admin.
+	 */
+	if ( function_exists( 'wp_set_current_user' ) ) {
+		wp_set_current_user( 1 );
+	}
 }
 
 // TODO: setup some error handling and general logging.
