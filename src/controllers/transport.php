@@ -171,21 +171,25 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 	public function login() {
 		global $wp_version;
 		
-		$oWpHelper = new Worpit_Helper_WordPress();
-
-		if ( !isset( $_GET['token'] ) ) {
+		if ( !isset( $_GET['token'] ) || empty( $_GET['token'] ) ) {
 			//header( "Location: $location", true, $status);
 			die( 'WorpitError: Invalid request' );
 		}
 		
-		if ( $_GET['token'] != $oWpHelper->getTransient( 'worpit_login_token' ) ) {
+		$oWpHelper = new Worpit_Helper_WordPress();
+		$sCurrentToken = $oWpHelper->getTransient( 'worpit_login_token' );
+		if ( empty( $sCurrentToken ) || strlen( $sCurrentToken ) != 32 ) {
+			return $this->fail( 'Token is invalid.' );
+		}
+		
+		if ( $_GET['token'] !== $sCurrentToken ) {
 			die( 'WorpitError: Invalid token' );
 		}
 		
 		if ( version_compare( $wp_version, '3.1', '>=' ) && !isset( $_POST['username'] ) ) {
 			$aUserRecords = get_users( 'role=administrator' );
 			if ( count( $aUserRecords ) == 0 ) {
-				$this->fail( 'Failed to find an administrator' );
+				return $this->fail( 'Failed to find an administrator' );
 			}
 			
 			$oUser = $aUserRecords[0];
