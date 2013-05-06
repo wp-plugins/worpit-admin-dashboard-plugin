@@ -1,87 +1,82 @@
-=== Worpit Plugin - Manage WordPress Better  ===
+=== iControlWP - Take Control of WordPress  ===
 Contributors: paultgoodchild, dlgoodchild
-Donate link: http://worpit.com/
-Tags: worpit, manage, wordpress manage, wordpress admin, backup, restore, bulk
+Donate link: http://www.icontrolwp.com/
+Tags: manage, wordpress manage, wordpress admin, backup, restore, bulk, icontrolwp, worpit
 Requires at least: 3.2.0
-Tested up to: 3.5
-Stable tag: 1.3.1
+Tested up to: 3.6
+Stable tag: 2.0
 
 == Description ==
 
-[Worpit: Manage WordPress Better](http://worpit.com/?src=wpt_readme) lets you manage all your WordPress website from a single, fast, convenient dashboard.
+The [iControlWP Secure WordPress Manager](http://www.icontrolwp.com/?src=icwp_readme) lets you manage all your WordPress websites from a central dashboard.
 
-With Worpit you can:
+With iControlWP you can:
 
 *	Manage WordPress websites from a single centralized Dashboard.
 *	One-click update a plugin, a theme or even the WordPress Core.
 *	Update all plugins, all themes, all WordPress cores across all sites, or just a selection at once.
-*	Optimize all your WordPress sites without extra plugins: [clean up WordPress](http://worpit.com/2012/07/optimize-clean-up-wordpress-worpit/?src=wpt_readme) 
-and [optimize the WordPress database](http://worpit.com/2012/07/how-to-optimize-wordpress-databases-with-worpit/?src=wpt_readme).
+*	Optimize all your WordPress sites without extra plugins: [clean up WordPress](http://www.icontrolwp.com/2012/07/optimize-clean-up-wordpress-worpit/?src=wpt_readme) 
+and [optimize the WordPress database](http://www.icontrolwp.com/2012/07/how-to-optimize-wordpress-databases-with-worpit/?src=wpt_readme).
 *	Add WordPress security options across all your websites at once. 
 *	Install a brand new WordPress website automatically, anywhere you have cPanel web hosting
-*	Install the Worpit WordPress plugin from WordPress.org, or have Worpit do it for you automatically
+*	Install the iControlWP WordPress plugin from WordPress.org, or have iControlWP do it for you automatically
 *	Log into your WordPress sites without remembering your WordPress login details.
 
 No more logging in to each individual website to perform the same, repetitive tasks.  Do them in bulk, on all your sites at once.
 
 == Frequently Asked Questions ==
 
-= Is Worpit Free? =
+= Is iControlWP Free? =
 
-Yes, you can try it for free with one WordPress site.
+No, but you can try it out using our unlimited-sites free trial.
 
-[You can sign up free here](http://worpitapp.com/?src=wpt_readme)
+[You can sign up free here](http://www.icontrolwp.com/?src=wpt_readme)
 
-= Is Worpit secure? =
+= Is iControlWP secure? =
 
-Yes! We take great care to ensure the integrity of the connection between Worpit and your website.
+Yes! We take great care to ensure the integrity of the connection between iControlWP and your website.
 
 All sensitive data is encrypted on our system so it is never human-readable by anyone.
 
 See the next question for more in-depth explanation.
 
-= I want more to know more about Worpit plugin security? =
+= I want more to know more about iControlWP plugin security? =
 
-We take security seriously at Worpit - prevention is far better than cure and we trust when you see what steps we
+We take security seriously at iControlWP - prevention is far better than cure and we trust when you see what steps we
 take to ensure the integrity of your website you'll know we taking the biggest steps to secure your site.
 
-*	Each new plugin install creates a unique secure code that you must supply correctly to add the site to your Worpit account.
-*	When Worpit and your plugin are connected, Worpit creates a unique PIN code, encrypts with an MD5 hash and stores in
+*	Each new plugin install creates a unique secure code that you must supply correctly to add the site to your iControlWP account.
+*	When iControlWP and your plugin are connected, iControlWP creates a unique PIN code, encrypts with an MD5 hash and stores in
 on your site. ONLY attempts to connect to your plugin that supply this correct PIN code will ever be able succeed.
 *	We also take it a step FURTHER - each connection performs a unique hand-shake process (that you wont find in other similar products)
-between Worpit and your WordPress websites to ensure that no-one else, anywhere, can spoof your WordPress site. The plugin will **always**
-check to ensure that the connection has originated from worpit.com. If not, the connection is disregarded completely and immediately.
+between iControlWP and your WordPress websites to ensure that no-one else, anywhere, can spoof your WordPress site. The plugin will **always**
+check to ensure that the connection has originated from iControlWP.com. If not, the connection is disregarded completely and immediately.
 
-= Will the Worpit plugin slow down my site? =
+= Will the iControlWP plugin slow down my site? =
 
 Not a chance! We have the absolute SMALLEST plugin (compared to similar products of this type) around.
 
-We install only the absolute necessary code, and when you need more, Worpit's unique "Action Pack" delivery
+We install only the absolute necessary code, and when you need more, iControlWP's unique "Action Pack" delivery
 system sends just what your site needs.
 
-= How does Worpit work? =
+= How does iControlWP work? =
 
-With the plugin installed and the connection setup to your own Worpit account, the Worpit system
+With the plugin installed and the connection setup to your own iControlWP account, the iControlWP system
 will periodically ask your WordPress website for some information.  Currently we check:
 
 *	WordPress Core update status
 *	WordPress.org Plugins update status
 *	WordPress.org Themes update status
-*	Other server environment information that helps us to determine compatibility with the Worpit system.
+*	Other server environment information that helps us to determine compatibility with the iControlWP system.
 This includes things like PHP version, HTTP server type and version. You can review all this captured
-information from within Worpit and is useful as a handy reference.
+information from within iControlWP and is useful as a handy reference.
 
-We then take this information and display it to you on the Worpit dashboard - then it's over to you and what you want to do with it.
-
-= If Worpit is free why is there a payment option? =
-
-If want to manage more than 1 WordPress site, we feel contributing to 
-the development of the Worpit product is fair.
+We then take this information and display it to you on the iControlWP dashboard - then it's over to you and what you want to do with it.
 
 = What is WorpDrive? =
 
 WorpDrive is a new, [far more clever approach to WordPress backup and restore](http://worpdrive.com/?src=wpt_readme), 
-and is a premium product available from with the Worpit control panel.
+and is a premium product available from with the iControlWP control panel.
 
 It doesn't use FTP, Amazon S3, or any of the traditional painful approaches to website backup, 
 and you don't need to buy/rent any other 3rd party storage service.
@@ -96,15 +91,20 @@ No. WorpDrive is available for a small monthly fee.
 
 1. At-a-Glance Summary making it easy to spot needed updates and other important actions.
 
-2. Worpit keeps a log of all your actions so you can track what has been done, and what is pending.
+2. iControlWP keeps a log of all your actions so you can track what has been done, and what is pending.
 
 3. You can update individual plugins, themes and the WordPress core, with convenient access to review changelogs.
 
-4. Jump-list menus give you access to most common actions without changing your Worpit context.
-
-5. Worpit provides 4 ways to install the plugin making it easy to get started.
+4. Jump-list menus give you access to most common actions without changing your iControlWP context.
 
 == Changelog ==
+
+= 2.0 =
+
+* NAME CHANGE: Was Worpit, now iControlWP.com
+* ADDED: support for logging in as any user, not just admin.
+* ADDED: Preliminary support for WordPress Multisite (WPMS)
+* FIX: preventing the plugin from disconnecting from the service in some cases.
 
 = 1.3.1 =
 
@@ -112,7 +112,7 @@ No. WorpDrive is available for a small monthly fee.
 
 = 1.3.0 =
 
-* CHANGED: Plugin communication with Worpit App changed to help avoid security restrictions that impact direct access to PHP files.
+* CHANGED: Plugin communication with iControlWP App changed to help avoid security restrictions that impact direct access to PHP files.
 
 = 1.2.3 =
 
@@ -124,7 +124,7 @@ No. WorpDrive is available for a small monthly fee.
 
 = 1.2.1 =
 
-* Plugin now redirects to the Worpit settings page upon activation.
+* Plugin now redirects to the iControlWP settings page upon activation.
 * FIX: a bug with the code in the plugin option to mask WP version.
 
 = 1.2.0 =
@@ -141,7 +141,7 @@ No. WorpDrive is available for a small monthly fee.
 
 * Adds a .htaccess to the plugin root folder to cater for people who don't have their own .htaccess to prevent directory listing
 * Fixes compatibility with other plugins who have the same function names in some cases.
-* Work around Maintenance Mode plugin so Worpit commands still work even in maintenance mode.
+* Work around Maintenance Mode plugin so iControlWP commands still work even in maintenance mode.
 
 = 1.1.1 =
 
@@ -154,7 +154,7 @@ No. WorpDrive is available for a small monthly fee.
 
 = 1.0.15 =
 
-* Removes interference from the 'Secure WordPess' plugin when the Worpit plugin initialises due to a request from the Worpit App service.
+* Removes interference from the 'Secure WordPess' plugin when the iControlWP plugin initialises due to a request from the iControlWP service.
 
 = 1.0.14 =
 
@@ -170,7 +170,7 @@ No. WorpDrive is available for a small monthly fee.
 
 == Upgrade Notice ==
 
-= 1.2.0 =
+= 2.0 =
 
-* Major plugin re-architecture to use HTTP GET instead of POST to receive directives from worpitapp.com
-* Tested with WordPress 3.5
+* Worpit is now iControlWP !
+

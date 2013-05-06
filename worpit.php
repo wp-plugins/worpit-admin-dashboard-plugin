@@ -1,19 +1,18 @@
 <?php
-
 /*
-Plugin Name: Worpit - Manage WordPress Better
-Plugin URI: http://worpit.com/
-Description: This is the WordPress plugin client for the Worpit (http://worpit.com) service.
-Version: 1.3.1
-Author: Worpit
-Author URI: http://worpit.com/
+Plugin Name: iControlWP
+Plugin URI: http://icwp.io/home
+Description: Regain Control Of All WordPress Sites From A Single Dashboard
+Version: 2.0
+Author: iControlWP
+Author URI: http://www.icontrolwp.com/
 */
 
 /**
- * Copyright (c) 2012 Worpit <helpdesk@worpit.com>
+ * Copyright (c) 2013 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
- * "Worpit" is distributed under the GNU General Public License, Version 2,
+ * "iControlWP" is distributed under the GNU General Public License, Version 2,
  * June 1991. Copyright (C) 1989, 1991 Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110, USA
  *
@@ -33,6 +32,7 @@ Author URI: http://worpit.com/
 require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 include_once( dirname(__FILE__).'/src/plugin/base.php' );
 include_once( dirname(__FILE__).'/src/plugin/custom_options.php' );
+//include_once( dirname(__FILE__).'/src/lib/security.php' );
 
 if ( !defined( 'WORPIT_DS' ) ) {
 	define( 'WORPIT_DS', DIRECTORY_SEPARATOR );
@@ -41,15 +41,16 @@ if ( !defined( 'WORPIT_DS' ) ) {
 global $wpdb;
 
 class Worpit_Plugin extends Worpit_Plugin_Base {
-	
-	protected $m_oAuditor;
 
-	static public $VERSION = '1.3.1';
-	
+	const DashboardUrlBase = 'https://worpitapp.com/dashboard/';
+	const ServiceName = 'iControlWP';
+
+	static public $VERSION = '2.0';
 	static public $CustomOptionsDbName = 'custom_options';
 	static public $CustomOptions; //the array of options written to WP Options
 	
 	protected $m_aWordPressSecurityOptions;
+	protected $m_oAuditor;
 	
 	public function __construct() {
 		parent::__construct();
@@ -58,7 +59,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		self::$PluginPath		= plugin_basename( dirname(__FILE__) );
 		self::$PluginBasename	= plugin_basename( __FILE__ );
 		self::$PluginDir		= WP_PLUGIN_DIR.WORPIT_DS.self::$PluginPath.WORPIT_DS;
-		self::$PluginUrl		= WP_PLUGIN_URL.'/'.self::$PluginPath.'/';
+//		self::$PluginUrl		= WP_PLUGIN_URL.'/'.self::$PluginPath.'/';
+		self::$PluginUrl		= plugins_url( '/', __FILE__ ) ; //this seems to use SSL more reliably than WP_PLUGIN_URL
 		
 		if ( ( isset( $_POST['getworpitpluginurl'] ) && $_POST['getworpitpluginurl'] == 1 )
 			|| ( isset( $_GET['getworpitpluginurl'] ) && $_GET['getworpitpluginurl'] == 1 ) ) {
@@ -73,13 +75,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			$oUninstall = new Worpit_Uninstall();
 		}
 
-		// If the plugin is being initialised from Worpit App
+		// If the plugin is being initialised from iControlWP Dashboard
 		if ( isset( $_POST['key'] ) && isset( $_POST['pin'] ) ) {
 			if ( $this->worpitAuthenticate( $_POST ) ) { //It's a valid request coming from Worpit...
 				add_action( 'plugins_loaded', array( $this, 'removeSecureWpHooks' ), 1 );
 				add_action( 'plugins_loaded', array( $this, 'removeBetterWpSecurityHooks' ), 1 );
-				add_action( 'plugins_loaded', array( $this, 'removeMaintenanceModeHook' ), 1 );
-				add_action( 'init', array( $this, 'setAuthorizedUser' ), 0 );
+				add_action( 'plugins_loaded', array( $this, 'removeMaintenanceModeHooks' ), 1 );
+				add_action( 'plugins_loaded', array( $this, 'setAuthorizedUser' ), 0 );
 			}
 		}
 		
@@ -91,6 +93,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		new Worpit_Plugin_Custom_Options( self::$CustomOptions );
 
 		// $this->m_oAuditor = new Worpit_Auditor();
+		// new Icwp_Security( '' );
 	}
 	
 	/**
@@ -237,10 +240,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			remove_action( 'init', array( $SecureWP, 'remove_theme_update' ), 1 );
 			remove_action( 'init', array( $SecureWP, 'remove_wp_version_on_admin' ), 1 );
 		}
-	}//removeSecureWpHooks
+	}
 	
 	/**
-	 * Remove actions setup by Better WP Security plugin that interfere with Worpit synchronizing packages.
+	 * Remove actions setup by Better WP Security plugin that interfere with iControlWP synchronizing packages.
 	 *
 	 * Check secure.php for changes to these hooks.
 	 * @return void
@@ -249,7 +252,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		global $bwps;
 		
 		if ( class_exists( 'bwps_secure' ) && isset( $bwps ) && is_object( $bwps ) ) {
-		
 			remove_action( 'plugins_loaded', array( $bwps, 'randomVersion' ) );
 			remove_action( 'plugins_loaded', array( $bwps, 'pluginupdates' ) );
 			remove_action( 'plugins_loaded', array( $bwps, 'themeupdates' ) );
@@ -259,14 +261,21 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 	
 	/**
-	 * Removes any interruption from the Maintenance Mode plugin while Worpit is executing a package.
+	 * Removes any interruption from Maintenance Mode plugins while iControlWP is executing a package.
 	 * @return void
 	 */
-	public function removeMaintenanceModeHook() {
-		global $myMaMo;
+	public function removeMaintenanceModeHooks() {
 		
+		//Maintenance Mode Plugin
+		global $myMaMo;
 		if ( class_exists( 'MaintenanceMode' ) && isset( $myMaMo ) && is_object( $myMaMo ) ) {
-			remove_action('plugins_loaded', array( $myMaMo, 'ApplyMaintenanceMode') );
+			remove_action( 'plugins_loaded', array( $myMaMo, 'ApplyMaintenanceMode') );
+		}
+		
+		// ThemeFuse Maintenance Mode Plugin
+		// http://wordpress.org/extend/plugins/themefuse-maintenance-mode/developers/
+		if ( class_exists( 'tf_maintenance' ) ) {
+			remove_action( 'init', 'tf_maintenance_Init', 5 );
 		}
 	}
 	
@@ -274,7 +283,16 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return void
 	 */
 	public function setAuthorizedUser() {
-		wp_set_current_user( 1 );
+		if ( isset( $_POST['wpadmin_user'] ) && !is_user_logged_in() ) {
+			$oUser = function_exists( 'get_user_by' )? get_user_by( 'login', $_POST['wpadmin_user'] ): get_userdatabylogin( $_POST['wpadmin_user'] );
+			wp_set_current_user( $oUser->ID );
+			if ( @getenv( 'IS_WPE' ) ) {
+				wp_set_auth_cookie( $oUser->ID );
+			}
+		}
+		else {
+			wp_set_current_user( 1 );
+		}
 	}
 	
 	protected function initPluginOptions() {
@@ -293,7 +311,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 
 		$this->m_aWordPressSecurityOptions = 	array(
-				'section_title' => 'Worpit Security Settings',
+				'section_title' => 'iControlWP Security Settings',
 				'section_options' => array(
 					array( 'sec_hide_wp_version',			'',		'N', 	'checkbox',		'Hide WP Version', 'Do not publish WordPress version', 'asdf' ),
 					array( 'sec_hide_wlmanifest_link',		'',		'N', 	'checkbox',		'Version', 'Do', 'asdf' ),
@@ -314,22 +332,22 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @see Worpit_Plugin_Base::handlePluginFormSubmit()
 	 */
 	protected function handlePluginFormSubmit() {
-		if ( !current_user_can( 'manage_options' ) || !isset( $_POST['worpit_admin_form_submit'] ) ) {
+		if ( !current_user_can( 'manage_options' ) || !isset( $_POST['icwp_admin_form_submit'] ) ) {
 			return;
 		}
 		
 		check_admin_referer( self::$ParentMenuId );
 		
 		//Someone clicked the button to acknowledge the installation of the plugin
-		if ( isset( $_POST['worpit_user_id'] ) && isset( $_POST['worpit_ack_plugin_notice'] ) ) {
-			$result = update_user_meta( $_POST['worpit_user_id'], self::$VariablePrefix.'ack_plugin_notice', 'Y' );
+		if ( isset( $_POST['icwp_user_id'] ) && isset( $_POST['icwp_ack_plugin_notice'] ) ) {
+			$result = update_user_meta( $_POST['icwp_user_id'], self::$VariablePrefix.'ack_plugin_notice', 'Y' );
 			header( "Location: admin.php?page=".self::$ParentMenuId );
 			return;
 		}
 		
 		//Someone clicked the button to enable/disable hand-shaking
-		if ( isset( $_POST['worpit_admin_form_submit_handshake'] ) ) {
-			if ( isset( $_POST['worpit_admin_handshake_enabled'] ) ) {
+		if ( isset( $_POST['icwp_admin_form_submit_handshake'] ) ) {
+			if ( isset( $_POST['icwp_admin_handshake_enabled'] ) ) {
 				update_option( self::$VariablePrefix.'handshake_enabled',	'Y' );
 			}
 			else {
@@ -340,7 +358,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 		
 		//Someone clicked a button to debug, either gather, or send
-		if ( isset( $_POST['worpit_admin_form_submit_debug'] ) ) {
+		if ( isset( $_POST['icwp_admin_form_submit_debug'] ) ) {
 			if ( isset( $_POST['submit_gather'] ) ) {
 				$sUniqueName = uniqid().'_'.time().'.txt';
 				$sTarget = dirname(__FILE__).'/'.$sUniqueName;
@@ -399,7 +417,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				
 				if ( !$fCanWrite ) {
 					echo "<h4>Your system configuration does not allow writing to the filesystem.</h4>";
-					echo "<p>Please take a moment and send the contents of this page to support@worpit.com</p>";
+					echo "<p>Please take a moment and send the contents of this page to support@icontrolwp.com</p>";
 					echo "<hr />";
 					var_dump( $aData );
 				}
@@ -412,7 +430,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				$sTarget = get_option( self::$VariablePrefix.'debug_file' );
 				$sTargetAbs = dirname(__FILE__).'/'.$sTarget;
 				if ( !empty( $sTarget ) && is_file( $sTargetAbs ) ) {
-					if ( wp_mail( 'support@worpit.com', 'Debug Configuration', 'See attachment', '', $sTargetAbs ) ) {
+					if ( wp_mail( 'support@icontrolwp.com', 'Debug Configuration', 'See attachment', '', $sTargetAbs ) ) {
 						unlink( $sTargetAbs );
 						delete_option( self::$VariablePrefix.'debug_file' );
 					}
@@ -426,14 +444,14 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			switch ( $_GET['page'] ) {
 				case parent::$ParentMenuId:
 					//$this->handleSubmit_Clear();
-					if ( isset( $_POST['worpit_admin_form_submit_resetplugin'] ) ) {
+					if ( isset( $_POST['icwp_admin_form_submit_resetplugin'] ) ) {
 						$sTo = get_option( self::$VariablePrefix.'assigned_to' );
 						$sKey = get_option( self::$VariablePrefix.'key' );
 						$sPin = get_option( self::$VariablePrefix.'pin' );
 						
 						if ( !empty( $sTo ) && !empty( $sKey ) && !empty( $sPin ) ) {
 							$aParts = array( urlencode( $sTo ), $sKey, $sPin );
-							$sContents = @file_get_contents( 'http://worpitapp.com/dashboard/system/verification/reset/'.implode( '/', $aParts ) );
+							$sContents = @file_get_contents( self::DashboardUrlBase.'system/verification/reset/'.implode( '/', $aParts ) );
 						}
 
 						update_option( self::$VariablePrefix.'key',					Worpit_Plugin::Generate( 24, 7 ) );
@@ -474,6 +492,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	public function onWpInit() {
 		parent::onWpInit();
+		
+		add_action( 'wp_enqueue_scripts', array( &$this, 'onWpEnqueueScripts' ) );
 		add_action( 'wp_footer', array( $this, 'printPluginUri') );
 	}
 	
@@ -486,7 +506,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 		//Do Plugin-Specific Admin Work
 		if ( $this->isSelfAdminPage() ) {
-			wp_register_style( 'worpit-admin', $this->getCssUrl( 'worpit-admin.css' ) );
+			wp_register_style( 'worpit-admin', $this->getCssUrl( 'icontrolwp-admin.css' ) );
 			wp_enqueue_style( 'worpit-admin' );
 		}
 		
@@ -554,7 +574,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				
 			'image_url'			=> $this->getImageUrl( '' )
 		);
-		$this->display( 'worpit_index', $aData );
+		$this->display( 'icwp_index', $aData );
 	}
 	
 	/**
@@ -579,7 +599,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				
 			'image_url'			=> $this->getImageUrl( '' )
 		);
-		$this->display( 'worpit_view_settings', $aData );
+		$this->display( 'icwp_view_settings', $aData );
 	}
 
 	/**
@@ -603,10 +623,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			$sNotice = '
 					<form method="post" action="admin.php?page=worpit-admin">
 					'.wp_nonce_field( self::$ParentMenuId ).'
-						<p><strong>Warning:</strong> Now that you have installed the Worpit plugin, you should now add it to your Worpit account.
-						<input type="hidden" name="worpit_admin_form_submit" value="1" />
-						<input type="hidden" name="worpit_ack_plugin_notice" value="Y" />
-						<input type="hidden" value="'.$user_id.'" name="worpit_user_id" id="worpit_user_id">
+						<p><strong>Warning:</strong> Now that you have installed the '.self::ServiceName.' plugin, you should now add it to your '.self::ServiceName.' account.
+						<input type="hidden" name="icwp_admin_form_submit" value="1" />
+						<input type="hidden" name="icwp_ack_plugin_notice" value="Y" />
+						<input type="hidden" value="'.$user_id.'" name="icwp_user_id" id="_icwp_user_id">
 						<input type="submit" value="Get your Authentication Key here" name="submit" class="button-primary">
 						</p>
 					</form>
@@ -619,7 +639,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		if ( isset( $_GET['worpitapp'] ) && $_GET['worpitapp'] == 'install' ) {
 			$sNotice = '
 				<form method="post" action="admin.php?page=worpit-admin">
-					<p>Looking for your Worpit Authentication Key?
+					<p>Looking for your '.self::ServiceName.' Authentication Key?
 					<input type="submit" value="Get your Authentication Key here" name="submit" class="button-primary">
 					</p>
 				</form>
@@ -637,6 +657,17 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			echo '<!-- Worpit Plugin: '.plugins_url( '/', __FILE__ ) .' -->';
 		}
 	}
+	
+	public function onWpEnqueueScripts() {
+		
+		//Dislay the pomotional javascript if the user has selected (from within iControlWP dashboard)
+		if ( $this->getOption('display_promo') === 'Y' ) {
+			$sUrl = self::DashboardUrlBase.'js/display-promo.js';
+			wp_register_script( 'icwp_display_promo', $sUrl, false, self::$VERSION, true );
+			wp_enqueue_script( 'icwp_display_promo' );
+		}
+
+	}//onWpEnqueueScripts
 
 }
 
@@ -647,29 +678,33 @@ class Worpit_Install {
 	}
 	
 	public function onWpActivatePlugin() {
-		add_option( Worpit_Plugin::$VariablePrefix.'key',				Worpit_Plugin::Generate( 24, 7 ) );
-		add_option( Worpit_Plugin::$VariablePrefix.'pin',				'' );
-		add_option( Worpit_Plugin::$VariablePrefix.'assigned',			'N' );
-		add_option( Worpit_Plugin::$VariablePrefix.'assigned_to',		'' );
-		add_option( Worpit_Plugin::$VariablePrefix.'can_handshake',		'N' );
-		add_option( Worpit_Plugin::$VariablePrefix.'handshake_enabled',	'N' );
+		
+		$fIsAssigned = get_option( Worpit_Plugin::$VariablePrefix.'assigned' ) === 'Y';
+		
+		if ( !$fIsAssigned ) {
+			add_option( Worpit_Plugin::$VariablePrefix.'key',				Worpit_Plugin::Generate( 24, 7 ) );
+			add_option( Worpit_Plugin::$VariablePrefix.'pin',				'' );
+			add_option( Worpit_Plugin::$VariablePrefix.'assigned',			'N' );
+			add_option( Worpit_Plugin::$VariablePrefix.'assigned_to',		'' );
+			add_option( Worpit_Plugin::$VariablePrefix.'can_handshake',		'N' );
+			add_option( Worpit_Plugin::$VariablePrefix.'handshake_enabled',	'N' );
+			add_option( Worpit_Plugin::$VariablePrefix.'display_promo',		'N' );
+		}
 		
 		add_option( Worpit_Plugin::$VariablePrefix.'installed_version',	Worpit_Plugin::$VERSION );
 		
-		$this->executeSql();
+		// $this->executeSql();
 		
 		// Allows for redirect to plugin page once the plugin is activated.
 		Worpit_Plugin::addOption( 'do_activation_redirect', true );
 	}
 	
-	protected function executeSql() {
-		
-	}
+	protected function executeSql() { }
 }
 
 class Worpit_Uninstall {
 	
-	// TODO: when uninstalling, maybe have a Worpit save settings offsite-like setting
+	// TODO: when uninstalling, maybe have a iControlWP save settings offsite-like setting
 	
 	public function __construct() {
 		register_deactivation_hook( __FILE__, array( &$this, 'onWpDeactivatePlugin' ) );

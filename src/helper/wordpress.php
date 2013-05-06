@@ -22,14 +22,18 @@ class Worpit_Helper_WordPress {
 			return get_option( $insKey );
 		}
 		
-		if ( function_exists( 'get_site_transient' ) ) {
-			return get_site_transient( $insKey );
+		if ( function_exists( 'get_site_transient' ) && function_exists( 'set_site_transient' ) ) {
+			$mTemp = get_site_transient( $insKey );
+			if ( $mTemp === false ) {
+				$mTemp = apply_filters( 'site_transient_'.$insKey, get_option( '_site_transient_'.$insKey ) );
+			}
+			return $mTemp;
 		}
 		
 		if ( version_compare( $this->m_sWpVersion, '2.9.9', '<=' ) ) {
 			return apply_filters( 'transient_'.$insKey, get_option( '_transient_'.$insKey ) );
 		}
-		
+
 		return apply_filters( 'site_transient_'.$insKey, get_option( '_site_transient_'.$insKey ) );
 	}
 	

@@ -10,14 +10,16 @@ class Worpit_Plugin_Base {
 	static public $PluginUrl;
 	static public $PluginBasename;
 	
-	static public $ParentTitle			= 'Worpit';
-	static public $ParentName			= 'Worpit';
+	static public $ParentTitle			= 'iControlWP';
+	static public $ParentName			= 'iControlWP';
 	static public $ParentPermissions	= 'manage_options';
 	static public $ParentMenuId			= 'worpit-admin';
 	static public $VariablePrefix		= 'worpit_admin_';
 	
 	static public $ViewExt				= '.php';
 	static public $ViewDir				= 'views';
+	
+	static public $NetworkAdminOnly		= true;
 	
 	protected $m_sParentMenuIdSuffix;
 	protected $m_aAllPluginOptions;
@@ -117,6 +119,9 @@ class Worpit_Plugin_Base {
 	
 	public function onWpInit() {
 		add_action( 'admin_menu',			array( &$this, 'onWpAdminMenu' ) );
+		if( self::$NetworkAdminOnly ) {
+			add_action(	'network_admin_menu', 	array( &$this, 'onWpNetworkAdminMenu' ) );
+		}
 		add_action( 'plugin_action_links',	array( &$this, 'onWpPluginActionLinks' ), 10, 4 );
 	}
 	
@@ -136,9 +141,24 @@ class Worpit_Plugin_Base {
 	}
 	
 	public function onWpAdminMenu() {
+		$this->createMenu();
+	}
+	
+	public function onWpNetworkAdminMenu() {
+		$this->createMenu();
+	}
+	
+	protected function createMenu() {
 
+		if ( function_exists( 'is_multisite' ) ) {
+			//if the site is a multisite and we're not on the network admin, get out.
+			if ( is_multisite() && !is_network_admin() && self::$NetworkAdminOnly ) {
+				return true;
+			}
+		}
+		
 		$sFullParentMenuId = $this->getFullParentMenuId();
-		add_menu_page( self::$ParentTitle, self::$ParentName, self::$ParentPermissions, $sFullParentMenuId, array( $this, 'onDisplayMainMenu' ), $this->getImageUrl( 'worpit_16x16.png' ) );
+		add_menu_page( self::$ParentTitle, self::$ParentName, self::$ParentPermissions, $sFullParentMenuId, array( $this, 'onDisplayMainMenu' ), $this->getImageUrl( 'icontrolwp_16x16.png' ) );
 		
 		//Create and Add the submenu items
 		$this->createPluginSubMenuItems();

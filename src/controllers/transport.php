@@ -186,7 +186,7 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 			die( 'WorpitError: Invalid token' );
 		}
 		
-		if ( version_compare( $wp_version, '3.1', '>=' ) && !isset( $_POST['username'] ) ) {
+		if ( version_compare( $wp_version, '3.1', '>=' ) && ( !isset( $_GET['username'] ) || empty( $_GET['username'] ) ) ) {
 			$aUserRecords = get_users( 'role=administrator' );
 			if ( count( $aUserRecords ) == 0 ) {
 				return $this->fail( 'Failed to find an administrator' );
@@ -202,14 +202,14 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 		}
 		else {
 			if ( version_compare( $wp_version, '3.2.2', '<=' ) ) {
-				$oUser = get_userdatabylogin( $_POST['username'] );
+				$oUser = get_userdatabylogin( $_GET['username'] );
 			}
 			else {
 				//get_userdata
-				$oUser = get_user_by( 'login', $_POST['username'] );
+				$oUser = get_user_by( 'login', $_GET['username'] );
 			}
 		}
-				
+		
 		wp_set_current_user( $oUser->ID );
 		
 		// TODO: Handle multisite
