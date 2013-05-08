@@ -117,12 +117,12 @@ class Worpit_Plugin_Base {
 		wp_enqueue_style( 'worpit_bootstrap_wpadmin_css_fixes' );
 	}
 	
-	public function onWpInit() {
+	public function onWpInit() {/*
 		add_action( 'admin_menu',			array( &$this, 'onWpAdminMenu' ) );
 		if( self::$NetworkAdminOnly ) {
 			add_action(	'network_admin_menu', 	array( &$this, 'onWpNetworkAdminMenu' ) );
 		}
-		add_action( 'plugin_action_links',	array( &$this, 'onWpPluginActionLinks' ), 10, 4 );
+		add_action( 'plugin_action_links',	array( &$this, 'onWpPluginActionLinks' ), 10, 4 );*/
 	}
 	
 	public function onWpAdminInit() {

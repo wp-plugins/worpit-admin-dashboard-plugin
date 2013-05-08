@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Regain Control Of All WordPress Sites From A Single Dashboard
-Version: 2.0
+Version: 2.1
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -12,7 +12,7 @@ Author URI: http://www.icontrolwp.com/
  * Copyright (c) 2013 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
- * "iControlWP" is distributed under the GNU General Public License, Version 2,
+ * "iControlWP" (previously "Worpit") is distributed under the GNU General Public License, Version 2,
  * June 1991. Copyright (C) 1989, 1991 Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110, USA
  *
@@ -45,7 +45,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	const DashboardUrlBase = 'https://worpitapp.com/dashboard/';
 	const ServiceName = 'iControlWP';
 
-	static public $VERSION = '2.0';
+	static private $ServiceIpAddresses = array( '198.61.176.9', '198.61.173.69' );
+	
+	static public $VERSION = '2.1';
 	static public $CustomOptionsDbName = 'custom_options';
 	static public $CustomOptions; //the array of options written to WP Options
 	
@@ -73,6 +75,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			 */
 			$oInstall = new Worpit_Install();
 			$oUninstall = new Worpit_Uninstall();
+		
+			//Add Wordfence firewall rules
+			add_action( 'plugins_loaded', array( $this, 'addToWordfenceWhitelist' ), 1 );
 		}
 
 		// If the plugin is being initialised from iControlWP Dashboard
@@ -94,6 +99,34 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 		// $this->m_oAuditor = new Worpit_Auditor();
 		// new Icwp_Security( '' );
+	}
+	
+	/**
+	 * If Wordfence is found on the site, it'll add the iControlWP IP address to the whitelist
+	 */
+	public function addToWordfenceWhitelist() {
+
+		if ( class_exists( 'wfConfig' ) && method_exists( 'wfConfig', 'get' ) && method_exists( 'wfConfig', 'set' ) ) {
+			
+			$fAdded = true;
+			$sServiceIps = implode( ',', self::$ServiceIpAddresses );
+			$sWfIpWhitelist = wfConfig::get( 'whitelisted' );
+			
+			if( !$sWfIpWhitelist || strlen( $sWfIpWhitelist ) == 0 ) {
+				$sWfIpWhitelist = $sServiceIps;
+			}
+			elseif ( strpos( $sWfIpWhitelist, $sServiceIps ) === false ) {
+				$sWfIpWhitelist .= ','.$sServiceIps;
+			}
+			else {
+				$fAdded = false;
+			}
+			
+			if ( $fAdded ) {
+				wfConfig::set( 'whitelisted', $sWfIpWhitelist );
+				self::updateOption( 'flag_whitelisted_ips_with_wordfence', 'Y' );
+			}
+		}
 	}
 	
 	/**
@@ -249,7 +282,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return void
 	 */
 	public function removeBetterWpSecurityHooks() {
-		global $bwps;
+		global $bwps, $bwpsoptions;
 		
 		if ( class_exists( 'bwps_secure' ) && isset( $bwps ) && is_object( $bwps ) ) {
 			remove_action( 'plugins_loaded', array( $bwps, 'randomVersion' ) );
@@ -257,6 +290,22 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			remove_action( 'plugins_loaded', array( $bwps, 'themeupdates' ) );
 			remove_action( 'plugins_loaded', array( $bwps, 'coreupdates' ) );
 			remove_action( 'plugins_loaded', array( $bwps, 'siteinit' ) );
+		}
+		
+		// Adds our IP addresses to the BWPS whitelist
+		if ( !is_null( $bwpsoptions ) && is_array( $bwpsoptions ) ) {
+
+			$fAdded = true;
+			$sServiceIps = implode( "\n", self::$ServiceIpAddresses );
+			if ( !isset( $bwpsoptions['id_whitelist'] ) || strlen( $bwpsoptions['id_whitelist'] ) == 0 ) {
+				$bwpsoptions['id_whitelist'] = $sServiceIps;
+			}
+			elseif ( strpos( $bwpsoptions['id_whitelist'], $sServiceIps ) === false ) {
+				$bwpsoptions['id_whitelist'] .= "\n".$sServiceIps;
+			}
+			else {
+				$fAdded = false; //not used (yet)
+			}
 		}
 	}
 	
@@ -492,9 +541,60 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	public function onWpInit() {
 		parent::onWpInit();
+
+		if ( self::getOption( 'white_label_hide' ) != 'Y' ) {
+			add_action( 'admin_menu',			array( &$this, 'onWpAdminMenu' ) );
+			if( self::$NetworkAdminOnly ) {
+				add_action(	'network_admin_menu', 	array( &$this, 'onWpNetworkAdminMenu' ) );
+			}
+			add_action( 'plugin_action_links',	array( &$this, 'onWpPluginActionLinks' ), 10, 4 );
+		}
+		else {
+			add_filter( 'all_plugins', array( &$this, 'hide_icwp_plugin' ) ); //removes the plugin from the plugins listing.
+		}
 		
 		add_action( 'wp_enqueue_scripts', array( &$this, 'onWpEnqueueScripts' ) );
 		add_action( 'wp_footer', array( $this, 'printPluginUri') );
+	}
+	
+	public function hide_icwp_plugin( $aPlugins ) {
+		
+		foreach ($aPlugins as $sName => $aData ) {
+			if ( strpos( $sName, 'worpit-admin-dashboard-plugin' ) === 0 ) {
+				unset( $aPlugins[$sName] );
+			}
+		}
+		return $aPlugins;
+	}
+	
+	static public function TurnOnWhiteLabelling( $insType = 'hide' ) {
+
+		switch( $insType ) {
+			case 'hide':
+				self::updateOption( 'white_label_hide', 'Y' );
+				break;
+			case 'brand':
+				self::updateOption( 'white_label_brand', 'Y' );
+				break;
+			default:
+				return true;
+		}
+		return true;
+	}
+	
+	static public function TurnOffWhiteLabelling( $insType = 'hide' ) {
+
+		switch( $insType ) {
+			case 'hide':
+				self::updateOption( 'white_label_hide', 'N' );
+				break;
+			case 'brand':
+				self::updateOption( 'white_label_brand', 'N' );
+				break;
+			default:
+				return true;
+		}
+		return true;
 	}
 	
 	/**
@@ -689,6 +789,8 @@ class Worpit_Install {
 			add_option( Worpit_Plugin::$VariablePrefix.'can_handshake',		'N' );
 			add_option( Worpit_Plugin::$VariablePrefix.'handshake_enabled',	'N' );
 			add_option( Worpit_Plugin::$VariablePrefix.'display_promo',		'N' );
+			add_option( Worpit_Plugin::$VariablePrefix.'white_label_hide',	'N' );
+			add_option( Worpit_Plugin::$VariablePrefix.'white_label_brand',	'N' );
 		}
 		
 		add_option( Worpit_Plugin::$VariablePrefix.'installed_version',	Worpit_Plugin::$VERSION );

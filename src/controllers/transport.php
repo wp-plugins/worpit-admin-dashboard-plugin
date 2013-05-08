@@ -220,7 +220,19 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 		
 		$oWpHelper->deleteTransient( 'worpit_login_token' );
 		
-		wp_safe_redirect( admin_url( '' ) );
+		$sRedirectPath = '';
+		if ( isset( $_GET['redirect'] ) ) {
+			$sRedirectPath = $_GET['redirect'];
+		}
+		
+		if ( is_multisite() ) {
+			$sRedirectUrl = network_admin_url( $sRedirectPath );
+		}
+		else {
+			$sRedirectUrl = admin_url( $sRedirectPath );
+		}
+		
+		wp_safe_redirect( $sRedirectUrl );
 		
 		// for this session disable the send_frame_options_header
 		// set some session variables so WP thinks we're logged in.
