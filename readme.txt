@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, wordpress manage, wordpress admin, backup, restore, bulk, icontrolwp, worpit
 Requires at least: 3.2.0
 Tested up to: 3.6
-Stable tag: 2.1
+Stable tag: 2.2
 
 == Description ==
 
@@ -98,6 +98,11 @@ No. WorpDrive is available for a small monthly fee.
 4. Jump-list menus give you access to most common actions without changing your iControlWP context.
 
 == Changelog ==
+
+= 2.2 =
+
+* ADDED: Ability to add a site to an iControlWP account from within the WordPress site itself
+* ADDED: Support for the underConstruction plugin to ensure we by-pass any redirection.
 
 = 2.1 =
 

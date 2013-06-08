@@ -60,8 +60,15 @@
 				);
 			}
 		);
+		function icwp_formAddSiteSubmit() {
+			var $elemSubmit = jQuery( "button[name=icwp_add_remotely_submit]" );
+			$elemSubmit.html( "Please wait, attempting to add site - please do not reload this page." );
+			$elemSubmit.attr( "disabled", "disabled" );
+			
+			var form = jQuery( "#icwpform-remote-add-site" ).submit();
+		}
 	</script>
-
+	
 	<div class="bootstrap-wpadmin">
 		<div class="page-header">
 			<a href="<?php echo $sUrlServiceHome; ?>"><div class="icon32" id="icontrolwp-icon"><br /></div></a>
@@ -75,7 +82,7 @@
 						if ( empty($wpv_key) ) {
 							echo '<h3>You need to generate your Access Key - reset your key using the red button below.</h3>';
 						} else {
-							echo '<h3>The unqiue '.$sServiceName.' Access Key for this site is: <span class="the-key">'.$wpv_key.'</span></h3>';
+							echo '<h3>The unique '.$sServiceName.' Access Key for this site is: <span class="the-key">'.$wpv_key.'</span></h3>';
 						}
 					?>
 					<div class="assigned-state">
@@ -91,6 +98,30 @@
 				</div>
 			</div>
 		</div>
+		<?php if ( !$wpv_is_linked ) : ?>
+		<div class="row">
+			<div class="span12">
+				<div class="well">
+					<h3>Remotely add site to iControlWP account</h3>
+					<p>You may add your site to your iControlWP from here, or from within your iControlWP Dashboard. Both methods are supported and secure.</p>
+					<p>Note: If this doesn't work, your web host probably has restrictions on outgoing web connections. Please try adding this site from you iControlWP dashboard.</p>
+					<form action="<?php echo $wpv_form_action; ?>" method="POST" name="icwpform-remote-add-site" id="form-remote-add-site" class="">
+						<?php wp_nonce_field( $wpv_nonce_field ); ?>
+						<input type="hidden" name="icwp_admin_form_submit" value="1" />
+						<input type="hidden" name="icwp_admin_form_submit_add_remotely" value="1" />
+						<fieldset>
+							<legend style="margin-bottom: 8px;">Remote Add Site</legend>
+							<label for="_account_auth_key">iControlWP Unique Account Authentication Key:</label>
+							<input name="account_auth_key" type="text" class="span6" id="_account_auth_key" />
+							<label for="_account_email_address">iControlWP Account Email Address:</label>
+							<input name="account_email_address" type="text" class="span6" id="_account_email_address"/>
+						</fieldset>
+						<button class="btn" name="icwp_add_remotely_submit" type="submit" onclick="icwp_formAddSiteSubmit()" >Add Site</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<?php endif; ?>
 		
 		<div class="row">
 			<div class="span12">

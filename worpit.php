@@ -2,8 +2,8 @@
 /*
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
-Description: Regain Control Of All WordPress Sites From A Single Dashboard
-Version: 2.1
+Description: Take Control Of All WordPress Sites From A Single Dashboard
+Version: 2.2
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -43,11 +43,12 @@ global $wpdb;
 class Worpit_Plugin extends Worpit_Plugin_Base {
 
 	const DashboardUrlBase = 'https://worpitapp.com/dashboard/';
+	const RemoteAddSiteUrl = 'https://worpitapp.com/dashboard/system/remote/add_site';
 	const ServiceName = 'iControlWP';
 
 	static private $ServiceIpAddresses = array( '198.61.176.9', '198.61.173.69' );
 	
-	static public $VERSION = '2.1';
+	static public $VERSION = '2.2';
 	static public $CustomOptionsDbName = 'custom_options';
 	static public $CustomOptions; //the array of options written to WP Options
 	
@@ -326,21 +327,47 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		if ( class_exists( 'tf_maintenance' ) ) {
 			remove_action( 'init', 'tf_maintenance_Init', 5 );
 		}
+		
+		//underConstruction plugin
+		global $underConstructionPlugin;
+		if ( class_exists( 'underConstruction' ) && isset( $underConstructionPlugin ) && is_object( $underConstructionPlugin ) ) {
+			remove_action( 'template_redirect', array( $underConstructionPlugin, 'uc_overrideWP' ) );
+			remove_action( 'admin_init', array( $underConstructionPlugin, 'uc_admin_override_WP' ) );
+			remove_action( 'wp_login', array( $underConstructionPlugin, 'uc_admin_override_WP' ) );
+		}
 	}
 	
 	/**
 	 * @return void
 	 */
 	public function setAuthorizedUser() {
-		if ( isset( $_POST['wpadmin_user'] ) && !is_user_logged_in() ) {
+		
+		$nId = 1;
+		
+		if ( isset( $_POST['wpadmin_user'] ) ) {
 			$oUser = function_exists( 'get_user_by' )? get_user_by( 'login', $_POST['wpadmin_user'] ): get_userdatabylogin( $_POST['wpadmin_user'] );
-			wp_set_current_user( $oUser->ID );
-			if ( @getenv( 'IS_WPE' ) ) {
-				wp_set_auth_cookie( $oUser->ID );
+			
+			if ( $oUser ) {
+				$nId = $oUser->ID;
 			}
 		}
 		else {
-			wp_set_current_user( 1 );
+			
+			if ( version_compare( $wp_version, '3.1', '>=' ) ) {
+				
+				$aUserRecords = get_users( 'role=administrator' );
+				if ( is_array( $aUserRecords ) && count( $aUserRecords ) ) {
+					$oUser = $aUserRecords[0];
+					$nId = $oUser->ID;
+				}
+			}
+		}
+		
+		$nId = ( $nId <= 0 ) ? 1 : $nId;
+		
+		wp_set_current_user( $nId );
+		if ( @getenv( 'IS_WPE' ) ) {
+			wp_set_auth_cookie( $nId );
 		}
 	}
 	
@@ -387,14 +414,14 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		
 		check_admin_referer( self::$ParentMenuId );
 		
-		//Someone clicked the button to acknowledge the installation of the plugin
+		//Clicked the button to acknowledge the installation of the plugin
 		if ( isset( $_POST['icwp_user_id'] ) && isset( $_POST['icwp_ack_plugin_notice'] ) ) {
 			$result = update_user_meta( $_POST['icwp_user_id'], self::$VariablePrefix.'ack_plugin_notice', 'Y' );
 			header( "Location: admin.php?page=".self::$ParentMenuId );
 			return;
 		}
 		
-		//Someone clicked the button to enable/disable hand-shaking
+		//Clicked the button to enable/disable hand-shaking
 		if ( isset( $_POST['icwp_admin_form_submit_handshake'] ) ) {
 			if ( isset( $_POST['icwp_admin_handshake_enabled'] ) ) {
 				update_option( self::$VariablePrefix.'handshake_enabled',	'Y' );
@@ -406,7 +433,21 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			return;
 		}
 		
-		//Someone clicked a button to debug, either gather, or send
+		//Clicked the button to remotely add site
+		if ( isset( $_POST['icwp_admin_form_submit_add_remotely'] ) ) {
+			if ( isset( $_POST['account_auth_key'] ) && isset( $_POST['account_email_address'] ) ) {
+				$sAuthKey = trim( $_POST['account_auth_key'] );
+				$sEmailAddress = trim( $_POST['account_email_address'] );
+				$this->doRemoteLink( $sAuthKey, $sEmailAddress );
+			}
+			else {
+				//add error message.
+			}
+			wp_redirect( admin_url('admin.php?page='.self::$ParentMenuId ) );
+			return;
+		}
+		
+		//Clicked a button to debug, either gather, or send
 		if ( isset( $_POST['icwp_admin_form_submit_debug'] ) ) {
 			if ( isset( $_POST['submit_gather'] ) ) {
 				$sUniqueName = uniqid().'_'.time().'.txt';
@@ -664,6 +705,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			'pin'				=> get_option( self::$VariablePrefix.'pin' ),
 			'assigned'			=> get_option( self::$VariablePrefix.'assigned' ),
 			'assigned_to'		=> get_option( self::$VariablePrefix.'assigned_to' ),
+			'is_linked'			=> self::IsLinked(),
 				
 			'can_handshake'		=> get_option( self::$VariablePrefix.'can_handshake' ),
 			'handshake_enabled'	=> get_option( self::$VariablePrefix.'handshake_enabled' ),
@@ -769,6 +811,40 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 	}//onWpEnqueueScripts
 
+	static public function IsLinked() {
+
+		if ( self::getOption( 'assigned' ) == 'Y' && self::getOption( 'assigned_to' ) != '' ) {
+			return true;
+		}
+		return false;
+	}
+	
+	public function doRemoteLink( $insAuthKey, $insEmailAddress ) {
+		if ( self::IsLinked() ) {
+			return false;
+		}
+		
+ 		if ( strlen( $insAuthKey ) == 32 && is_email( $insEmailAddress ) ) {
+				
+			//looks good. Now attempt remote link.
+			$aPostVars = array(
+				'wordpress_url'				=> site_url(),
+				'plugin_url'				=> self::$PluginUrl,
+				'account_email_address'		=> $insEmailAddress,
+				'account_auth_key'			=> $insAuthKey,
+				'plugin_key'				=> self::getOption( 'key' )
+			);
+			$aArgs = array(
+				'body'	=> $aPostVars
+			);
+			$oResponse = wp_remote_post( self::RemoteAddSiteUrl, $aArgs );
+			/* if ( $oResponse['response']['code'] == 200 ) {
+				return true;
+			}
+			*/
+		}
+		return false;
+	}
 }
 
 class Worpit_Install {
