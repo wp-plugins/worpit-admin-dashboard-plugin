@@ -21,6 +21,8 @@ class Worpit_Plugin_Base {
 	
 	static public $NetworkAdminOnly		= true;
 	
+	static public $DefaultTransientLife = 86400; // 1 day
+	
 	protected $m_sParentMenuIdSuffix;
 	protected $m_aAllPluginOptions;
 	
@@ -262,6 +264,24 @@ class Worpit_Plugin_Base {
 			</script>';
 	}
 	
+	/**
+	 * @param string $insUrl
+	 * @param array $inaArgs
+	 * @return boolean|array
+	 */
+	static public function RemoteUrlRead( $insUrl, $inaArgs = array() ) {
+		
+		if ( !function_exists('wp_remote_get') || empty( $insUrl ) ) {
+			return false;
+		}
+		$aResponse = wp_remote_get( $insUrl, $inaArgs );
+		if ( $aResponse['response']['code'] != 200 ) {
+			return false;
+		}
+		$aResponseBody = $aResponse['body'];
+		return $aResponseBody;
+	}
+	
 	static public function getOption( $insKey ) {
 		return get_option( self::$VariablePrefix.$insKey );
 	}
@@ -284,4 +304,17 @@ class Worpit_Plugin_Base {
 	static public function deleteOption( $insKey ) {
 		return delete_option( self::$VariablePrefix.$insKey );
 	}
+	
+	static public function SetTransient( $insKey, $insValue, $innExpire = null ) {#
+		
+		if ( is_null( $innExpire ) ) {
+			$innExpire = self::$DefaultTransientLife;
+		}
+		set_transient( self::$VariablePrefix.$insKey, $insValue, $innExpire );
+	}
+	
+	static public function GetTransient( $insKey ) {
+		return get_transient( self::$VariablePrefix.$insKey );
+	}
+	
 }

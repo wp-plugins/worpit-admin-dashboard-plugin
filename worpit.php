@@ -76,9 +76,26 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			 */
 			$oInstall = new Worpit_Install();
 			$oUninstall = new Worpit_Uninstall();
+			
+			/*
+			// Get the latest config
+			$sKey = 'app_config';
+			$aAppConfig = self::GetTransient( $sKey );
+			if ( empty( $aAppConfig ) ) {
+				$aRemoteConfig = self::RemoteUrlRead( '' );
+				var_dump( $aRemoteConfig );
+				if ( $aRemoteConfig !== false ) {
+					$aAppConfig = base64_decode( $aRemoteConfig );
+					self::SetTransient( $sKey, $aAppConfig );
+				}
+			}
+			var_dump( $aAppConfig );
+			*/
 		
 			//Add Wordfence firewall rules
 			add_action( 'plugins_loaded', array( $this, 'addToWordfenceWhitelist' ), 1 );
+			//Add WordPress firewall 2 plugin rules
+			add_action( 'plugins_loaded', array( $this, 'addToWordpressFirewall2' ), 1 );
 		}
 
 		// If the plugin is being initialised from iControlWP Dashboard
@@ -126,6 +143,28 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			if ( $fAdded ) {
 				wfConfig::set( 'whitelisted', $sWfIpWhitelist );
 				self::updateOption( 'flag_whitelisted_ips_with_wordfence', 'Y' );
+			}
+		}
+	}
+	
+	/**
+	 * If Wordfence is found on the site, it'll add the iControlWP IP address to the whitelist
+	 */
+	public function addToWordpressFirewall2() {
+
+		$mWhiteListIps = get_option( 'WP_firewall_whitelisted_ip' );
+		if ( $aWhiteListIps !== false ) { //WP firewall 2 is installed.
+			$fUpdate = false;
+			
+			$aFirewallIps = maybe_unserialize( $mWhiteListIps );
+			foreach( self::$ServiceIpAddresses as $sAddress ) {
+				if ( !in_array( $sAddress, $aFirewallIps ) ) {
+					$aFirewallIps[] = $sAddress;
+					$fUpdate = true;
+				}
+			}
+			if ( $fUpdate ) {
+				update_option( 'WP_firewall_whitelisted_ip', serialize( $aFirewallIps ) );
 			}
 		}
 	}
@@ -335,6 +374,19 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			remove_action( 'admin_init', array( $underConstructionPlugin, 'uc_admin_override_WP' ) );
 			remove_action( 'wp_login', array( $underConstructionPlugin, 'uc_admin_override_WP' ) );
 		}
+		
+		//Ultimate Maintenance Mode plugin
+		global $seedprod_umm;
+		if ( class_exists( 'SeedProd_Ultimate_Maintenance_Mode' ) && isset( $seedprod_umm ) && is_object( $seedprod_umm ) ) {
+			remove_action( 'template_redirect', array( $seedprod_umm, 'render_maintenancemode_page' ) );
+		}
+		/* doesn't seem to work.
+		global $seed_csp3;
+		if ( class_exists( 'SEED_CSP3_PLUGIN' ) && isset( $seed_csp3 ) && is_object( $seed_csp3 ) ) {
+			remove_action( 'template_redirect', array( $seed_csp3, 'render_comingsoon_page' ), 9 );
+			remove_action( 'template_redirect', array( $seed_csp3, 'render_comingsoon_page' ) );
+		}
+		*/
 	}
 	
 	/**

@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, wordpress manage, wordpress admin, backup, restore, bulk, icontrolwp, worpit
 Requires at least: 3.2.0
 Tested up to: 3.6
-Stable tag: 2.2
+Stable tag: 2.3
 
 == Description ==
 
@@ -99,6 +99,11 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= 2.3 =
+
+* ADDED: Direct support for WordPress Firewall 2 plugin by automatically whitelist iControlWP IPs.
+* ADDED: Support for the Ultimate Maintenance Mode plugin.
+
 = 2.2 =
 
 * ADDED: Ability to add a site to an iControlWP account from within the WordPress site itself
@@ -181,7 +186,10 @@ No. WorpDrive is available for a small monthly fee.
 
 == Upgrade Notice ==
 
-= 1.2.0 =
+= 2.0 =
 
-* Major plugin re-architecture to use HTTP GET instead of POST to receive directives from worpitapp.com
-* Tested with WordPress 3.5
+* NAME CHANGE: Was Worpit, now iControlWP.com
+* ADDED: support for logging in as any user, not just admin.
+* ADDED: Support for WordPress Firewall 2, Better WP Security, and Wordfence by automatically whitelist iControlWP IPs.
+* ADDED: Ability to add a site to an iControlWP account from within the WordPress site itself
+* ADDED: Support for the underConstruction and Ultimate Maintenance Mode plugins.
