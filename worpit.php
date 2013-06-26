@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.3.1
+Version: 2.3.2
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -48,7 +48,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 	static private $ServiceIpAddresses = array( '198.61.176.9', '198.61.173.69' );
 	
-	static public $VERSION = '2.3.1';
+	static public $VERSION = '2.3.2';
 	static public $CustomOptionsDbName = 'custom_options';
 	static public $CustomOptions; //the array of options written to WP Options
 	
@@ -153,10 +153,14 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	public function addToWordpressFirewall2() {
 
 		$mWhiteListIps = get_option( 'WP_firewall_whitelisted_ip' );
-		if ( $aWhiteListIps !== false ) { //WP firewall 2 is installed.
+		if ( $mWhiteListIps !== false ) { //WP firewall 2 is installed.
 			$fUpdate = false;
 			
 			$aFirewallIps = maybe_unserialize( $mWhiteListIps );
+			if ( !is_array( $aFirewallIps ) ) {
+				return;
+			}
+			
 			foreach( self::$ServiceIpAddresses as $sAddress ) {
 				if ( !in_array( $sAddress, $aFirewallIps ) ) {
 					$aFirewallIps[] = $sAddress;
