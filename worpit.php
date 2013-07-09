@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.3.2
+Version: 2.3.3
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -48,7 +48,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 	static private $ServiceIpAddresses = array( '198.61.176.9', '198.61.173.69' );
 	
-	static public $VERSION = '2.3.2';
+	static public $VERSION = '2.3.3';
 	static public $CustomOptionsDbName = 'custom_options';
 	static public $CustomOptions; //the array of options written to WP Options
 	
@@ -96,6 +96,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			add_action( 'plugins_loaded', array( $this, 'addToWordfenceWhitelist' ), 1 );
 			//Add WordPress firewall 2 plugin rules
 			add_action( 'plugins_loaded', array( $this, 'addToWordpressFirewall2' ), 1 );
+			//Add WordPress Simple Firewall plugin whitelist
+            add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
 		}
 
 		// If the plugin is being initialised from iControlWP Dashboard
@@ -145,6 +147,19 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				self::updateOption( 'flag_whitelisted_ips_with_wordfence', 'Y' );
 			}
 		}
+	}
+	
+	/**
+	 * Add the iControlWP public IP addresses to the Simple Firewall Whitelist.
+	 */
+	public function addToSimpleFirewallWhitelist( $aWhitelistIps ) {
+
+		foreach( self::$ServiceIpAddresses as $sAddress ) {
+			if ( !in_array( $sAddress, $aWhitelistIps ) ) {
+				$aWhitelistIps[] = $sAddress;
+			}
+		}
+		return $aWhitelistIps;
 	}
 	
 	/**
