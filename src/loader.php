@@ -21,7 +21,6 @@ if ( !defined( 'WORPIT_RETRIEVE_URL' ) )			define( 'WORPIT_RETRIEVE_URL', 				'h
 if ( !defined( 'WP_ADMIN' ) ) {
 	define( 'WP_ADMIN', true );
 }
-
 /**
  * Thirdparty inclusions
  * We know that other plugins include similar classes, so we want to minimise conflicts.
@@ -85,6 +84,7 @@ if ( !defined( 'WORPIT_DIRECT_API' ) ) {
 	 */
 	if ( function_exists( 'wp_set_current_user' ) ) {
 		wp_set_current_user( 1 );
+		wp_set_auth_cookie( 1 );
 	}
 }
 

@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, wordpress manage, wordpress admin, backup, restore, bulk, icontrolwp, worpit
 Requires at least: 3.2.0
 Tested up to: 3.6
-Stable tag: 2.3.3
+Stable tag: 2.3.4
 
 == Description ==
 
@@ -89,15 +89,19 @@ No. WorpDrive is available for a small monthly fee.
 
 == Screenshots ==
 
-1. At-a-Glance Summary making it easy to spot needed updates and other important actions.
+1. At-a-Glance Summary tell you all your available updates split across plugin/theme names and site names with options to update all, or update individually.
 
-2. iControlWP keeps a log of all your actions so you can track what has been done, and what is pending.
+2. See all your sites at a glance, which sites have upgrades available and where.
 
-3. You can update individual plugins, themes and the WordPress core, with convenient access to review changelogs.
+3. See a full summary of your site information, updates, WordPress Core version, Themes and much more.
 
-4. Jump-list menus give you access to most common actions without changing your iControlWP context.
+4. Get a view of all your plugins and how each one is distributed across each site.
 
 == Changelog ==
+
+= 2.3.4 =
+
+* ADDED: Full support for WP Engine.
 
 = 2.3.3 =
 

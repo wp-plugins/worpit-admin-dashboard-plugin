@@ -15,6 +15,35 @@ if ( !function_exists( 'json_decode' ) ) {
 }
 
 /**
+ * @return boolean
+ */
+function icwpIsWPE() {
+	return ( icwpIsEnvEnabled( 'IS_WPE' ) === true );
+}
+
+/**
+ * @param string $insVarname
+ * @return NULL|boolean
+ */
+function icwpIsEnvEnabled( $insVarname ) {
+	if ( !function_exists( 'getenv' ) ) {
+		return null;
+	}
+	
+	$mReturn = @getenv( $insVarname );
+	return (
+		$mReturn === 1
+		|| $mReturn === '1'
+		|| $mReturn === true
+		|| strtolower( $mReturn ) === 'on'
+		|| strtolower( $mReturn ) === 'y'
+		|| strtolower( $mReturn ) === 'yes'
+		|| strtolower( $mReturn ) === 'enabled'
+		|| strtolower( $mReturn ) === 'true'
+	);
+}
+
+/**
  * Convert to Linux Path
  * @param string $insPath
  * @return string

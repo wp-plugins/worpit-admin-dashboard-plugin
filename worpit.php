@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.3.3
+Version: 2.3.4
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -42,19 +42,58 @@ global $wpdb;
 
 class Worpit_Plugin extends Worpit_Plugin_Base {
 
+	/**
+	 * @var string
+	 */
 	const DashboardUrlBase = 'https://worpitapp.com/dashboard/';
+	
+	/**
+	 * @var string
+	 */
 	const RemoteAddSiteUrl = 'https://worpitapp.com/dashboard/system/remote/add_site';
+	
+	/**
+	 * @var string
+	 */
 	const ServiceName = 'iControlWP';
 
+	/**
+	 * @access static
+	 * @var array
+	 */
 	static private $ServiceIpAddresses = array( '198.61.176.9', '198.61.173.69' );
 	
-	static public $VERSION = '2.3.3';
+	/**
+	 * @access static
+	 * @var string
+	 */
+	static public $VERSION = '2.3.4';
+	
+	/**
+	 * @access static
+	 * @var string
+	 */
 	static public $CustomOptionsDbName = 'custom_options';
+	
+	/**
+	 * @access static
+	 * @var array
+	 */
 	static public $CustomOptions; //the array of options written to WP Options
 	
+	/**
+	 * @var array
+	 */
 	protected $m_aWordPressSecurityOptions;
+	
+	/**
+	 * @var Worpit_Auditor
+	 */
 	protected $m_oAuditor;
 	
+	/**
+	 * @return void
+	 */
 	public function __construct() {
 		parent::__construct();
 		
@@ -62,8 +101,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		self::$PluginPath		= plugin_basename( dirname(__FILE__) );
 		self::$PluginBasename	= plugin_basename( __FILE__ );
 		self::$PluginDir		= WP_PLUGIN_DIR.WORPIT_DS.self::$PluginPath.WORPIT_DS;
-//		self::$PluginUrl		= WP_PLUGIN_URL.'/'.self::$PluginPath.'/';
-		self::$PluginUrl		= plugins_url( '/', __FILE__ ) ; //this seems to use SSL more reliably than WP_PLUGIN_URL
+		self::$PluginUrl		= plugins_url( '/', __FILE__ ); //this seems to use SSL more reliably than WP_PLUGIN_URL
 		
 		if ( ( isset( $_POST['getworpitpluginurl'] ) && $_POST['getworpitpluginurl'] == 1 )
 			|| ( isset( $_GET['getworpitpluginurl'] ) && $_GET['getworpitpluginurl'] == 1 ) ) {
@@ -76,87 +114,86 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			 */
 			$oInstall = new Worpit_Install();
 			$oUninstall = new Worpit_Uninstall();
-			
-			/*
-			// Get the latest config
-			$sKey = 'app_config';
-			$aAppConfig = self::GetTransient( $sKey );
-			if ( empty( $aAppConfig ) ) {
-				$aRemoteConfig = self::RemoteUrlRead( 'https://worpitapp.com/dashboard/system/remote/get_config' );
-				var_dump( $aRemoteConfig );
-				if ( $aRemoteConfig !== false ) {
-					$aAppConfig = base64_decode( $aRemoteConfig );
-					self::SetTransient( $sKey, $aAppConfig );
-				}
-			}
-			var_dump( $aAppConfig );
-			*/
 		
-			//Add Wordfence firewall rules
+			// Add Wordfence firewall rules
 			add_action( 'plugins_loaded', array( $this, 'addToWordfenceWhitelist' ), 1 );
-			//Add WordPress firewall 2 plugin rules
+			// Add WordPress firewall 2 plugin rules
 			add_action( 'plugins_loaded', array( $this, 'addToWordpressFirewall2' ), 1 );
-			//Add WordPress Simple Firewall plugin whitelist
+			// Add WordPress Simple Firewall plugin whitelist
             add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
 		}
 
 		// If the plugin is being initialised from iControlWP Dashboard
 		if ( isset( $_POST['key'] ) && isset( $_POST['pin'] ) ) {
-			if ( $this->worpitAuthenticate( $_POST ) ) { //It's a valid request coming from Worpit...
+			if ( $this->worpitAuthenticate( $_POST ) ) { //It's a VALID request coming from iControlWP...
 				add_action( 'plugins_loaded', array( $this, 'removeSecureWpHooks' ), 1 );
 				add_action( 'plugins_loaded', array( $this, 'removeBetterWpSecurityHooks' ), 1 );
 				add_action( 'plugins_loaded', array( $this, 'removeMaintenanceModeHooks' ), 1 );
-				add_action( 'plugins_loaded', array( $this, 'setAuthorizedUser' ), 0 );
+				add_action( 'plugins_loaded', array( $this, 'setAuthorizedUser' ) );
 			}
 		}
 		
-		// WPE_POPUP_DISABLE
-		
+		/**
+		 * Always perform the API check, as this is used for linking as well and requires
+		 * a different variation of POST variables.
+		 */
 		add_action( 'init', array( $this, 'doAPI' ), 1 );
 		
 		self::Load_CustomOptionsData();
+		
 		new Worpit_Plugin_Custom_Options( self::$CustomOptions );
-
-		// $this->m_oAuditor = new Worpit_Auditor();
-		// new Icwp_Security( '' );
+	}
+	
+	/**
+	 * @param string $insPluginKey
+	 * @return boolean
+	 */
+	public function isPluginInstalled( $insPluginKey ) {
+		$fInstalled = false;
+		switch ( $insPluginKey ) {
+			case 'wordfence':
+				$fInstalled = ( class_exists( 'wfConfig', false ) && method_exists( 'wfConfig', 'get' ) && method_exists( 'wfConfig', 'set' ) );
+				break;
+		}
+		return $fInstalled;
 	}
 	
 	/**
 	 * If Wordfence is found on the site, it'll add the iControlWP IP address to the whitelist
 	 */
 	public function addToWordfenceWhitelist() {
-
-		if ( class_exists( 'wfConfig' ) && method_exists( 'wfConfig', 'get' ) && method_exists( 'wfConfig', 'set' ) ) {
+		if ( !$this->isPluginInstalled( 'wordfence' ) ) {
+			return;
+		}
 			
-			$fAdded = true;
-			$sServiceIps = implode( ',', self::$ServiceIpAddresses );
-			$sWfIpWhitelist = wfConfig::get( 'whitelisted' );
-			
-			if( !$sWfIpWhitelist || strlen( $sWfIpWhitelist ) == 0 ) {
-				$sWfIpWhitelist = $sServiceIps;
-			}
-			elseif ( strpos( $sWfIpWhitelist, $sServiceIps ) === false ) {
-				$sWfIpWhitelist .= ','.$sServiceIps;
-			}
-			else {
-				$fAdded = false;
-			}
-			
-			if ( $fAdded ) {
-				wfConfig::set( 'whitelisted', $sWfIpWhitelist );
-				self::updateOption( 'flag_whitelisted_ips_with_wordfence', 'Y' );
-			}
+		$fAdded = true;
+		$sServiceIps = implode( ',', self::$ServiceIpAddresses );
+		$sWfIpWhitelist = wfConfig::get( 'whitelisted' );
+		
+		if ( !$sWfIpWhitelist || strlen( $sWfIpWhitelist ) == 0 ) {
+			$sWfIpWhitelist = $sServiceIps;
+		}
+		else if ( strpos( $sWfIpWhitelist, $sServiceIps ) === false ) {
+			$sWfIpWhitelist .= ','.$sServiceIps;
+		}
+		else {
+			$fAdded = false;
+		}
+		
+		if ( $fAdded ) {
+			wfConfig::set( 'whitelisted', $sWfIpWhitelist );
+			self::updateOption( 'flag_whitelisted_ips_with_wordfence', 'Y' );
 		}
 	}
 	
 	/**
 	 * Add the iControlWP public IP addresses to the Simple Firewall Whitelist.
+	 * @return array
 	 */
 	public function addToSimpleFirewallWhitelist( $aWhitelistIps ) {
-
-		foreach( self::$ServiceIpAddresses as $sAddress ) {
+		foreach ( self::$ServiceIpAddresses as $sAddress ) {
 			if ( !in_array( $sAddress, $aWhitelistIps ) ) {
-				$aWhitelistIps[] = $sAddress;
+				$aWhitelistIps[ $sAddress ] = 'iControlWP';
 			}
 		}
 		return $aWhitelistIps;
@@ -164,12 +201,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	/**
 	 * If Wordfence is found on the site, it'll add the iControlWP IP address to the whitelist
+	 * @return boolean
 	 */
 	public function addToWordpressFirewall2() {
-
+		$fUpdate = false;
 		$mWhiteListIps = get_option( 'WP_firewall_whitelisted_ip' );
 		if ( $mWhiteListIps !== false ) { //WP firewall 2 is installed.
-			$fUpdate = false;
 			
 			$aFirewallIps = maybe_unserialize( $mWhiteListIps );
 			if ( !is_array( $aFirewallIps ) ) {
@@ -186,11 +223,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				update_option( 'WP_firewall_whitelisted_ip', serialize( $aFirewallIps ) );
 			}
 		}
+		return $fUpdate;
 	}
 	
 	/**
 	 * To force it to re-load from the WordPress options table pass true.
-	 * @param $infForceReload		(optional)
+	 * @param boolean $infForceReload		(optional)
 	 * @return void
 	 */
 	public static function Load_CustomOptionsData( $infForceReload = false ) {
@@ -266,6 +304,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 	
 	/**
+	 * If any of the conditions are met and our plugin executes either the transport or link
+	 * handlers, then all execution will end
 	 * @uses die
 	 * @return void
 	 */
@@ -353,13 +393,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		
 		// Adds our IP addresses to the BWPS whitelist
 		if ( !is_null( $bwpsoptions ) && is_array( $bwpsoptions ) ) {
-
 			$fAdded = true;
 			$sServiceIps = implode( "\n", self::$ServiceIpAddresses );
 			if ( !isset( $bwpsoptions['id_whitelist'] ) || strlen( $bwpsoptions['id_whitelist'] ) == 0 ) {
 				$bwpsoptions['id_whitelist'] = $sServiceIps;
 			}
-			elseif ( strpos( $bwpsoptions['id_whitelist'], $sServiceIps ) === false ) {
+			else if ( strpos( $bwpsoptions['id_whitelist'], $sServiceIps ) === false ) {
 				$bwpsoptions['id_whitelist'] .= "\n".$sServiceIps;
 			}
 			else {
@@ -373,7 +412,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return void
 	 */
 	public function removeMaintenanceModeHooks() {
-		
 		//Maintenance Mode Plugin
 		global $myMaMo;
 		if ( class_exists( 'MaintenanceMode' ) && isset( $myMaMo ) && is_object( $myMaMo ) ) {
@@ -412,9 +450,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return void
 	 */
 	public function setAuthorizedUser() {
-		
 		$nId = 1;
-		
 		if ( isset( $_POST['wpadmin_user'] ) ) {
 			$oUser = function_exists( 'get_user_by' )? get_user_by( 'login', $_POST['wpadmin_user'] ): get_userdatabylogin( $_POST['wpadmin_user'] );
 			
@@ -423,9 +459,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			}
 		}
 		else {
-			
 			if ( version_compare( $wp_version, '3.1', '>=' ) ) {
-				
 				$aUserRecords = get_users( 'role=administrator' );
 				if ( is_array( $aUserRecords ) && count( $aUserRecords ) ) {
 					$oUser = $aUserRecords[0];
@@ -434,11 +468,19 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			}
 		}
 		
-		$nId = ( $nId <= 0 ) ? 1 : $nId;
-		
-		wp_set_current_user( $nId );
-		if ( @getenv( 'IS_WPE' ) ) {
+		/**
+		 * We couldn't find a user at all, so we make a last attempt at just using ID 1
+		 */
+		$nId = ( $nId <= 0 )? 1: $nId;
+
+		if ( !is_user_logged_in() ) {
+			wp_set_current_user( $nId );
 			wp_set_auth_cookie( $nId );
+		}
+
+		if ( @getenv( 'IS_WPE' ) == '1' && class_exists( 'WpeCommon', false ) ) {
+			$oWpEngineCommon = WpeCommon::instance();
+			$oWpEngineCommon->set_wpe_auth_cookie();
 		}
 	}
 	
@@ -655,11 +697,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		parent::onWpInit();
 
 		if ( self::getOption( 'white_label_hide' ) != 'Y' ) {
-			add_action( 'admin_menu',			array( &$this, 'onWpAdminMenu' ) );
-			if( self::$NetworkAdminOnly ) {
-				add_action(	'network_admin_menu', 	array( &$this, 'onWpNetworkAdminMenu' ) );
+			add_action( 'admin_menu', array( &$this, 'onWpAdminMenu' ) );
+			if ( self::$NetworkAdminOnly ) {
+				add_action(	'network_admin_menu', array( &$this, 'onWpNetworkAdminMenu' ) );
 			}
-			add_action( 'plugin_action_links',	array( &$this, 'onWpPluginActionLinks' ), 10, 4 );
+			add_action( 'plugin_action_links', array( &$this, 'onWpPluginActionLinks' ), 10, 4 );
 		}
 		else {
 			add_filter( 'all_plugins', array( &$this, 'hide_icwp_plugin' ) ); //removes the plugin from the plugins listing.
@@ -669,42 +711,55 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		add_action( 'wp_footer', array( $this, 'printPluginUri') );
 	}
 	
-	public function hide_icwp_plugin( $aPlugins ) {
-		
-		foreach ($aPlugins as $sName => $aData ) {
+	/**
+	 * @param array $aPlugins
+	 * @return unknown
+	 */
+	public function hide_icwp_plugin( $inaPlugins ) {
+		foreach ( $inaPlugins as $sName => $aData ) {
 			if ( strpos( $sName, 'worpit-admin-dashboard-plugin' ) === 0 ) {
-				unset( $aPlugins[$sName] );
+				unset( $inaPlugins[$sName] );
 			}
 		}
-		return $aPlugins;
+		return $inaPlugins;
 	}
 	
+	/**
+	 * @param string $insType		(optional)
+	 * @return boolean
+	 */
 	static public function TurnOnWhiteLabelling( $insType = 'hide' ) {
-
-		switch( $insType ) {
+		switch ( $insType ) {
 			case 'hide':
 				self::updateOption( 'white_label_hide', 'Y' );
 				break;
+				
 			case 'brand':
 				self::updateOption( 'white_label_brand', 'Y' );
 				break;
+				
 			default:
-				return true;
+				break;
 		}
 		return true;
 	}
-	
-	static public function TurnOffWhiteLabelling( $insType = 'hide' ) {
 
-		switch( $insType ) {
+	/**
+	 * @param string $insType		(optional)
+	 * @return boolean
+	 */
+	static public function TurnOffWhiteLabelling( $insType = 'hide' ) {
+		switch ( $insType ) {
 			case 'hide':
 				self::updateOption( 'white_label_hide', 'N' );
 				break;
+				
 			case 'brand':
 				self::updateOption( 'white_label_brand', 'N' );
 				break;
+				
 			default:
-				return true;
+				break;
 		}
 		return true;
 	}
@@ -834,15 +889,15 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 		if ( get_option( self::$VariablePrefix.'assigned' ) !== 'Y' && $sWorpitAckPluginNotice !== 'Y' ) {
 			$sNotice = '
-					<form method="post" action="admin.php?page=worpit-admin">
-					'.wp_nonce_field( self::$ParentMenuId ).'
-						<p><strong>Warning:</strong> Now that you have installed the '.self::ServiceName.' plugin, you should now add it to your '.self::ServiceName.' account.
-						<input type="hidden" name="icwp_admin_form_submit" value="1" />
-						<input type="hidden" name="icwp_ack_plugin_notice" value="Y" />
-						<input type="hidden" value="'.$user_id.'" name="icwp_user_id" id="_icwp_user_id">
-						<input type="submit" value="Get your Authentication Key here" name="submit" class="button-primary">
-						</p>
-					</form>
+				<form method="post" action="admin.php?page=worpit-admin">
+				'.wp_nonce_field( self::$ParentMenuId ).'
+					<p><strong>Warning:</strong> Now that you have installed the '.self::ServiceName.' plugin, you should now add it to your '.self::ServiceName.' account.
+					<input type="hidden" name="icwp_admin_form_submit" value="1" />
+					<input type="hidden" name="icwp_ack_plugin_notice" value="Y" />
+					<input type="hidden" value="'.$user_id.'" name="icwp_user_id" id="_icwp_user_id">
+					<input type="submit" value="Get your Authentication Key here" name="submit" class="button-primary">
+					</p>
+				</form>
 			';
 		
 			$this->getAdminNotice( $sNotice, 'error', true );
@@ -863,7 +918,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 
 	/**
-	 *@return void
+	 * @return void
 	 */
 	public function printPluginUri() {
 		if ( $this->getOption('assigned') === 'N' ) {
@@ -871,8 +926,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 	}
 	
+	/**
+	 * @return void
+	 */
 	public function onWpEnqueueScripts() {
-		
 		//Dislay the pomotional javascript if the user has selected (from within iControlWP dashboard)
 		if ( $this->getOption('display_promo') === 'Y' ) {
 			$sUrl = self::DashboardUrlBase.'js/display-promo.js';
@@ -880,16 +937,22 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			wp_enqueue_script( 'icwp_display_promo' );
 		}
 
-	}//onWpEnqueueScripts
+	}
 
+	/**
+	 * @return boolean
+	 */
 	static public function IsLinked() {
-
-		if ( self::getOption( 'assigned' ) == 'Y' && self::getOption( 'assigned_to' ) != '' ) {
-			return true;
-		}
-		return false;
+		return ( self::getOption( 'assigned' ) == 'Y' && self::getOption( 'assigned_to' ) != '' );
 	}
 	
+	/**
+	 * This function always returns false, however the return is never actually used just yet.
+	 *
+	 * @param string $insAuthKey
+	 * @param string $insEmailAddress
+	 * @return boolean
+	 */
 	public function doRemoteLink( $insAuthKey, $insEmailAddress ) {
 		if ( self::IsLinked() ) {
 			return false;
@@ -920,14 +983,18 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 class Worpit_Install {
 	
+	/**
+	 * @return void
+	 */
 	public function __construct() {
 		register_activation_hook( __FILE__, array( &$this, 'onWpActivatePlugin' ) );
 	}
 	
+	/**
+	 * @return void
+	 */
 	public function onWpActivatePlugin() {
-		
 		$fIsAssigned = get_option( Worpit_Plugin::$VariablePrefix.'assigned' ) === 'Y';
-		
 		if ( !$fIsAssigned ) {
 			add_option( Worpit_Plugin::$VariablePrefix.'key',				Worpit_Plugin::Generate( 24, 7 ) );
 			add_option( Worpit_Plugin::$VariablePrefix.'pin',				'' );
@@ -955,10 +1022,16 @@ class Worpit_Uninstall {
 	
 	// TODO: when uninstalling, maybe have a iControlWP save settings offsite-like setting
 	
+	/**
+	 * @return void
+	 */
 	public function __construct() {
 		register_deactivation_hook( __FILE__, array( &$this, 'onWpDeactivatePlugin' ) );
 	}
 	
+	/**
+	 * @return void
+	 */
 	public function onWpDeactivatePlugin() {
 	}
 }

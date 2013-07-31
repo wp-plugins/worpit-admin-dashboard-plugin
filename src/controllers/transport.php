@@ -2,6 +2,9 @@
 
 class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 
+	/**
+	 * @return void
+	 */
 	public function index() {
 		$this->success( array() );
 	}
