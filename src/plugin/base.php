@@ -32,7 +32,8 @@ class Worpit_Plugin_Base {
 		add_action( 'plugins_loaded',	array( &$this, 'onWpPluginsLoaded' ) );
 		
 		if ( is_admin() ) {
-			add_action( 'admin_notices', array( &$this, 'onWpAdminNotices' ) );
+			add_action( 'network_admin_notices', array( $this, 'onWpNetworkAdminNotices' ) );
+			add_action( 'admin_notices', array( $this, 'onWpAdminNotices' ) );
 		}
 	}
 
@@ -44,6 +45,11 @@ class Worpit_Plugin_Base {
 	 * Override this method to handle all the admin notices
 	 */
 	public function onWpAdminNotices() { }
+	
+	/**
+	 * Override this method to handle all the admin notices
+	 */
+	public function onWpNetworkAdminNotices() { }
 
 	/**
 	 * This is called from within onWpAdminInit. Use this solely to manage upgrades of the plugin

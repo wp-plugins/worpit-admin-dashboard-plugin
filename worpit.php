@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.3.4
+Version: 2.3.5
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -67,7 +67,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.3.4';
+	static public $VERSION = '2.3.5';
 	
 	/**
 	 * @access static
@@ -881,13 +881,20 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		if ( !current_user_can( 'manage_options' ) ) {
 			return;
 		}
+	}
+	
+	public function onWpNetworkAdminNotices() {
+		
+		if ( !is_super_admin() || !is_network_admin() ) {
+			return;
+		}
 
 		global $current_user;
 		$user_id = $current_user->ID;
 
-		$sWorpitAckPluginNotice = get_user_meta( $user_id, self::$VariablePrefix.'ack_plugin_notice', true );
+		$sAckPluginNotice = get_user_meta( $user_id, self::$VariablePrefix.'ack_plugin_notice', true );
 
-		if ( get_option( self::$VariablePrefix.'assigned' ) !== 'Y' && $sWorpitAckPluginNotice !== 'Y' ) {
+		if ( get_option( self::$VariablePrefix.'assigned' ) !== 'Y' && $sAckPluginNotice !== 'Y' ) {
 			$sNotice = '
 				<form method="post" action="admin.php?page=worpit-admin">
 				'.wp_nonce_field( self::$ParentMenuId ).'
@@ -899,11 +906,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 					</p>
 				</form>
 			';
-		
 			$this->getAdminNotice( $sNotice, 'error', true );
 		}
 		
-		//if the user is searching from WorpitApp.com
+		// if the user is searching from WorpitApp.com
 		if ( isset( $_GET['worpitapp'] ) && $_GET['worpitapp'] == 'install' ) {
 			$sNotice = '
 				<form method="post" action="admin.php?page=worpit-admin">
@@ -912,7 +918,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 					</p>
 				</form>
 			';
-		
 			$this->getAdminNotice( $sNotice, 'updated', true );
 		}
 	}
