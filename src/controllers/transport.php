@@ -166,13 +166,17 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 		$aData = isset( $aInstallerResponse['data'] )? $aInstallerResponse['data']: '';
 		$this->success( $aData );
 	}
-	
+
 	/**
 	 * Worpit's autologin secure implementation using temporary tokens only configurable by the
 	 * Worpit package delivery system.
 	 */
 	public function login() {
-		global $wp_version;
+		global $wp_version, $_wp_using_ext_object_cache, $wp_object_cache;
+		$_wp_using_ext_object_cache = false;
+		if( !empty( $wp_object_cache ) ) {
+			@$wp_object_cache->flush(); 
+		}
 		
 		if ( !isset( $_GET['token'] ) || empty( $_GET['token'] ) ) {
 			//header( "Location: $location", true, $status);
