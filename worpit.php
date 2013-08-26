@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.3.6
+Version: 2.3.7
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -67,7 +67,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.3.6';
+	static public $VERSION = '2.3.7';
 	
 	/**
 	 * @access static
@@ -115,10 +115,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			$oInstall = new Worpit_Install();
 			$oUninstall = new Worpit_Uninstall();
 		
-			// Add Wordfence firewall rules
-			add_action( 'plugins_loaded', array( $this, 'addToWordfenceWhitelist' ), 1 );
-			// Add WordPress firewall 2 plugin rules
-			add_action( 'plugins_loaded', array( $this, 'addToWordpressFirewall2' ), 1 );
+			add_action( 'plugins_loaded', array( $this, 'addToWhitelists' ), 1 );
 			// Add WordPress Simple Firewall plugin whitelist
             add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
 		}
@@ -126,9 +123,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		// If the plugin is being initialised from iControlWP Dashboard
 		if ( isset( $_POST['key'] ) && isset( $_POST['pin'] ) ) {
 			if ( $this->worpitAuthenticate( $_POST ) ) { //It's a VALID request coming from iControlWP...
-				add_action( 'plugins_loaded', array( $this, 'removeSecureWpHooks' ), 1 );
-				add_action( 'plugins_loaded', array( $this, 'removeBetterWpSecurityHooks' ), 1 );
-				add_action( 'plugins_loaded', array( $this, 'removeMaintenanceModeHooks' ), 1 );
+				add_action( 'plugins_loaded', array( $this, 'removePluginHooks' ), 1 );
 				add_action( 'plugins_loaded', array( $this, 'setAuthorizedUser' ) );
 			}
 		}
@@ -143,6 +138,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		
 		new Worpit_Plugin_Custom_Options( self::$CustomOptions );
 	}
+	
 	/**
 	 * @param string $insPluginKey
 	 * @return boolean
@@ -155,6 +151,26 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				break;
 		}
 		return $fInstalled;
+	}
+	
+	/**
+	 * Should be hooked to 'plugins_loaded' and will remove the hooks of various plugins that
+	 * mess with iCWP normal functioning.
+	 */
+	public function removePluginHooks() {
+		$this->removeSecureWpHooks();
+		$this->removeAiowpsHooks(); //wp-security-core.php line 25
+		$this->removeBetterWpSecurityHooks();
+		$this->removeMaintenanceModeHooks();
+	}
+	
+	/**
+	 * Should be hooked to 'plugins_loaded' and will add iCWP IPs automatically where possible
+	 * to the whitelists of certain plugins that might otherwise block us.
+	 */
+	public function addToWhitelists() {
+		$this->addToWordfenceWhitelist();
+		$this->addToWordpressFirewall2();
 	}
 	
 	/**
@@ -356,14 +372,21 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 	
 	/**
+	 * Remove actions setup by All In One WP Security plugin that interferes with iControlWP packages.
+	 * @return void
+	 */
+	public function removeAiowpsHooks() {
+		if ( class_exists( 'AIO_WP_Security' ) && isset( $GLOBALS['aio_wp_security'] ) && is_object( $GLOBALS['aio_wp_security'] ) ) {
+			remove_action( 'init', array( $GLOBALS['aio_wp_security'], 'wp_security_plugin_init'), 0);
+		}
+	}
+	
+	/**
 	 * Remove actions setup by Secure WP plugin that interfere with Worpit synchronizing packages.
-	 *
-	 * Should be hooked before 'init' priority 1.
 	 * @return void
 	 */
 	public function removeSecureWpHooks() {
 		global $SecureWP;
-	
 		if ( class_exists( 'SecureWP' ) && isset( $SecureWP ) && is_object( $SecureWP ) ) {
 			remove_action( 'init', array( $SecureWP, 'replace_wp_version' ), 1 );
 			remove_action( 'init', array( $SecureWP, 'remove_core_update' ), 1 );
@@ -375,7 +398,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	/**
 	 * Remove actions setup by Better WP Security plugin that interfere with iControlWP synchronizing packages.
-	 *
 	 * Check secure.php for changes to these hooks.
 	 * @return void
 	 */
