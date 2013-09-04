@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.3.7
+Version: 2.3.8
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -26,7 +26,6 @@ Author URI: http://www.icontrolwp.com/
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -67,7 +66,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.3.7';
+	static public $VERSION = '2.3.8';
 	
 	/**
 	 * @access static
@@ -121,11 +120,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 
 		// If the plugin is being initialised from iControlWP Dashboard
-		if ( isset( $_POST['key'] ) && isset( $_POST['pin'] ) ) {
-			if ( $this->worpitAuthenticate( $_POST ) ) { //It's a VALID request coming from iControlWP...
-				add_action( 'plugins_loaded', array( $this, 'removePluginHooks' ), 1 );
-				add_action( 'plugins_loaded', array( $this, 'setAuthorizedUser' ) );
-			}
+		if ( isset( $_GET['worpit_link'] ) || isset( $_GET['worpit_prelink'] ) ) {
+			add_action( 'plugins_loaded', array( $this, 'removeMaintenanceModeHooks' ) );
+		}
+		else if ( isset( $_POST['key'] ) && isset( $_POST['pin'] ) && $this->worpitAuthenticate( $_POST ) ) {
+			add_action( 'plugins_loaded', array( $this, 'removePluginHooks' ), 1 );
+			add_action( 'plugins_loaded', array( $this, 'setAuthorizedUser' ), 1 );
 		}
 		
 		/**
@@ -465,6 +465,20 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			remove_action( 'template_redirect', array( $seed_csp3, 'render_comingsoon_page' ) );
 		}
 		*/
+		
+		/*
+		// This tries to ensure that no-one can just add "worpit_link" to a url to by-pass maintenance mode.
+		if ( ( isset( $_GET['worpit_link'] ) || isset( $_GET['worpit_prelink'] ) ) && !$this->isVisitorIcwp() ) {
+			add_action( 'init', array( $this, 'goBackHome' ), 99 );
+		}
+		*/
+	}
+	
+	/**
+	 * Redirects back to the home URL.
+	 */
+	public function goBackHome() {
+		wp_redirect( get_bloginfo('url') );
 	}
 	
 	/**
@@ -1002,6 +1016,41 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				return true;
 			}
 			*/
+		}
+		return false;
+	}
+	
+	public function isVisitorIcwp() {
+		$sIp = $this->getVisitorIpAddress( false );
+		return ( $sIp === false || in_array( $sIp, self::$ServiceIpAddresses ) );
+	}
+	
+	/**
+	 * Cloudflare compatible.
+	 * 
+	 * @return number - visitor IP Address as IP2Long
+	 */
+	public function getVisitorIpAddress( $infAsLong = true ) {
+	
+		$aAddressSourceOptions = array(
+			'HTTP_CLIENT_IP',
+			'HTTP_X_FORWARDED_FOR',
+			'HTTP_X_FORWARDED',
+			'HTTP_FORWARDED',
+			'REMOTE_ADDR'
+		);
+		
+		$fCanUseFilter = function_exists( 'filter_var' ) && defined( 'FILTER_FLAG_NO_PRIV_RANGE' ) && defined( 'FILTER_FLAG_IPV4' );
+		
+		$aIpAddresses = array();
+		foreach( $aAddressSourceOptions as $sOption ) {
+			$sIpAddressToTest = $_SERVER[ $sOption ];
+			if ( empty( $sIpAddressToTest ) ) {
+				continue;
+			}
+			
+			$aIpAddresses = explode( ',', $sIpAddressToTest ); //sometimes a comma-separated list is returned
+			return $aIpAddresses[0];
 		}
 		return false;
 	}
