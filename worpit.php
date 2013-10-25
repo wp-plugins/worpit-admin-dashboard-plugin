@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.3.8
+Version: 2.3.9
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -28,7 +28,6 @@ Author URI: http://www.icontrolwp.com/
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 include_once( dirname(__FILE__).'/src/plugin/base.php' );
 include_once( dirname(__FILE__).'/src/plugin/custom_options.php' );
 //include_once( dirname(__FILE__).'/src/lib/security.php' );
@@ -60,7 +59,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var array
 	 */
-	static private $ServiceIpAddresses = array( '198.61.176.9', '198.61.173.69' );
+	static private $ServiceIpAddresses = array(
+		'198.61.176.9',
+		'198.61.173.69',
+		'198.61.171.158',
+		'198.101.154.236'
+	);
 	
 	/**
 	 * @access static
@@ -123,7 +127,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		if ( isset( $_GET['worpit_link'] ) || isset( $_GET['worpit_prelink'] ) ) {
 			add_action( 'plugins_loaded', array( $this, 'removeMaintenanceModeHooks' ) );
 		}
-		else if ( isset( $_POST['key'] ) && isset( $_POST['pin'] ) && $this->worpitAuthenticate( $_POST ) ) {
+		else if ( $this->worpitAuthenticate() ) {
 			add_action( 'plugins_loaded', array( $this, 'removePluginHooks' ), 1 );
 			add_action( 'plugins_loaded', array( $this, 'setAuthorizedUser' ), 1 );
 		}
@@ -351,7 +355,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @param array $inaData		Usually receives $_POST
 	 * @return boolean
 	 */
-	protected function worpitAuthenticate( $inaData ) {
+	public function worpitAuthenticate() {
+		
+		if ( !isset( $_POST['key'] ) || !isset( $_POST['pin'] ) ) {
+			return false;
+		}
+		
 		$sOption = get_option( self::$VariablePrefix.'assigned' );
 		$fAssigned = ($sOption == 'Y');
 		if ( !$fAssigned ) {
@@ -359,12 +368,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 	
 		$sKey = get_option( self::$VariablePrefix.'key' );
-		if ( $sKey != trim( $inaData['key'] ) ) {
+		if ( $sKey != trim( $_POST['key'] ) ) {
 			return false;
 		}
 	
 		$sPin = get_option( self::$VariablePrefix.'pin' );
-		if ( $sPin !== md5( trim( $inaData['pin'] ) ) ) {
+		if ( $sPin !== md5( trim( $_POST['pin'] ) ) ) {
 			return false;
 		}
 		
@@ -1201,3 +1210,7 @@ class Worpit_Auditor {
 }
 
 $g_oWorpit = new Worpit_Plugin();
+
+if ( $g_oWorpit->worpitAuthenticate() ) {
+	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+}
