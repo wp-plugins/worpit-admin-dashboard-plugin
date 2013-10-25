@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, wordpress manage, wordpress admin, backup, restore, bulk, icontrolwp, worpit
 Requires at least: 3.2.0
 Tested up to: 3.7
-Stable tag: 2.3.9
+Stable tag: 2.3.10
 
 == Description ==
 
@@ -99,7 +99,7 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
-= 2.3.9 =
+= 2.3.10 =
 
 * ADDED:	New IP address to IP address pool for the service.
 
