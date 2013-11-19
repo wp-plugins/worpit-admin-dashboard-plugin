@@ -1,5 +1,18 @@
 <?php
 
+// This fixes most if not all problems associated with w3 total cache objects
+if ( function_exists('wp_using_ext_object_cache') ) { 
+	wp_using_ext_object_cache( false );
+}
+else {
+	global $_wp_using_ext_object_cache;
+	$_wp_using_ext_object_cache = false;
+}
+global $wp_object_cache;
+if( !empty( $wp_object_cache ) && is_object($wp_object_cache) ) {
+	@$wp_object_cache->flush(); 
+}
+
 /**
  * Configure defines required for Worpit, and make safe incase loader is ever included
  * more than once.

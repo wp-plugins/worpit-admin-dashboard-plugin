@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.3.10
+Version: 2.4.0
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -70,7 +70,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.3.10';
+	static public $VERSION = '2.4.0';
 	
 	/**
 	 * @access static
@@ -123,9 +123,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
             add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
 		}
 
+		// The auto update feature using the WordPress Simple Firewall to process
+		add_filter( 'icwp_wpsf_autoupdate_plugins', array( $this, 'addToSimpleFirewallAutoUpdatePlugins' ) );
+		add_filter( 'icwp_wpsf_autoupdate_themes', array( $this, 'addToSimpleFirewallAutoUpdateThemes' ) );
+		
 		// If the plugin is being initialised from iControlWP Dashboard
 		if ( isset( $_GET['worpit_link'] ) || isset( $_GET['worpit_prelink'] ) ) {
-			add_action( 'plugins_loaded', array( $this, 'removeMaintenanceModeHooks' ) );
+			add_action( 'plugins_loaded', array( $this, 'removeMaintenanceModeHooks' ), 1 );
 		}
 		else if ( $this->worpitAuthenticate() ) {
 			add_action( 'plugins_loaded', array( $this, 'removePluginHooks' ), 1 );
@@ -180,7 +184,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * If Wordfence is found on the site, it'll add the iControlWP IP address to the whitelist
 	 */
-	public function addToWordfenceWhitelist() {
+	protected function addToWordfenceWhitelist() {
 		if ( !$this->isPluginInstalled( 'wordfence' ) ) {
 			return;
 		}
@@ -206,7 +210,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 	
 	/**
-	 * Add the iControlWP public IP addresses to the Simple Firewall Whitelist.
+	 * Adds the iControlWP public IP addresses to the Simple Firewall Whitelist.
+	 * 
 	 * @return array
 	 */
 	public function addToSimpleFirewallWhitelist( $aWhitelistIps ) {
@@ -219,10 +224,40 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 	
 	/**
+	 * A filter function used to dynamically add to the list of plugins that the WordPress
+	 * Simple Firewall will auto update.
+	 * 
+	 * @param array $inaPlugins
+	 * @return array
+	 */
+	public function addToSimpleFirewallAutoUpdatePlugins( $inaPlugins ) {
+		$aAutoUpdatePlugins = self::getOption('auto_update_plugins');
+		if ( !empty($aAutoUpdatePlugins) && is_array($aAutoUpdatePlugins) ) {
+			$inaPlugins = array_merge($inaPlugins, $aAutoUpdatePlugins);
+		}
+		return $inaPlugins;
+	}
+	
+	/**
+	 * A filter function used to dynamically add to the list of themes that the WordPress
+	 * Simple Firewall will auto update.
+	 * 
+	 * @param array $inaThemes
+	 * @return array
+	 */
+	public function addToSimpleFirewallAutoUpdateThemes( $inaThemes ) {
+		$aAutoUpdateThemes = self::getOption('auto_update_themes');
+		if ( !empty($aAutoUpdateThemes) && is_array($aAutoUpdateThemes) ) {
+			$inaThemes = array_merge($inaThemes, $aAutoUpdateThemes);
+		}
+		return $inaThemes;
+	}
+	
+	/**
 	 * If Wordfence is found on the site, it'll add the iControlWP IP address to the whitelist
 	 * @return boolean
 	 */
-	public function addToWordpressFirewall2() {
+	protected function addToWordpressFirewall2() {
 		$fUpdate = false;
 		$mWhiteListIps = get_option( 'WP_firewall_whitelisted_ip' );
 		if ( $mWhiteListIps !== false ) { //WP firewall 2 is installed.
@@ -384,7 +419,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * Remove actions setup by All In One WP Security plugin that interferes with iControlWP packages.
 	 * @return void
 	 */
-	public function removeAiowpsHooks() {
+	protected function removeAiowpsHooks() {
 		if ( class_exists( 'AIO_WP_Security' ) && isset( $GLOBALS['aio_wp_security'] ) && is_object( $GLOBALS['aio_wp_security'] ) ) {
 			remove_action( 'init', array( $GLOBALS['aio_wp_security'], 'wp_security_plugin_init'), 0);
 		}
@@ -394,7 +429,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * Remove actions setup by Secure WP plugin that interfere with Worpit synchronizing packages.
 	 * @return void
 	 */
-	public function removeSecureWpHooks() {
+	protected function removeSecureWpHooks() {
 		global $SecureWP;
 		if ( class_exists( 'SecureWP' ) && isset( $SecureWP ) && is_object( $SecureWP ) ) {
 			remove_action( 'init', array( $SecureWP, 'replace_wp_version' ), 1 );
@@ -410,7 +445,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * Check secure.php for changes to these hooks.
 	 * @return void
 	 */
-	public function removeBetterWpSecurityHooks() {
+	protected function removeBetterWpSecurityHooks() {
 		global $bwps, $bwpsoptions;
 		
 		if ( class_exists( 'bwps_secure' ) && isset( $bwps ) && is_object( $bwps ) ) {
@@ -442,6 +477,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return void
 	 */
 	public function removeMaintenanceModeHooks() {
+		
+		// WP Maintenance Mode Plugin
+		// http://wordpress.org/extend/plugins/themefuse-maintenance-mode/developers/
+		if ( class_exists( 'WPMaintenanceMode' ) ) {
+			remove_action( 'plugins_loaded', array ( 'WPMaintenanceMode', 'get_instance' ) );
+		}
+		
 		//Maintenance Mode Plugin
 		global $myMaMo;
 		if ( class_exists( 'MaintenanceMode' ) && isset( $myMaMo ) && is_object( $myMaMo ) ) {
@@ -529,35 +571,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 	
 	protected function initPluginOptions() {
-		/*
-		foreach ( $this->m_aAllPluginOptions as &$aOptionsSection ) {
-			
-			if ( !isset( $aOptionsSection['section_options'] ) ) {
-				continue;
-			}
-			
-			foreach( $aOptionsSection['section_options'] as $aOption ) {
-				list( $sName, $sValue, $sDefault, $sType ) = $aOption;
-				
-				self::$CustomOptions[ $sName ] = $sDefault;
-			}
-		}
-
-		$this->m_aWordPressSecurityOptions = 	array(
-				'section_title' => 'iControlWP Security Settings',
-				'section_options' => array(
-					array( 'sec_hide_wp_version',			'',		'N', 	'checkbox',		'Hide WP Version', 'Do not publish WordPress version', 'asdf' ),
-					array( 'sec_hide_wlmanifest_link',		'',		'N', 	'checkbox',		'Version', 'Do', 'asdf' ),
-					array( 'sec_hide_rsd_link',				'',		'N', 	'checkbox',		'Version', 'Do', 'asdf' ),
-					array( 'sec_set_random_script_version',	'',		'N', 	'checkbox',		'Version', 'Do', 'asdf' ),
-					array( 'sec_random_script_version',		'',		'', 	'text',			'Version', 'Do', 'asdf' ),
-			),
-		);
-
-		$this->m_aAllPluginOptions = array( &$this->m_aWordPressSecurityOptions );
-
-		return true;
-		*/
 	}
 	
 	/**
@@ -741,17 +754,17 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		parent::onWpInit();
 
 		if ( self::getOption( 'white_label_hide' ) != 'Y' ) {
-			add_action( 'admin_menu', array( &$this, 'onWpAdminMenu' ) );
+			add_action( 'admin_menu', array( $this, 'onWpAdminMenu' ) );
 			if ( self::$NetworkAdminOnly ) {
-				add_action(	'network_admin_menu', array( &$this, 'onWpNetworkAdminMenu' ) );
+				add_action(	'network_admin_menu', array( $this, 'onWpNetworkAdminMenu' ) );
 			}
-			add_action( 'plugin_action_links', array( &$this, 'onWpPluginActionLinks' ), 10, 4 );
+			add_action( 'plugin_action_links', array( $this, 'onWpPluginActionLinks' ), 10, 4 );
 		}
 		else {
-			add_filter( 'all_plugins', array( &$this, 'hide_icwp_plugin' ) ); //removes the plugin from the plugins listing.
+			add_filter( 'all_plugins', array( $this, 'hide_icwp_plugin' ) ); //removes the plugin from the plugins listing.
 		}
 		
-		add_action( 'wp_enqueue_scripts', array( &$this, 'onWpEnqueueScripts' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'onWpEnqueueScripts' ) );
 		add_action( 'wp_footer', array( $this, 'printPluginUri') );
 	}
 	
@@ -830,12 +843,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 	
 	/**
-	 * (non-PHPdoc)
 	 * @see Worpit_Plugin_Base::onWpPluginsLoaded()
 	 */
 	public function onWpPluginsLoaded() {
 		parent::onWpPluginsLoaded();
-		
 		if ( is_admin() ) {
 			$this->handlePluginUpgrade();
 		}
