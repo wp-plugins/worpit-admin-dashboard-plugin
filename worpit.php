@@ -117,10 +117,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			 */
 			$oInstall = new Worpit_Install();
 			$oUninstall = new Worpit_Uninstall();
-		
-			add_action( 'plugins_loaded', array( $this, 'addToWhitelists' ), 1 );
-			// Add WordPress Simple Firewall plugin whitelist
-            add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
 		}
 
 		// The auto update feature using the WordPress Simple Firewall to process
@@ -179,6 +175,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	public function addToWhitelists() {
 		$this->addToWordfenceWhitelist();
 		$this->addToWordpressFirewall2();
+		// Add WordPress Simple Firewall plugin whitelist
+		add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
 	}
 	
 	/**
@@ -188,22 +186,28 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		if ( !$this->isPluginInstalled( 'wordfence' ) ) {
 			return;
 		}
+// 			wfConfig::set( 'whitelisted', '' );
+// 			return;
 			
-		$fAdded = true;
-		$sServiceIps = implode( ',', self::$ServiceIpAddresses );
+		$fAdded = false;
 		$sWfIpWhitelist = wfConfig::get( 'whitelisted' );
-		
-		if ( !$sWfIpWhitelist || strlen( $sWfIpWhitelist ) == 0 ) {
-			$sWfIpWhitelist = $sServiceIps;
-		}
-		else if ( strpos( $sWfIpWhitelist, $sServiceIps ) === false ) {
-			$sWfIpWhitelist .= ','.$sServiceIps;
+		$aServiceIps = self::$ServiceIpAddresses;
+		if ( empty($sWfIpWhitelist) ) {
+			$aWfIps = $aServiceIps;
+			$fAdded = true;
 		}
 		else {
-			$fAdded = false;
+			$aWfIps = explode(',', $sWfIpWhitelist);
+			foreach( $aServiceIps as $sServiceIp ) {
+				if ( !in_array( $sServiceIp, $aWfIps ) ) {
+					$aWfIps[] = $sServiceIp;
+					$fAdded = true;
+				}
+			}
 		}
 		
 		if ( $fAdded ) {
+			$sWfIpWhitelist = implode(',', $aWfIps);
 			wfConfig::set( 'whitelisted', $sWfIpWhitelist );
 			self::updateOption( 'flag_whitelisted_ips_with_wordfence', 'Y' );
 		}
@@ -849,6 +853,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		parent::onWpPluginsLoaded();
 		if ( is_admin() ) {
 			$this->handlePluginUpgrade();
+			$this->addToWhitelists();
 		}
 	}
 	
@@ -981,7 +986,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return void
 	 */
 	public function printPluginUri() {
-		if ( $this->getOption('assigned') === 'N' ) {
+		if ( $this->getOption('assigned') !== 'Y' ) {
 			echo '<!-- Worpit Plugin: '.plugins_url( '/', __FILE__ ) .' -->';
 		}
 	}
