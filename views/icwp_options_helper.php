@@ -1,9 +1,5 @@
 <?php
 
-function getIsHexColour($insColour) {
-	return preg_match( '/^#[a-fA-F0-9]{3,6}$/', $insColour );
-}
-
 function printAllPluginOptionsForm( $inaAllPluginOptions, $insVarPrefix = '', $iOptionsPerRow = 1 ) {
 	
 	if ( empty($inaAllPluginOptions) ) {

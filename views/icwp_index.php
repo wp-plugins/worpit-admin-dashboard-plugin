@@ -7,6 +7,20 @@
 	
 	$sUrlPlugin_TwitterBootstrap = 'http://icwp.io/pluginbootstrap';
 	$sUrlPlugin_WpPlugins = 'http://icwp.io/wpplugins';
+
+	function printOptionsPageHeader( $insSection = '' ) {
+		$sLinkedIcwp = '<a href="http://icwp.io/3f" target="_blank">iControlWP</a>';
+		echo '<div class="page-header">';
+		echo '<h2><a id="pluginlogo_32" class="header-icon32" href="http://icwp.io/2k" target="_blank"></a>';
+		$sBaseTitle = sprintf( _wpsf__( '%s Client Configuration' ), $sLinkedIcwp );
+		if ( !empty($insSection) ) {
+			echo sprintf( '%s :: %s', $insSection, $sBaseTitle );
+		}
+		else {
+			echo $sBaseTitle;
+		}
+		echo '</h2></div>';
+	}
 ?>
 <div class="wrap">
 	<style type="text/css">
@@ -70,11 +84,9 @@
 	</script>
 	
 	<div class="bootstrap-wpadmin">
-		<div class="page-header">
-			<a href="<?php echo $sUrlServiceHome; ?>"><div class="icon32" id="icontrolwp-icon"><br /></div></a>
-			<h2><?php echo $sServiceName; ?> Client Configuration</h2>
-		</div>
-		
+	
+		<?php echo printOptionsPageHeader(); ?>
+
 		<div class="row">
 			<div class="span12">
 				<div class="well">
