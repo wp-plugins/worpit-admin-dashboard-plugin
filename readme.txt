@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, wordpress manage, wordpress admin, backup, restore, bulk, icontrolwp, worpit
 Requires at least: 3.2.0
 Tested up to: 3.8
-Stable tag: 2.4.1
+Stable tag: 2.4.2
 
 == Description ==
 
@@ -99,7 +99,7 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
-= 2.4.1 =
+= 2.4.2 =
 
 * ADDED:	Verified works with WordPress 3.8 admin.
 * CHANGED:	Improved IP white listing method with 3rd party plugins.

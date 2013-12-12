@@ -12,7 +12,7 @@
 		$sLinkedIcwp = '<a href="http://icwp.io/3f" target="_blank">iControlWP</a>';
 		echo '<div class="page-header">';
 		echo '<h2><a id="pluginlogo_32" class="header-icon32" href="http://icwp.io/2k" target="_blank"></a>';
-		$sBaseTitle = sprintf( _wpsf__( '%s Client Configuration' ), $sLinkedIcwp );
+		$sBaseTitle = sprintf( '%s Client Configuration', $sLinkedIcwp );
 		if ( !empty($insSection) ) {
 			echo sprintf( '%s :: %s', $insSection, $sBaseTitle );
 		}
