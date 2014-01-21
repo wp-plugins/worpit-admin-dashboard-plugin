@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, wordpress manage, wordpress admin, backup, restore, bulk, icontrolwp, worpit
 Requires at least: 3.2.0
 Tested up to: 3.8
-Stable tag: 2.4.3
+Stable tag: 2.4.4
 
 == Description ==
 
@@ -99,7 +99,7 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
-= 2.4.3 =
+= 2.4.4 =
 
 * ADDED:	Support for Elegant themes maintenance mode plugin.
 * ADDED:	New Service WhiteList IPs.
