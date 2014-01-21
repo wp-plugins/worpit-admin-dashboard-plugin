@@ -62,15 +62,17 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	static private $ServiceIpAddresses = array(
 		'198.61.176.9',
 		'198.61.173.69',
-		'198.61.171.158',
-		'198.101.154.236'
+//		'198.61.171.158',
+//		'198.101.154.236'
+		'23.253.56.59',
+		'23.253.62.185'
 	);
 	
 	/**
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.4.2';
+	static public $VERSION = '2.4.3';
 	
 	/**
 	 * @access static
@@ -481,7 +483,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return void
 	 */
 	public function removeMaintenanceModeHooks() {
-		
+
+		//ET Anticipate Maintenance Plugin from elegant themes
+		if ( class_exists( 'ET_Anticipate' ) ) {
+			remove_action( 'init', 'ET_Anticipate_Init', 5 );
+		}
+
 		// WP Maintenance Mode Plugin
 		// http://wordpress.org/extend/plugins/themefuse-maintenance-mode/developers/
 		if ( class_exists( 'WPMaintenanceMode' ) ) {
@@ -1027,7 +1034,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				
 			//looks good. Now attempt remote link.
 			$aPostVars = array(
-				'wordpress_url'				=> site_url(),
+				'wordpress_url'				=> home_url(),
 				'plugin_url'				=> self::$PluginUrl,
 				'account_email_address'		=> $insEmailAddress,
 				'account_auth_key'			=> $insAuthKey,

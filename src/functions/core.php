@@ -111,12 +111,12 @@ function worpitAuthenticate( $inaData ) {
 	}
 
 	$sKey = worpitGetOption( 'key' );
-	if ( $sKey != trim( $inaData['key'] ) ) {
+	if ( !isset( $inaData['key'] ) || $sKey != trim( $inaData['key'] ) ) {
 		worpitFatal( 9998, 'InvalidKey:'.@$inaData['key'] );
 	}
 
 	$sPin = worpitGetOption( 'pin' );
-	if ( $sPin !== md5( trim( $inaData['pin'] ) ) ) {
+	if ( !isset( $inaData['pin'] ) || $sPin !== md5( trim( $inaData['pin'] ) ) ) {
 		worpitFatal( 9997, 'InvalidPin:'.@$inaData['pin'] );
 	}
 
