@@ -43,7 +43,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * @var string
 	 */
-	const DashboardUrlBase = 'https://worpitapp.com/dashboard/';
+	const DashboardUrlBase = 'https://app.icontrolwp.com/';
 	
 	/**
 	 * @var string
