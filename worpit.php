@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.4.4
+Version: 2.5.0
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -48,7 +48,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * @var string
 	 */
-	const RemoteAddSiteUrl = 'https://worpitapp.com/dashboard/system/remote/add_site';
+	const RemoteAddSiteUrl = 'https://app.icontrolwp.com/system/remote/add_site';
 	
 	/**
 	 * @var string
@@ -72,7 +72,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.4.4';
+	static public $VERSION = '2.5.0';
 	
 	/**
 	 * @access static
@@ -359,7 +359,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return string
 	 */
 	static public function Get_CustomOption( $insKey, $infForceReload = false ) {
-		self::Load_CustomOptionsData( $infReload );
+		self::Load_CustomOptionsData( $infForceReload );
 		return self::$CustomOptions[$insKey];
 	}
 	
@@ -556,6 +556,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			}
 		}
 		else {
+			global $wp_version;
 			if ( version_compare( $wp_version, '3.1', '>=' ) ) {
 				$aUserRecords = get_users( 'role=administrator' );
 				if ( is_array( $aUserRecords ) && count( $aUserRecords ) ) {

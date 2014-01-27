@@ -57,14 +57,22 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 			return $this->fail( 'The is_wp_error function is not available' );
 		}
 		
-		$sUrl = WORPIT_RETRIEVE_URL.$_GET['package_id'].'/'.worpitGetOption( 'key' ).'/'.worpitGetOption( 'pin' );
+		$sUrl = ICWP_RETRIEVE_URL.$_GET['package_id'].'/'.worpitGetOption( 'key' ).'/'.worpitGetOption( 'pin' );
 		$sTmpFile = download_url( $sUrl );
 		
 		if ( is_wp_error( $sTmpFile ) ) {
 			if ( !is_object( $sTmpFile ) && is_file( $sTmpFile ) ) {
 				@unlink( $sTmpFile );
 			}
-			return $this->fail( sprintf( 'The package could not be downloaded from "%s": %s', $sUrl, is_object( $sTmpFile )? $sTmpFile->get_error_message(): '#not-an-object#' ) );
+
+			$sUrl = WORPIT_RETRIEVE_URL.$_GET['package_id'].'/'.worpitGetOption( 'key' ).'/'.worpitGetOption( 'pin' );
+			$sTmpFile = download_url( $sUrl );
+			if ( is_wp_error( $sTmpFile ) ) {
+				if ( !is_object( $sTmpFile ) && is_file( $sTmpFile ) ) {
+					@unlink( $sTmpFile );
+				}
+				return $this->fail( sprintf( 'The package could not be downloaded from "%s": %s', $sUrl, is_object( $sTmpFile )? $sTmpFile->get_error_message(): '#not-an-object#' ) );
+			}
 		}
 		
 		include_once( $sTmpFile );

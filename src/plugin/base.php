@@ -300,11 +300,7 @@ class Worpit_Plugin_Base {
 		if ( self::getOption( $insKey ) == $insValue ) {
 			return true;
 		}
-		$fResult = update_option( self::$VariablePrefix.$insKey, $insValue );
-		if ( !$fResult ) {
-			$this->m_fUpdateSuccessTracker = false;
-			$this->m_aFailedUpdateOptions[] = self::$VariablePrefix.$insKey;
-		}
+		return update_option( self::$VariablePrefix.$insKey, $insValue );
 	}
 
 	static public function deleteOption( $insKey ) {

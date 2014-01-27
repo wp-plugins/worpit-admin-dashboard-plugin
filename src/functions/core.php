@@ -138,14 +138,20 @@ function worpitVerifyPackageRequest( $inaData ) {
 		return true;
 	}
 	
-	$sUrl = sprintf( WORPIT_VERIFICATION_CHECK_URL.'%s/%s/%s', $inaData['verification_code'], $inaData['package_name'], $inaData['pin']	);
+	$sUrl = sprintf( ICWP_VERIFICATION_CHECK_URL.'%s/%s/%s', $inaData['verification_code'], $inaData['package_name'], $inaData['pin']	);
 	$fRemoteRead = worpitRemoteReadBasic( $sUrl, $sContents );
 	
 	if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
-		$fCanHandshake = worpitCheckCanHandshake();
-		update_option( Worpit_Plugin::$VariablePrefix.'can_handshake', ($fCanHandshake? 'Y': 'N') );
-		update_option( Worpit_Plugin::$VariablePrefix.'handshake_enabled', ($fCanHandshake? 'Y': 'N') );
-		worpitFatal( 9996, 'VerifyCallFailed: '.$sUrl.' : '.$sContents );
+
+		$sUrl = sprintf( WORPIT_VERIFICATION_CHECK_URL.'%s/%s/%s', $inaData['verification_code'], $inaData['package_name'], $inaData['pin']	);
+		$fRemoteRead = worpitRemoteReadBasic( $sUrl, $sContents );
+
+		if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
+			$fCanHandshake = worpitCheckCanHandshake();
+			update_option( Worpit_Plugin::$VariablePrefix.'can_handshake', ($fCanHandshake? 'Y': 'N') );
+			update_option( Worpit_Plugin::$VariablePrefix.'handshake_enabled', ($fCanHandshake? 'Y': 'N') );
+			worpitFatal( 9996, 'VerifyCallFailed: '.$sUrl.' : '.$sContents );
+		}
 	}
 
 	$oJson = json_decode( trim( $sContents ) );
@@ -337,10 +343,12 @@ function worpitHttpRequest( $verb = 'GET', $ip, $port = 80, $uri = '/', $getdata
 * @return boolean
 */
 function worpitCheckCanHandshake() {
-	$fRemoteRead = worpitRemoteReadBasic( WORPIT_VERIFICATION_TEST_URL, $sContents );
-	
+	$fRemoteRead = worpitRemoteReadBasic( ICWP_VERIFICATION_TEST_URL, $sContents );
 	if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
-		return false;
+		$fRemoteRead = worpitRemoteReadBasic( WORPIT_VERIFICATION_TEST_URL, $sContents );
+		if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
+			return false;
+		}
 	}
 
 	$oJson = json_decode( trim( $sContents ) );
