@@ -39,7 +39,7 @@ class Worpit_Helper_WordPress {
 	
 	/**
 	 * @param string $insKey
-	 * @param mixed $inoObject
+	 * @param mixed $inmData
 	 * @return boolean
 	 */
 	public function setTransient( $insKey, $inmData ) {

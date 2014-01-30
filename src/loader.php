@@ -23,11 +23,11 @@ if ( !defined( 'WORPIT_VIEWS_PATH' ) )				define( 'WORPIT_VIEWS_PATH',				realpa
 if ( !defined( 'WORPIT_PHP_ERROR_LOG' ) ) 			define( 'WORPIT_PHP_ERROR_LOG',				realpath( dirname(__FILE__).'/../php_error_log' ) );
 if ( !defined( 'WORPIT_USER_AGENT' ) )				define( 'WORPIT_USER_AGENT',				'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.52 Safari/536.5' );
 if ( !defined( 'WORPIT_VERIFICATION_TEST_URL' ) )	define( 'WORPIT_VERIFICATION_TEST_URL', 	'http://worpitapp.com/dashboard/system/verification/test/' );
-if ( !defined( 'ICWP_VERIFICATION_TEST_URL' ) ) 	define( 'ICWP_VERIFICATION_TEST_URL', 	    'http://app.icontrolwp.com/system/verification/test/' );
+if ( !defined( 'ICWP_VERIFICATION_TEST_URL' ) ) 	define( 'ICWP_VERIFICATION_TEST_URL', 	    'https://app.icontrolwp.com/system/verification/test/' );
 if ( !defined( 'WORPIT_VERIFICATION_CHECK_URL' ) )	define( 'WORPIT_VERIFICATION_CHECK_URL',	'http://worpitapp.com/dashboard/system/verification/check/' );
-if ( !defined( 'ICWP_VERIFICATION_CHECK_URL' ) )	define( 'ICWP_VERIFICATION_CHECK_URL',  	'http://app.icontrolwp.com/system/verification/check/' );
+if ( !defined( 'ICWP_VERIFICATION_CHECK_URL' ) )	define( 'ICWP_VERIFICATION_CHECK_URL',  	'https://app.icontrolwp.com/system/verification/check/' );
 if ( !defined( 'WORPIT_RETRIEVE_URL' ) )			define( 'WORPIT_RETRIEVE_URL', 				'http://worpitapp.com/dashboard/system/package/retrieve/' );
-if ( !defined( 'ICWP_RETRIEVE_URL' ) )		    	define( 'ICWP_RETRIEVE_URL', 				'http://app.icontrolwp.com/system/package/retrieve/' );
+if ( !defined( 'ICWP_RETRIEVE_URL' ) )		    	define( 'ICWP_RETRIEVE_URL', 				'https://app.icontrolwp.com/system/package/retrieve/' );
 
 /**
  * We want to mimic that we are WordPress admin when running any of this code.

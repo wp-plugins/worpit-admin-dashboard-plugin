@@ -25,7 +25,7 @@ class Worpit_Controllers_Base {
 	}
 
 	/**
-	 * @param array $inaData
+	 * @param string $insBase64Data
 	 * @param string $insMessage
 	 *
 	 * @uses exit

@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.5.0
+Version: 2.5.1
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -72,7 +72,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.5.0';
+	static public $VERSION = '2.5.1';
 	
 	/**
 	 * @access static
@@ -95,7 +95,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @var Worpit_Auditor
 	 */
 	protected $m_oAuditor;
-	
+
+	/**
+	 * @var string
+	 */
+	protected $m_sPluginFile;
+
 	/**
 	 * @return void
 	 */
@@ -107,6 +112,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		self::$PluginBasename	= plugin_basename( __FILE__ );
 		self::$PluginDir		= WP_PLUGIN_DIR.WORPIT_DS.self::$PluginPath.WORPIT_DS;
 		self::$PluginUrl		= plugins_url( '/', __FILE__ ); //this seems to use SSL more reliably than WP_PLUGIN_URL
+
+		// Used for autoupdates
+		$this->m_sPluginFile	= plugin_basename( __FILE__ );
 		
 		if ( ( isset( $_POST['getworpitpluginurl'] ) && $_POST['getworpitpluginurl'] == 1 )
 			|| ( isset( $_GET['getworpitpluginurl'] ) && $_GET['getworpitpluginurl'] == 1 ) ) {
@@ -781,8 +789,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 	
 	/**
-	 * @param array $aPlugins
-	 * @return unknown
+	 * @param array $inaPlugins
+	 * @return array
 	 */
 	public function hide_icwp_plugin( $inaPlugins ) {
 		foreach ( $inaPlugins as $sName => $aData ) {
@@ -863,6 +871,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			$this->handlePluginUpgrade();
 			$this->addToWhitelists();
 		}
+		// Always auto-update this plugin
+		add_filter( 'auto_update_plugin', array( $this, 'autoupdate_me' ), 10000, 2 );
 	}
 	
 	/**
@@ -1060,8 +1070,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	
 	/**
 	 * Cloudflare compatible.
-	 * 
-	 * @return number - visitor IP Address as IP2Long
+	 * @param boolean $infAsLong
+	 * @return boolean|string - visitor IP Address as IP2Long
 	 */
 	public function getVisitorIpAddress( $infAsLong = true ) {
 	
@@ -1073,19 +1083,30 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			'REMOTE_ADDR'
 		);
 		
-		$fCanUseFilter = function_exists( 'filter_var' ) && defined( 'FILTER_FLAG_NO_PRIV_RANGE' ) && defined( 'FILTER_FLAG_IPV4' );
-		
-		$aIpAddresses = array();
 		foreach( $aAddressSourceOptions as $sOption ) {
-			$sIpAddressToTest = $_SERVER[ $sOption ];
-			if ( empty( $sIpAddressToTest ) ) {
+			if ( empty( $_SERVER[ $sOption ] ) ) {
 				continue;
 			}
-			
+			$sIpAddressToTest = $_SERVER[ $sOption ];
+
 			$aIpAddresses = explode( ',', $sIpAddressToTest ); //sometimes a comma-separated list is returned
 			return $aIpAddresses[0];
 		}
 		return false;
+	}
+	/**
+	 * This is a filter method designed to say whether WordPress plugin upgrades should be permitted,
+	 * based on the plugin settings.
+	 *
+	 * @param boolean $infUpdate
+	 * @param boolean $insPluginSlug
+	 * @return boolean
+	 */
+	public function autoupdate_me( $infUpdate, $insPluginSlug ) {
+		if ( $insPluginSlug === $this->m_sPluginFile ) {
+			return true;
+		}
+		return $infUpdate;
 	}
 }
 

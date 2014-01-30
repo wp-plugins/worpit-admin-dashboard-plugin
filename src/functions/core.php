@@ -55,8 +55,8 @@ function worpitCLP( $insPath ) {
 /**
  * @uses die()
  *
- * @param unknown_type $innCode
- * @param unknown_type $insMessage
+ * @param integer $innCode
+ * @param string $insMessage
  * @return void
  */
 function worpitFatal( $innCode, $insMessage ) {
@@ -172,8 +172,6 @@ function worpitValidateSystem() {
 	die( '-4:SafeModeEnabled' );
 	}
 	*/
-	//WorpitApp IP: 69.36.185.61
-	//$_SERVER['REMOTE_ADDR'];
 
 	//-6,-7,-8 reserved
 
@@ -201,6 +199,21 @@ function worpitRemoteReadBasic( $insUrl, &$outsResponse = '' ) {
 		return false;
 	}
 
+	$nTimeout = 20;
+
+	if ( function_exists( 'wp_remote_get' ) && function_exists( 'is_wp_error' ) ) {
+		$aArgs = array(
+			'timeout'		=> $nTimeout,
+			'redirection'	=> $nTimeout,
+			'sslverify'		=> true //this is default, but just to make sure.
+		);
+		$oResponse = wp_remote_get( $insUrl, $aArgs );
+		if ( !is_wp_error($oResponse) && $oResponse['response']['code'] == 200 && isset( $oResponse['body'] ) ) {
+			$outsResponse = $oResponse['body'];
+			return true;
+		}
+	}
+
 	if ( function_exists( 'curl_version' ) ) {
 		$oCurl = curl_init();
 		curl_setopt( $oCurl, CURLOPT_URL,				$insUrl );
@@ -209,7 +222,7 @@ function worpitRemoteReadBasic( $insUrl, &$outsResponse = '' ) {
 		@curl_setopt( $oCurl, CURLOPT_FOLLOWLOCATION,	true );
 		@curl_setopt( $oCurl, CURLOPT_MAXREDIRS,		10 );
 		curl_setopt( $oCurl, CURLOPT_CONNECTTIMEOUT,	15 );
-		curl_setopt( $oCurl, CURLOPT_TIMEOUT,			20 );
+		curl_setopt( $oCurl, CURLOPT_TIMEOUT,			$nTimeout );
 		curl_setopt( $oCurl, CURLOPT_HEADER,			false );
 
 		if ( preg_match( '/^https/i', $insUrl ) ) {
@@ -246,7 +259,7 @@ function worpitRemoteReadBasic( $insUrl, &$outsResponse = '' ) {
 		return ( $outsResponse !== false );
 	}
 	else {
-		list( $sDisgard, $sUrl ) = explode( '://', $insUrl, 2 );
+		list( $sDiscard, $sUrl ) = explode( '://', $insUrl, 2 );
 		list( $sHost, $sUri ) = explode( '/', $sUrl, 2 );
 		
 		$outsResponse = worpitHttpRequest( 'GET', $sHost, 80, $sUri );
