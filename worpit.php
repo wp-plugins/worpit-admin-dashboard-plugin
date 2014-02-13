@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.5.1
+Version: 2.5.2
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -56,6 +56,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	const ServiceName = 'iControlWP';
 
 	/**
+	 * @var string
+	 */
+	const WhiteLabelDataKey = 'whitelabeldata';
+
+	/**
 	 * @access static
 	 * @var array
 	 */
@@ -72,7 +77,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.5.1';
+	static public $VERSION = '2.5.2';
 	
 	/**
 	 * @access static
@@ -100,6 +105,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @var string
 	 */
 	protected $m_sPluginFile;
+
+	/**
+	 * @var string
+	 */
+	protected $m_aLabelData;
 
 	/**
 	 * @return void
@@ -231,7 +241,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	public function addToSimpleFirewallWhitelist( $aWhitelistIps ) {
 		foreach ( self::$ServiceIpAddresses as $sAddress ) {
 			if ( !in_array( $sAddress, $aWhitelistIps ) ) {
-				$aWhitelistIps[ $sAddress ] = 'iControlWP';
+				$aWhitelistIps[ $sAddress ] = $this->m_aLabelData['service_name'];
 			}
 		}
 		return $aWhitelistIps;
@@ -779,10 +789,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				add_action(	'network_admin_menu', array( $this, 'onWpNetworkAdminMenu' ) );
 			}
 			add_action( 'plugin_action_links', array( $this, 'onWpPluginActionLinks' ), 10, 4 );
+			add_filter( 'all_plugins', array( $this, 'relabel_icwp_plugin' ) ); //renames parts of the plugin for white label.
 		}
 		else {
 			add_filter( 'all_plugins', array( $this, 'hide_icwp_plugin' ) ); //removes the plugin from the plugins listing.
 		}
+
+		$this->setPluginLabelData();
 		
 		add_action( 'wp_enqueue_scripts', array( $this, 'onWpEnqueueScripts' ) );
 		add_action( 'wp_footer', array( $this, 'printPluginUri') );
@@ -800,7 +813,28 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 		return $inaPlugins;
 	}
-	
+
+	/**
+	 * @param array $inaPlugins
+	 * @return array
+	 */
+	public function relabel_icwp_plugin( $inaPlugins ) {
+		if ( $this->m_aLabelData['service_name'] == self::ServiceName ) {
+			return $inaPlugins;
+		}
+
+		foreach ( $inaPlugins as $sName => $aData ) {
+			if ( strpos( $sName, 'worpit-admin-dashboard-plugin' ) === 0 ) {
+				$inaPlugins[$sName]['Name'] = $this->m_aLabelData['service_name'];
+				$inaPlugins[$sName]['Title'] = $this->m_aLabelData['service_name'];
+				$inaPlugins[$sName]['Author'] = $this->m_aLabelData['service_name'];
+				$inaPlugins[$sName]['AuthorName'] = $this->m_aLabelData['service_name'];
+				$inaPlugins[$sName]['PluginURI'] = $this->m_aLabelData['plugin_url_home'];
+				$inaPlugins[$sName]['AuthorURI'] = $this->m_aLabelData['plugin_url_home'];
+			}
+		}
+	}
+
 	/**
 	 * @param string $insType		(optional)
 	 * @return boolean
@@ -905,6 +939,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		$sDebugFile = get_option( self::$VariablePrefix.'debug_file' );
 		$aData = array(
 			'plugin_url'		=> self::$PluginUrl,
+			'label_data'		=> $this->m_aLabelData,
 			'key'				=> get_option( self::$VariablePrefix.'key' ),
 			'pin'				=> get_option( self::$VariablePrefix.'pin' ),
 			'assigned'			=> get_option( self::$VariablePrefix.'assigned' ),
@@ -1094,6 +1129,35 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 		return false;
 	}
+
+	/**
+	 * @return array|boolean
+	 */
+	public function setPluginLabelData() {
+		$aWhiteLabelData = $this->getWhiteLabelData();
+		$this->m_aLabelData = empty( $aWhiteLabelData )? $this->getDefaultPluginLabelData() : $aWhiteLabelData;
+	}
+
+	/**
+	 * @return array|boolean
+	 */
+	public function getDefaultPluginLabelData() {
+		return array(
+			'service_name'		=> self::ServiceName,
+			'tag_line'			=> 'Take Control Of All WordPress Sites From A Single Dashboard',
+			'plugin_url_home'	=> 'http://icwp.io/home',
+			'icon_url_16x16'	=> $this->getImageUrl( 'icontrolwp_16x16.png' ),
+			'icon_url_32x32'	=> $this->getImageUrl( 'icontrolwp_32x32.png' )
+		);
+	}
+
+	/**
+	 * @return array|boolean
+	 */
+	public function getWhiteLabelData() {
+		return $this->getOption( self::WhiteLabelDataKey );
+	}
+
 	/**
 	 * This is a filter method designed to say whether WordPress plugin upgrades should be permitted,
 	 * based on the plugin settings.
@@ -1107,6 +1171,28 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			return true;
 		}
 		return $infUpdate;
+	}
+
+	protected function createMenu() {
+
+		//if the site is a multisite and we're not on the network admin, get out.
+		if ( function_exists( 'is_multisite' ) ) {
+			if ( is_multisite() && !is_network_admin() && self::$NetworkAdminOnly ) {
+				return true;
+			}
+		}
+
+		$sFullParentMenuId = $this->getFullParentMenuId();
+		add_menu_page(
+			$this->m_aLabelData['service_name'], //self::$ParentTitle
+			$this->m_aLabelData['service_name'], //self::$ParentName
+			self::$ParentPermissions,
+			$sFullParentMenuId,
+			array( $this, 'onDisplayMainMenu' ),
+			$this->m_aLabelData['icon_url_16x16']
+		);
+
+		$this->fixSubmenu();
 	}
 }
 

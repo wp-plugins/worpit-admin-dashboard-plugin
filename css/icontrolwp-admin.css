@@ -1,8 +1,5 @@
 @CHARSET "ISO-8859-1";
 
-#pluginlogo_32 {
-	background: url("../images/icontrolwp_32x32.png") no-repeat 0px 3px transparent;
-}
 .page-header .header-icon32 {
 	display: inline-block;
 	float: left;
@@ -23,4 +20,8 @@
 	padding-bottom: 17px;
 	margin: 18px 0;
 	border-bottom: 1px solid #EEE;
+}
+
+label input[type=checkbox] {
+	height: 16px !important;
 }

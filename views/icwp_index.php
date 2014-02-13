@@ -1,17 +1,26 @@
 <?php
-	$sServiceName = 'iControlWP';
-	$sUrlServiceHome = 'http://icwp.io/home';
-	$sUrlServiceDashboard = 'http://icwp.io/dashboard';
+	$sServiceName = $wpv_label_data['service_name'];
+	$sUrlServiceHome = $wpv_label_data['plugin_url_home'];
 	$sUrlServiceHomeHelp = 'http://icwp.io/help';
 	$sUrlServiceHomeFeatures = 'http://icwp.io/features';
 	
 	$sUrlPlugin_TwitterBootstrap = 'http://icwp.io/pluginbootstrap';
 	$sUrlPlugin_WpPlugins = 'http://icwp.io/wpplugins';
 
-	function printOptionsPageHeader( $insSection = '' ) {
-		$sLinkedIcwp = '<a href="http://icwp.io/3f" target="_blank">iControlWP</a>';
+	function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
+
+		if ( $insServiceName == 'iControlWP' ) {
+			$sIconLink = 'http://icwp.io/2k';
+			$sTitleLink = 'http://icwp.io/3f';
+		}
+		else {
+			$sIconLink = $insUrl;
+			$sTitleLink = $insUrl;
+		}
+
+		$sLinkedIcwp = sprintf( '<a href="%s" target="_blank">%s</a>', $sTitleLink, $insServiceName );
 		echo '<div class="page-header">';
-		echo '<h2><a id="pluginlogo_32" class="header-icon32" href="http://icwp.io/2k" target="_blank"></a>';
+		echo sprintf( '<h2><a id="pluginlogo_32" class="header-icon32" href="%s" target="_blank"></a>', $sIconLink );
 		$sBaseTitle = sprintf( '%s Client Configuration', $sLinkedIcwp );
 		if ( !empty($insSection) ) {
 			echo sprintf( '%s :: %s', $insSection, $sBaseTitle );
@@ -22,6 +31,11 @@
 		echo '</h2></div>';
 	}
 ?>
+<style>
+	#pluginlogo_32 {
+		background: url( "<?php echo $wpv_label_data['icon_url_32x32']; ?>" ) no-repeat 0px 3px transparent;
+	}
+</style>
 <div class="wrap">
 	<style type="text/css">
 		.well h3 { margin-bottom: 10px; }
@@ -39,16 +53,18 @@
     		font-weight: normal;
     		text-decoration: underline;
 		}
-		.assigned-state h4 {
+		.assigned-state {
+		}
+		.assigned-state #isAssigned {
+			color: #00A500;
+			background: url("<?php echo $wpv_image_url; ?>pinvoke/tick.png") no-repeat 0 50% transparent;
 			padding-left: 25px;
 			margin-bottom: 15px;
 		}
-		.assigned-state h4#isAssigned {
-			color: #00A500;
-			background: url("<?php echo $wpv_image_url; ?>pinvoke/tick.png") no-repeat 0 1px transparent;
-		}
-		.assigned-state h4#isNotAssigned {
+		.assigned-state #isNotAssigned {
 			background: url("<?php echo $wpv_image_url; ?>pinvoke/status-amber.png") no-repeat 0 1px transparent;
+			padding-left: 25px;
+			margin-bottom: 15px;
 		}
 		.reset-authentication input,
 		.enable-handshake-authentication input {
@@ -85,7 +101,7 @@
 	
 	<div class="bootstrap-wpadmin">
 	
-		<?php echo printOptionsPageHeader(); ?>
+		<?php echo printOptionsPageHeader( $sServiceName, $sUrlServiceHome ); ?>
 
 		<div class="row">
 			<div class="span12">
@@ -93,16 +109,16 @@
 					<?php
 						if ( empty($wpv_key) ) {
 							echo '<h3>You need to generate your Access Key - reset your key using the red button below.</h3>';
-						} else {
-							echo '<h3>The unique '.$sServiceName.' Access Key for this site is: <span class="the-key">'.$wpv_key.'</span></h3>';
 						}
 					?>
 					<div class="assigned-state">
 						<?php if ( $wpv_assigned === 'Y' ): ?>
-							<h4 id="isAssigned">Currently connected to <?php echo $sServiceName; ?> account: <?php echo $wpv_assigned_to; ?></h4>
+							<h3 id="isAssigned">Currently connected to <?php echo $sServiceName; ?> account: <?php echo $wpv_assigned_to; ?></h3>
 							
 						<?php else: ?>
-							<h4 id="isNotAssigned">Currently waiting for connection from a <?php echo $sServiceName; ?> account. [ <a href="<?php echo $sUrlServiceDashboard; ?>" id="signupLinkIcwp" target="_blank">Don't have a <?php echo $sServiceName; ?> account? Get The Free Unlimited Trial!</a> ]</h4>
+							<h3>The unique <?php echo $sServiceName; ?> Access Key for this site is: <span class="the-key"><?php echo $wpv_key; ?></span></h3>
+
+							<h4 id="isNotAssigned">Currently waiting for connection from a <?php echo $sServiceName; ?> account. [ <a href="<?php echo $sUrlServiceHome; ?>" id="signupLinkIcwp" target="_blank">Don't have a <?php echo $sServiceName; ?> account? Get it today!</a> ]</h4>
 							<p><strong>Important:</strong> if you don't plan to add this site now, disable this plugin to prevent this site from being added to another <?php echo $sServiceName; ?> account.</p>
 						<?php endif; ?>
 					</div>
@@ -114,18 +130,18 @@
 		<div class="row">
 			<div class="span12">
 				<div class="well">
-					<h3>Remotely add site to iControlWP account</h3>
-					<p>You may add your site to your iControlWP from here, or from within your iControlWP Dashboard. Both methods are supported and secure.</p>
-					<p>Note: If this doesn't work, your web host probably has restrictions on outgoing web connections. Please try adding this site from you iControlWP dashboard.</p>
+					<h3>Remotely add site to <?php echo $sServiceName; ?> account</h3>
+					<p>You may add your site to your <?php echo $sServiceName; ?> from here, or from within your <?php echo $sServiceName; ?> Dashboard. Both methods are supported and secure.</p>
+					<p>Note: If this doesn't work, your web host probably has restrictions on outgoing web connections. Please try adding this site from you <?php echo $sServiceName; ?> dashboard.</p>
 					<form action="<?php echo $wpv_form_action; ?>" method="POST" name="icwpform-remote-add-site" id="form-remote-add-site" class="">
 						<?php wp_nonce_field( $wpv_nonce_field ); ?>
 						<input type="hidden" name="icwp_admin_form_submit" value="1" />
 						<input type="hidden" name="icwp_admin_form_submit_add_remotely" value="1" />
 						<fieldset>
 							<legend style="margin-bottom: 8px;">Remote Add Site</legend>
-							<label for="_account_auth_key">iControlWP Unique Account Authentication Key:</label>
+							<label for="_account_auth_key"><?php echo $sServiceName; ?> Unique Account Authentication Key:</label>
 							<input name="account_auth_key" type="text" class="span6" id="_account_auth_key" />
-							<label for="_account_email_address">iControlWP Account Email Address:</label>
+							<label for="_account_email_address"><?php echo $sServiceName; ?> Account Email Address:</label>
 							<input name="account_email_address" type="text" class="span6" id="_account_email_address"/>
 						</fieldset>
 						<button class="btn" name="icwp_add_remotely_submit" type="submit" onclick="icwp_formAddSiteSubmit()" >Add Site</button>
@@ -172,7 +188,6 @@
 		<div class="row">
 			<div class="span12">
 				<div class="well">
-					
 					<div class="reset-authentication" name="">
 						<h3>Reset <?php echo $sServiceName; ?> Access Key</h3>
 						<p>You can break the connection with <?php echo $sServiceName; ?> and regenerate a new access key, using the button below</p>
@@ -193,7 +208,9 @@
 				</div>
 			</div>
 		</div>
-		
+
+		<?php if ( $sServiceName == 'iControlWP' ) : ?>
+
 		<div class="row">
 			<div class="span12">
 				<div class="well">
@@ -295,6 +312,7 @@
 				</div><!-- / well -->
 			</div><!-- / span12 -->
 		</div>
+		<?php endif; ?>
 		
 	</div>
 </div>

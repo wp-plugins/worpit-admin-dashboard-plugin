@@ -39,7 +39,7 @@ class Worpit_Plugin_Base {
 
 	protected function getFullParentMenuId() {
 		return self::$ParentMenuId;
-	}//getFullParentMenuId
+	}
 
 	/**
 	 * Override this method to handle all the admin notices
@@ -157,27 +157,6 @@ class Worpit_Plugin_Base {
 	}
 	
 	protected function createMenu() {
-
-		if ( function_exists( 'is_multisite' ) ) {
-			//if the site is a multisite and we're not on the network admin, get out.
-			if ( is_multisite() && !is_network_admin() && self::$NetworkAdminOnly ) {
-				return true;
-			}
-		}
-		
-		$sFullParentMenuId = $this->getFullParentMenuId();
-		add_menu_page( self::$ParentTitle, self::$ParentName, self::$ParentPermissions, $sFullParentMenuId, array( $this, 'onDisplayMainMenu' ), $this->getImageUrl( 'icontrolwp_16x16.png' ) );
-		
-		//Create and Add the submenu items
-		$this->createPluginSubMenuItems();
-		if ( !empty($this->m_aPluginMenu) ) {
-			foreach ( $this->m_aPluginMenu as $sMenuTitle => $aMenu ) {
-				list( $sMenuItemText, $sMenuItemId, $sMenuCallBack ) = $aMenu;
-				add_submenu_page( $sFullParentMenuId, $sMenuTitle, $sMenuItemText, self::$ParentPermissions, $sMenuItemId, array( &$this, $sMenuCallBack ) );
-			}
-		}
-		
-		$this->fixSubmenu();
 	}
 
 	protected function createPluginSubMenuItems(){
