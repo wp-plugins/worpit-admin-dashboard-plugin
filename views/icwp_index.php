@@ -252,8 +252,8 @@
 						<div class="span11">
 							<h2>About <?php echo $sServiceName; ?></h2>
 							<div>
-								<p><?php echo $sServiceName; ?> is <strong>completely free</strong> to get started with 1 site and after you signup, you can get a free 3 site trial when you tweet about it -
-								<a href="<?php echo $sUrlServiceDashboard; ?>" id="signupLinkIcwp" target="_blank">Sign Up for a <?php echo $sServiceName; ?> WordPress admin account here</a>.</p>
+								<p><?php echo $sServiceName; ?> is <strong>completely free</strong> to get started with an unlimited sites 30 day trial -
+								<a href="<?php echo $sUrlServiceHome; ?>" id="signupLinkIcwp" target="_blank">Sign Up for a <?php echo $sServiceName; ?> account here</a>.</p>
 							</div>
 							<h3><?php echo $sServiceName; ?> Features [<a href="<?php echo $sUrlServiceHomeFeatures; ?>" target="_blank">full details</a>]</h3>
 						</div>
