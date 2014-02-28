@@ -99,6 +99,10 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= 2.6.0 =
+
+* ADDED:	Site Statistics Module
+
 = 2.5.2 =
 
 * CHANGED:	Now ready for white labelling

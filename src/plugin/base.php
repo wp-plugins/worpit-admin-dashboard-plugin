@@ -27,9 +27,10 @@ class Worpit_Plugin_Base {
 	protected $m_aAllPluginOptions;
 	
 	public function __construct() {
-		add_action( 'init',				array( &$this, 'onWpInit' ), 1 );
-		add_action( 'admin_init',		array( &$this, 'onWpAdminInit' ) );
-		add_action( 'plugins_loaded',	array( &$this, 'onWpPluginsLoaded' ) );
+		add_action( 'init',				array( $this, 'onWpInit' ), 1 );
+		add_action( 'admin_init',		array( $this, 'onWpAdminInit' ) );
+		add_action( 'plugins_loaded',	array( $this, 'onWpPluginsLoaded' ), 1 );
+		add_action( 'wp_loaded',		array( $this, 'onWpLoaded' ), 1 );
 		
 		if ( is_admin() ) {
 			add_action( 'network_admin_notices', array( $this, 'onWpNetworkAdminNotices' ) );
@@ -147,7 +148,10 @@ class Worpit_Plugin_Base {
 			$this->handlePluginFormSubmit();
 		}
 	}
-	
+
+	public function onWpLoaded() {
+	}
+
 	public function onWpAdminMenu() {
 		$this->createMenu();
 	}

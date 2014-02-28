@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.5.2
+Version: 2.6.0
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -77,7 +77,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.5.2';
+	static public $VERSION = '2.6.0';
 	
 	/**
 	 * @access static
@@ -112,11 +112,25 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	protected $m_aLabelData;
 
 	/**
-	 * @return void
+	 * @var Worpit_Plugin
+	 */
+	protected static $oInstance = NULL;
+
+	/**
+	 * @return Worpit_Plugin
+	 */
+	public static function & GetInstance() {
+		if ( is_null( self::$oInstance ) ) {
+			self::$oInstance = new Worpit_Plugin();
+		}
+		return self::$oInstance;
+	}
+
+	/**
 	 */
 	public function __construct() {
 		parent::__construct();
-		
+
 		self::$PluginName		= basename(__FILE__);
 		self::$PluginPath		= plugin_basename( dirname(__FILE__) );
 		self::$PluginBasename	= plugin_basename( __FILE__ );
@@ -125,11 +139,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 		// Used for autoupdates
 		$this->m_sPluginFile	= plugin_basename( __FILE__ );
-		
-		if ( ( isset( $_POST['getworpitpluginurl'] ) && $_POST['getworpitpluginurl'] == 1 )
-			|| ( isset( $_GET['getworpitpluginurl'] ) && $_GET['getworpitpluginurl'] == 1 ) ) {
-			add_action( 'plugins_loaded', array($this, 'returnWorpitPluginUrl'), 1 );
-		}
 		
 		if ( is_admin() ) {
 			/**
@@ -142,15 +151,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		// The auto update feature using the WordPress Simple Firewall to process
 		add_filter( 'icwp_wpsf_autoupdate_plugins', array( $this, 'addToSimpleFirewallAutoUpdatePlugins' ) );
 		add_filter( 'icwp_wpsf_autoupdate_themes', array( $this, 'addToSimpleFirewallAutoUpdateThemes' ) );
-		
-		// If the plugin is being initialised from iControlWP Dashboard
-		if ( isset( $_GET['worpit_link'] ) || isset( $_GET['worpit_prelink'] ) ) {
-			add_action( 'plugins_loaded', array( $this, 'removeMaintenanceModeHooks' ), 1 );
-		}
-		else if ( $this->worpitAuthenticate() ) {
-			add_action( 'plugins_loaded', array( $this, 'removePluginHooks' ), 1 );
-			add_action( 'plugins_loaded', array( $this, 'setAuthorizedUser' ), 1 );
-		}
 		
 		/**
 		 * Always perform the API check, as this is used for linking as well and requires
@@ -236,6 +236,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * Adds the iControlWP public IP addresses to the Simple Firewall Whitelist.
 	 * 
+	 * @param array $aWhitelistIps
 	 * @return array
 	 */
 	public function addToSimpleFirewallWhitelist( $aWhitelistIps ) {
@@ -404,17 +405,16 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @uses die
 	 * @return void
 	 */
-	public function returnWorpitPluginUrl() {
+	public function returnIcwpPluginUrl() {
 		die( '<worpitresponse>'. plugins_url( '/', __FILE__ ) .'</worpitresponse>' );
 	}
 
 	/**
 	 * A modified copy of that in transport.php to verfiy the key and the pin
 	 *
-	 * @param array $inaData		Usually receives $_POST
 	 * @return boolean
 	 */
-	public function worpitAuthenticate() {
+	public function icwpAuthenticate() {
 		
 		if ( !isset( $_POST['key'] ) || !isset( $_POST['pin'] ) ) {
 			return false;
@@ -800,7 +800,18 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		add_action( 'wp_enqueue_scripts', array( $this, 'onWpEnqueueScripts' ) );
 		add_action( 'wp_footer', array( $this, 'printPluginUri') );
 	}
-	
+
+	/**
+	 * (non-PHPdoc)
+	 * @see Worpit_Plugin_Base::onWpInit()
+	 */
+	public function onWpLoaded() {
+		parent::onWpLoaded();
+		if ( !is_admin() ) {
+			$this->runStatsSystem();
+		}
+	}
+
 	/**
 	 * @param array $inaPlugins
 	 * @return array
@@ -901,12 +912,27 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	public function onWpPluginsLoaded() {
 		parent::onWpPluginsLoaded();
+
+		if ( ( isset( $_POST['getworpitpluginurl'] ) && $_POST['getworpitpluginurl'] == 1 )
+			|| ( isset( $_GET['getworpitpluginurl'] ) && $_GET['getworpitpluginurl'] == 1 ) ) {
+			$this->returnIcwpPluginUrl();
+		}
+
 		if ( is_admin() ) {
 			$this->handlePluginUpgrade();
 			$this->addToWhitelists();
 		}
 		// Always auto-update this plugin
 		add_filter( 'auto_update_plugin', array( $this, 'autoupdate_me' ), 10000, 2 );
+
+		// If the plugin is being initialised from iControlWP Dashboard
+		if ( isset( $_GET['worpit_link'] ) || isset( $_GET['worpit_prelink'] ) ) {
+			$this->removeMaintenanceModeHooks();
+		}
+		else if ( $this->icwpAuthenticate() ) {
+			$this->removePluginHooks();
+			$this->setAuthorizedUser();
+		}
 	}
 	
 	/**
@@ -1173,6 +1199,22 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		return $infUpdate;
 	}
 
+	/**
+	 * Runs the statistic processes.
+	 */
+	protected function runStatsSystem() {
+		$oStats = self::GetStatsSystem();
+		$oStats->run();
+	}
+
+	/**
+	 * Runs the statistic processes.
+	 */
+	public static function GetStatsSystem() {
+		$oStats = ( include_once( dirname(__FILE__).'/src/plugin/stats.php' ) );
+		return $oStats;
+	}
+
 	protected function createMenu() {
 
 		//if the site is a multisite and we're not on the network admin, get out.
@@ -1340,8 +1382,8 @@ class Worpit_Auditor {
 	}
 }
 
-$g_oWorpit = new Worpit_Plugin();
+$g_oWorpit = Worpit_Plugin::GetInstance();
 
-if ( $g_oWorpit->worpitAuthenticate() ) {
+if ( $g_oWorpit->icwpAuthenticate() ) {
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 }
