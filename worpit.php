@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.6.0
+Version: 2.6.1
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -77,7 +77,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.6.0';
+	static public $VERSION = '2.6.1';
 	
 	/**
 	 * @access static
@@ -110,6 +110,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @var string
 	 */
 	protected $m_aLabelData;
+
+	/**
+	 * @var ICWP_Stats
+	 */
+	protected static $oStats = NULL;
 
 	/**
 	 * @var Worpit_Plugin
@@ -807,8 +812,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * (non-PHPdoc)
 	 * @see Worpit_Plugin_Base::onWpInit()
 	 */
-	public function onWpLoaded() {
-		parent::onWpLoaded();
+	public function onWpShutdown() {
+		parent::onWpShutdown();
 		if ( !is_admin() ) {
 			$this->runStatsSystem();
 		}
@@ -1202,19 +1207,23 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 
 	/**
-	 * Runs the statistic processes.
+	 * @return ICWP_Stats
 	 */
-	protected function runStatsSystem() {
-		$oStats = self::GetStatsSystem();
-		$oStats->run();
+	public static function & GetStatsSystem() {
+		if ( is_null( self::$oStats ) ) {
+			self::$oStats = ( include_once( dirname(__FILE__).'/src/plugin/stats.php' ) );
+		}
+		return self::$oStats;
 	}
 
 	/**
-	 * Runs the statistic processes.
+	 * Runs the statistic processes (hooked to 'shutdown')
 	 */
-	public static function GetStatsSystem() {
-		$oStats = ( include_once( dirname(__FILE__).'/src/plugin/stats.php' ) );
-		return $oStats;
+	protected function runStatsSystem() {
+		$oStats = self::GetStatsSystem();
+		if ( $oStats->getIsStatsSystemEnabled() ) {
+			$oStats->run();
+		}
 	}
 
 	protected function createMenu() {

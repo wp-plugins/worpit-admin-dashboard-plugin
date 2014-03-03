@@ -23,6 +23,13 @@ class ICWP_DailyStatsProcessor_V1 extends ICWP_BaseStatsProcessor {
 
 	const Slug = 'dailystats';
 
+	/**
+	 * Set this to true if the stat for this particular load is registered (prevent duplicates)
+	 *
+	 * @var bool
+	 */
+	protected static $fStatRegistered = false;
+
 	public function __construct( $insOptionPrefix = '' ) {
 		parent::__construct( $this->constructStorageKey( $insOptionPrefix, self::Slug ), self::Slug );
 		$this->reset();
@@ -32,8 +39,9 @@ class ICWP_DailyStatsProcessor_V1 extends ICWP_BaseStatsProcessor {
 	 */
 	public function run() {
 		parent::run();
-		if ( $this->m_aOptions[ 'do_page_stats_daily' ] ) {
-			add_action(	'shutdown', array( $this, 'doPageStats' ), 1 );
+		if ( $this->m_aOptions[ 'do_page_stats_daily' ] && !self::$fStatRegistered ) {
+			$this->doPageStats();
+			self::$fStatRegistered = true;
 		}
 	}
 

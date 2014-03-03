@@ -31,6 +31,7 @@ class Worpit_Plugin_Base {
 		add_action( 'admin_init',		array( $this, 'onWpAdminInit' ) );
 		add_action( 'plugins_loaded',	array( $this, 'onWpPluginsLoaded' ), 1 );
 		add_action( 'wp_loaded',		array( $this, 'onWpLoaded' ), 1 );
+		add_action( 'shutdown',			array( $this, 'onWpShutdown' ), 1 );
 		
 		if ( is_admin() ) {
 			add_action( 'network_admin_notices', array( $this, 'onWpNetworkAdminNotices' ) );
@@ -149,8 +150,9 @@ class Worpit_Plugin_Base {
 		}
 	}
 
-	public function onWpLoaded() {
-	}
+	public function onWpLoaded() { }
+
+	public function onWpShutdown() { }
 
 	public function onWpAdminMenu() {
 		$this->createMenu();
