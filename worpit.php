@@ -129,6 +129,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 */
 	public function __construct() {
+		self::$oInstance = $this;
+
 		parent::__construct();
 
 		self::$PluginName		= basename(__FILE__);

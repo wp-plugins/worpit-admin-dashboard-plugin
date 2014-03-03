@@ -66,6 +66,8 @@ class ICWP_Stats {
 
 		$oMonthlyStats = $this->getMonthlyStatsProcessor();
 		$oMonthlyStats->run();
+
+		return true;
 	}
 
 	/**
@@ -137,7 +139,37 @@ class ICWP_Stats {
 	 * @return boolean
 	 */
 	public function setIsStatsSystemEnabled( $infEnabled = true ) {
-		return $this->updateStatsSystemOptions( array( 'enabled' => $infEnabled ) );
+		return $this->updateStatsSystemOptions(
+			array(
+				'enabled' => $infEnabled,
+				'do_page_stats_daily' => $infEnabled,
+				'do_page_stats_monthly' => $infEnabled
+			)
+		);
+	}
+
+	/**
+	 * @param bool $infEnabled
+	 * @return bool
+	 */
+	public function setIsEnabledDailyStats( $infEnabled = true ) {
+		return $this->updateStatsSystemOptions(
+			array(
+				'do_page_stats_daily' => $infEnabled
+			)
+		);
+	}
+
+	/**
+	 * @param bool $infEnabled
+	 * @return bool
+	 */
+	public function setIsEnabledMonthlyStats( $infEnabled = true ) {
+		return $this->updateStatsSystemOptions(
+			array(
+				'do_page_stats_monthly' => $infEnabled
+			)
+		);
 	}
 
 	/**
