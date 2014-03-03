@@ -62,12 +62,8 @@ class ICWP_BaseStatsProcessor_V1 extends ICWP_BaseDbProcessor {
 
 		$this->prepStatData();
 
-		if ( empty( $this->m_sCurrentPageUri ) || $this->m_sCurrentPageUri < 0 ) {
+		if ( empty( $this->m_sCurrentPageUri ) || $this->m_nCurrentPageId <= 0 ) {
 			return false;
-		}
-
-		if ( $this->m_nCurrentPageId <= 0 ) {
-			die( 'PAGE ID'.$this->m_nCurrentPageId);
 		}
 
 		//Does page entry already exist for today?
