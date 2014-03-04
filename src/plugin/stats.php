@@ -42,11 +42,9 @@ class ICWP_Stats {
 	}
 
 	public function setupDatabases() {
-		$this->includeProcessors();
-
-		$oDailyStats = new ICWP_DailyStatsProcessor( self::Prefix );
+		$oDailyStats = $this->getDailyStatsProcessor();
 		$oDailyStats->createTable();
-		$oMonthlyStats = new ICWP_MonthlyStatsProcessor( self::Prefix );
+		$oMonthlyStats = $this->getMonthlyStatsProcessor();
 		$oMonthlyStats->createTable();
 	}
 
@@ -176,8 +174,8 @@ class ICWP_Stats {
 	 * @return void
 	 */
 	protected function includeProcessors() {
-		include_once( dirname(__FILE__).'/processors/icwp-processor-dailystats.php' );
-		include_once( dirname(__FILE__).'/processors/icwp-processor-monthlystats.php' );
+		require_once( dirname(__FILE__).'/processors/icwp-processor-dailystats.php' );
+		require_once( dirname(__FILE__).'/processors/icwp-processor-monthlystats.php' );
 	}
 
 	/**

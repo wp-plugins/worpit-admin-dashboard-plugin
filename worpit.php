@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.6.3
+Version: 2.6.4
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -77,7 +77,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.6.3';
+	static public $VERSION = '2.6.4';
 	
 	/**
 	 * @access static
