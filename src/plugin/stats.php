@@ -176,8 +176,8 @@ class ICWP_Stats {
 	 * @return void
 	 */
 	protected function includeProcessors() {
-		include_once( dirname(__FILE__).'/../processors/icwp-processor-dailystats.php' );
-		include_once( dirname(__FILE__).'/../processors/icwp-processor-monthlystats.php' );
+		include_once( dirname(__FILE__).'/processors/icwp-processor-dailystats.php' );
+		include_once( dirname(__FILE__).'/processors/icwp-processor-monthlystats.php' );
 	}
 
 	/**
@@ -193,21 +193,21 @@ class ICWP_Stats {
 	}
 
 	/**
-	 * @return ICWP_DailyStatsProcessor
+	 * @return ICWP_Processor_DailyStats_CP
 	 */
 	protected function getDailyStatsProcessor() {
 		$this->includeProcessors();
-		$oStats = new ICWP_DailyStatsProcessor( self::Prefix );
+		$oStats = new ICWP_Processor_DailyStats_CP( self::Prefix );
 		$oStats->setOptions( $this->getStatsSystemOptions() );
 		return $oStats;
 	}
 
 	/**
-	 * @return ICWP_MonthlyStatsProcessor
+	 * @return ICWP_Processor_MonthlyStats_CP
 	 */
 	protected function getMonthlyStatsProcessor() {
 		$this->includeProcessors();
-		$oStats = new ICWP_MonthlyStatsProcessor( self::Prefix );
+		$oStats = new ICWP_Processor_MonthlyStats_CP( self::Prefix );
 		$oStats->setOptions( $this->getStatsSystemOptions() );
 		return $oStats;
 	}

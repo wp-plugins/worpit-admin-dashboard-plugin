@@ -18,9 +18,9 @@
  *
  */
 
-if ( !class_exists('ICWP_BaseProcessor_V2') ):
+if ( !class_exists('ICWP_Processor_Base_CP') ):
 
-class ICWP_BaseProcessor_V2 {
+class ICWP_Processor_Base_CP {
 	
 	const PcreDelimiter = '/';
 	const LOG_MESSAGE_LEVEL_INFO = 0;
@@ -51,7 +51,7 @@ class ICWP_BaseProcessor_V2 {
 	protected $m_aLogMessages;
 	
 	/**
-	 * @var long
+	 * @var integer
 	 */
 	protected $m_nRequestIp;
 
@@ -184,7 +184,7 @@ class ICWP_BaseProcessor_V2 {
 	
 	/**
 	 * @param string $insLogMessage
-	 * @param string $insMessageType
+	 * @param int $insMessageType
 	 */
 	public function writeLog( $insLogMessage = '', $insMessageType = self::LOG_MESSAGE_LEVEL_INFO ) {
 		if ( !is_array( $this->m_aLogMessages ) ) {
@@ -213,17 +213,19 @@ class ICWP_BaseProcessor_V2 {
 
 	/**
 	 * Cloudflare compatible.
-	 * 
-	 * @return number - visitor IP Address as IP2Long
+	 *
+	 * @param bool $infAsLong
+	 * @return integer - visitor IP Address as IP2Long
 	 */
 	public function getVisitorIpAddress( $infAsLong = true ) {
-		require_once( dirname(__FILE__).'/icwp-data-processor.php' );
-		return ICWP_WPSF_DataProcessor::GetVisitorIpAddress( $infAsLong );
+		require_once(dirname(__FILE__) . '/icwp-processor-data.php');
+		return ICWP_Processor_Data_CP::GetVisitorIpAddress( $infAsLong );
 	}
 
 	/**
 	 * @param array $inaIpList
-	 * @param integer $innIpAddress
+	 * @param string $innIpAddress
+	 * @param string $outsLabel
 	 * @return boolean
 	 */
 	public function isIpOnlist( $inaIpList, $innIpAddress = '', &$outsLabel = '' ) {
@@ -333,7 +335,7 @@ class ICWP_BaseProcessor_V2 {
 		$sTemplate = '%s%s_processor';
 		return sprintf($sTemplate, $insPrefix, $insSlug );
 	}
-	
+
 	/**
 	 * Override this to provide custom cleanup.
 	 */
@@ -342,8 +344,4 @@ class ICWP_BaseProcessor_V2 {
 	}
 }
 
-endif;
-
-if ( !class_exists('ICWP_BaseProcessor') ):
-	class ICWP_BaseProcessor extends ICWP_BaseProcessor_V2 { }
 endif;

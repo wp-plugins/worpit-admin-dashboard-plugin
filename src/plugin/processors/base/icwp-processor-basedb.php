@@ -16,17 +16,17 @@
  *
  */
 
-require_once( dirname(__FILE__).'/icwp-base-processor.php' );
+require_once(dirname(__FILE__) . '/icwp-processor-base.php');
 
-if ( !class_exists('ICWP_BaseDbProcessor_V1') ):
+if ( !class_exists('ICWP_Processor_BaseDb_CP') ):
 
-class ICWP_BaseDbProcessor_V1 extends ICWP_BaseProcessor_V2 {
+class ICWP_Processor_BaseDb_CP extends ICWP_Processor_Base_CP {
 	
 	const DB_TABLE_PREFIX	= 'icwp_';
 	
 	/**
 	 */
-	const CleanupCronActionHook = 'icwp_wpsf_cron_cleanupactionhook';
+	const CleanupCronActionHook = 'icwp_cp_cron_cleanupactionhook';
 
 	/**
 	 * A link to the WordPress Database object so we don't have to "global" that every time.
@@ -246,8 +246,4 @@ class ICWP_BaseDbProcessor_V1 extends ICWP_BaseProcessor_V2 {
 	
 }
 
-endif;
-
-if ( !class_exists('ICWP_BaseDbProcessor') ):
-	class ICWP_BaseDbProcessor extends ICWP_BaseDbProcessor_V1 { }
 endif;

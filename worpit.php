@@ -1130,37 +1130,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 		return false;
 	}
-	
+
+	/**
+	 * @return bool
+	 */
 	public function isVisitorIcwp() {
 		$sIp = $this->getVisitorIpAddress( false );
 		return ( $sIp === false || in_array( $sIp, self::$ServiceIpAddresses ) );
-	}
-	
-	/**
-	 * Cloudflare compatible.
-	 * @param boolean $infAsLong
-	 * @return boolean|string - visitor IP Address as IP2Long
-	 */
-	public function getVisitorIpAddress( $infAsLong = true ) {
-	
-		$aAddressSourceOptions = array(
-			'HTTP_CLIENT_IP',
-			'HTTP_X_FORWARDED_FOR',
-			'HTTP_X_FORWARDED',
-			'HTTP_FORWARDED',
-			'REMOTE_ADDR'
-		);
-		
-		foreach( $aAddressSourceOptions as $sOption ) {
-			if ( empty( $_SERVER[ $sOption ] ) ) {
-				continue;
-			}
-			$sIpAddressToTest = $_SERVER[ $sOption ];
-
-			$aIpAddresses = explode( ',', $sIpAddressToTest ); //sometimes a comma-separated list is returned
-			return $aIpAddresses[0];
-		}
-		return false;
 	}
 
 	/**

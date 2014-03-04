@@ -15,11 +15,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( dirname(__FILE__).'/icwp-processor-basestats.php' );
+require_once(dirname(__FILE__) . '/base/icwp-processor-basestats.php');
 
-if ( !class_exists('ICWP_MonthlyStatsProcessor_V1') ):
+if ( !class_exists('ICWP_Processor_MonthlyStats_CP') ):
 
-class ICWP_MonthlyStatsProcessor_V1 extends ICWP_BaseStatsProcessor {
+class ICWP_Processor_MonthlyStats_CP extends ICWP_Processor_BaseStats_CP {
 
 	const Slug = 'monthlystats';
 
@@ -54,6 +54,7 @@ class ICWP_MonthlyStatsProcessor_V1 extends ICWP_BaseStatsProcessor {
 			FROM
 				`%s`
 			GROUP BY `month_id`, `year_id`
+			ORDER BY `year_id` ASC, `month_id` ASC, `day_id` ASC
 		";
 		$sQuery = sprintf( $sBaseQuery,
 			$this->m_sTableName
@@ -80,8 +81,4 @@ class ICWP_MonthlyStatsProcessor_V1 extends ICWP_BaseStatsProcessor {
 	}
 }
 
-endif;
-
-if ( !class_exists('ICWP_MonthlyStatsProcessor') ):
-	class ICWP_MonthlyStatsProcessor extends ICWP_MonthlyStatsProcessor_V1 { }
 endif;

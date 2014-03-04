@@ -15,11 +15,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( dirname(__FILE__).'/icwp-basedb-processor.php' );
+require_once(dirname(__FILE__) . '/icwp-processor-basedb.php');
 
-if ( !class_exists('ICWP_BaseStatsProcessor_V1') ):
+if ( !class_exists('ICWP_Processor_BaseStats_CP') ):
 
-class ICWP_BaseStatsProcessor_V1 extends ICWP_BaseDbProcessor {
+class ICWP_Processor_BaseStats_CP extends ICWP_Processor_BaseDb_CP {
 
 	/**
 	 * @var integer
@@ -225,7 +225,6 @@ class ICWP_BaseStatsProcessor_V1 extends ICWP_BaseDbProcessor {
 	 */
 	public function createTable() {
 		$sSqlTables = $this->getTableCreateSql();
-		$sSqlTables = sprintf( $sSqlTables, $this->m_sTableName );
 		$mResult = $this->doSql( $sSqlTables );
 		return $mResult;
 	}
@@ -234,7 +233,7 @@ class ICWP_BaseStatsProcessor_V1 extends ICWP_BaseDbProcessor {
 	 * @return string
 	 */
 	protected function getTableCreateSql() {
-		return "CREATE TABLE IF NOT EXISTS `%s` (
+		$sSql = "CREATE TABLE IF NOT EXISTS `%s` (
 			`id` int(11) NOT NULL AUTO_INCREMENT,
 			`page_id` int(11) NOT NULL DEFAULT '0',
 			`uri` varchar(255) NOT NULL DEFAULT '',
@@ -245,6 +244,7 @@ class ICWP_BaseStatsProcessor_V1 extends ICWP_BaseDbProcessor {
 			`deleted_at` TINYINT(1) NOT NULL DEFAULT '0',
  			PRIMARY KEY (`id`)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+		return sprintf( $sSql, $this->m_sTableName );
 	}
 
 	/**
@@ -268,8 +268,4 @@ class ICWP_BaseStatsProcessor_V1 extends ICWP_BaseDbProcessor {
 	}
 }
 
-endif;
-
-if ( !class_exists('ICWP_BaseStatsProcessor') ):
-	class ICWP_BaseStatsProcessor extends ICWP_BaseStatsProcessor_V1 { }
 endif;

@@ -185,6 +185,23 @@ class Worpit_Plugin_Base {
 	}
 
 	/**
+	 * Cloudflare compatible.
+	 * @param boolean $infAsLong
+	 * @return boolean|string - visitor IP Address as IP2Long
+	 */
+	public function getVisitorIpAddress( $infAsLong = true ) {
+		$this->loadDataProcessor();
+		return ICWP_Processor_Data_CP::GetVisitorIpAddress( $infAsLong );
+	}
+
+	/**
+	 *
+	 */
+	protected function loadDataProcessor() {
+		require_once( dirname(__FILE__).'/processors/base/icwp-processor-data.php');
+	}
+
+	/**
 	 * Strength can be 1, 3, 7, 15
 	 *
 	 * @param integer $innLength
