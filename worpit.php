@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.6.2
+Version: 2.6.3
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -77,7 +77,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.6.2';
+	static public $VERSION = '2.6.3';
 	
 	/**
 	 * @access static
@@ -151,8 +151,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			/**
 			 * Registers activate and deactivation hooks
 			 */
-			$oInstall = new Worpit_Install();
-			$oUninstall = new Worpit_Uninstall();
+			new Worpit_Install();
+			new Worpit_Uninstall();
 		}
 
 		// The auto update feature using the WordPress Simple Firewall to process
@@ -1231,7 +1231,7 @@ class Worpit_Install {
 	 * @return void
 	 */
 	public function __construct() {
-		register_activation_hook( __FILE__, array( &$this, 'onWpActivatePlugin' ) );
+		register_activation_hook( __FILE__, array( $this, 'onWpActivatePlugin' ) );
 	}
 	
 	/**
@@ -1270,14 +1270,13 @@ class Worpit_Uninstall {
 	 * @return void
 	 */
 	public function __construct() {
-		register_deactivation_hook( __FILE__, array( &$this, 'onWpDeactivatePlugin' ) );
+		register_deactivation_hook( __FILE__, array( $this, 'onWpDeactivatePlugin' ) );
 	}
 	
 	/**
 	 * @return void
 	 */
-	public function onWpDeactivatePlugin() {
-	}
+	public function onWpDeactivatePlugin() { }
 }
 
 class Worpit_Auditor {
