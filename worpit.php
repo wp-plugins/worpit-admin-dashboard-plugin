@@ -117,6 +117,16 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	protected static $oStats = NULL;
 
 	/**
+	 * @var ICWP_Stats
+	 */
+	protected static $oStatsSystem = NULL;
+
+	/**
+	 * @var ICWP_GoogleAnalytics
+	 */
+	protected static $oGoogleAnalyticsSystem = NULL;
+
+	/**
 	 * @var Worpit_Plugin
 	 */
 	protected static $oInstance = NULL;
@@ -809,6 +819,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 
 	/**
+	 *
+	 */
+	public function onWpLoaded() {
+		$this->runGoogleAnalyticsSystem();
+	}
+
+	/**
 	 * (non-PHPdoc)
 	 * @see Worpit_Plugin_Base::onWpInit()
 	 */
@@ -1186,19 +1203,39 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return ICWP_Stats
 	 */
 	public static function & GetStatsSystem() {
-		if ( is_null( self::$oStats ) ) {
-			self::$oStats = ( include_once( dirname(__FILE__).'/src/plugin/stats.php' ) );
+		if ( is_null( self::$oStatsSystem ) ) {
+			self::$oStatsSystem = ( include_once( dirname(__FILE__).'/src/plugin/stats.php' ) );
 		}
-		return self::$oStats;
+		return self::$oStatsSystem;
 	}
 
 	/**
 	 * Runs the statistic processes (hooked to 'shutdown')
 	 */
 	protected function runStatsSystem() {
-		$oStats = self::GetStatsSystem();
-		if ( $oStats->getIsStatsSystemEnabled() ) {
-			$oStats->run();
+		$oStatsSystem = self::GetStatsSystem();
+		if ( $oStatsSystem->getIsStatsSystemEnabled() ) {
+			$oStatsSystem->run();
+		}
+	}
+
+	/**
+	 * @return ICWP_GoogleAnalytics
+	 */
+	public static function & GetGoogleAnalyticsSystem() {
+		if ( is_null( self::$oGoogleAnalyticsSystem ) ) {
+			self::$oGoogleAnalyticsSystem = (include_once(dirname(__FILE__) . '/src/plugin/system-google-analytics.php'));
+		}
+		return self::$oGoogleAnalyticsSystem;
+	}
+
+	/**
+	 * Runs the statistic processes (hooked to 'shutdown')
+	 */
+	protected function runGoogleAnalyticsSystem() {
+		$oGoogleAnalyticsSystem = self::GetGoogleAnalyticsSystem();
+		if ( $oGoogleAnalyticsSystem->getIsSystemEnabled() ) {
+			$oGoogleAnalyticsSystem->run();
 		}
 	}
 
@@ -1228,7 +1265,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 class Worpit_Install {
 	
 	/**
-	 * @return void
 	 */
 	public function __construct() {
 		register_activation_hook( __FILE__, array( $this, 'onWpActivatePlugin' ) );

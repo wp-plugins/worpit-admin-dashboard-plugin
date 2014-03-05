@@ -20,25 +20,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-class ICWP_Stats {
-
-	/**
-	 * @var string
-	 */
-	const Stats_Key_Options = 'icwp_stats_system_options';
-
-	/**
-	 * @var string
-	 */
-	const Prefix = 'icwp_';
-
-	/**
-	 * @var array
-	 */
-	protected $aOptions;
+class ICWP_Stats extends ICWP_System_Base {
 
 	public function __construct() {
-		$this->getStatsSystemOptions();
+		$this->sOptionsKey = 'stats_system_options';
+		parent::__construct();
 	}
 
 	public function setupDatabases() {
@@ -55,7 +41,7 @@ class ICWP_Stats {
 	 */
 	public function run() {
 
-		if ( !$this->getIsStatsSystemEnabled() ) {
+		if ( !$this->getIsSystemEnabled() ) {
 			return false;
 		}
 
@@ -85,73 +71,11 @@ class ICWP_Stats {
 	}
 
 	/**
-	 * @return array
-	 */
-	public function getStatsSystemOptions() {
-		if ( !isset( $this->aOptions ) ) {
-			$this->aOptions = get_option( self::Stats_Key_Options, array() );
-			$this->validateOptions();
-		}
-		return $this->aOptions;
-	}
-
-	/**
-	 * Use this to update 1 or more options at a time.
-	 *
-	 * @param array $inaOptions
-	 * @return boolean
-	 */
-	public function updateStatsSystemOptions( $inaOptions = array() ) {
-		$this->aOptions = array_merge( $this->getStatsSystemOptions(), $inaOptions );
-		return $this->saveStatsSystemOptions();
-	}
-
-	/**
-	 * Use this to completely empty/clear the options
-	 *
-	 * @return boolean
-	 */
-	public function clearStatsSystemOptions() {
-		$this->aOptions = array();
-		return $this->saveStatsSystemOptions();
-	}
-
-	/**
-	 * @return boolean
-	 */
-	protected function saveStatsSystemOptions() {
-		$this->validateOptions();
-		return update_option( self::Stats_Key_Options, $this->aOptions );
-	}
-
-	/**
-	 * @return boolean
-	 */
-	public function getIsStatsSystemEnabled() {
-		$aOptions = $this->getStatsSystemOptions();
-		return $aOptions['enabled'];
-	}
-
-	/**
-	 * @param bool $infEnabled
-	 * @return boolean
-	 */
-	public function setIsStatsSystemEnabled( $infEnabled = true ) {
-		return $this->updateStatsSystemOptions(
-			array(
-				'enabled' => $infEnabled,
-				'do_page_stats_daily' => $infEnabled,
-				'do_page_stats_monthly' => $infEnabled
-			)
-		);
-	}
-
-	/**
 	 * @param bool $infEnabled
 	 * @return bool
 	 */
 	public function setIsEnabledDailyStats( $infEnabled = true ) {
-		return $this->updateStatsSystemOptions(
+		return $this->updateSystemOptions(
 			array(
 				'do_page_stats_daily' => $infEnabled
 			)
@@ -163,7 +87,7 @@ class ICWP_Stats {
 	 * @return bool
 	 */
 	public function setIsEnabledMonthlyStats( $infEnabled = true ) {
-		return $this->updateStatsSystemOptions(
+		return $this->updateSystemOptions(
 			array(
 				'do_page_stats_monthly' => $infEnabled
 			)
@@ -196,7 +120,7 @@ class ICWP_Stats {
 	protected function getDailyStatsProcessor() {
 		$this->includeProcessors();
 		$oStats = new ICWP_Processor_DailyStats_CP( self::Prefix );
-		$oStats->setOptions( $this->getStatsSystemOptions() );
+		$oStats->setOptions( $this->getSystemOptions() );
 		return $oStats;
 	}
 
@@ -206,7 +130,7 @@ class ICWP_Stats {
 	protected function getMonthlyStatsProcessor() {
 		$this->includeProcessors();
 		$oStats = new ICWP_Processor_MonthlyStats_CP( self::Prefix );
-		$oStats->setOptions( $this->getStatsSystemOptions() );
+		$oStats->setOptions( $this->getSystemOptions() );
 		return $oStats;
 	}
 }
