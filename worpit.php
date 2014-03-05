@@ -1214,7 +1214,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	protected function runStatsSystem() {
 		$oStatsSystem = self::GetStatsSystem();
-		if ( $oStatsSystem->getIsStatsSystemEnabled() ) {
+		if ( $oStatsSystem->getIsSystemEnabled() ) {
 			$oStatsSystem->run();
 		}
 	}
