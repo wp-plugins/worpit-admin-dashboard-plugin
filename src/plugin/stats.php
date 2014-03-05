@@ -20,6 +20,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+require_once( dirname(__FILE__).'/system-base.php' );
+
 class ICWP_Stats extends ICWP_System_Base {
 
 	public function __construct() {
