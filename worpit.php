@@ -56,11 +56,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	const ServiceName = 'iControlWP';
 
 	/**
-	 * @var string
-	 */
-	const WhiteLabelDataKey = 'whitelabeldata';
-
-	/**
 	 * @access static
 	 * @var array
 	 */
@@ -115,6 +110,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @var ICWP_Stats
 	 */
 	protected static $oStats = NULL;
+
+	/**
+	 * @var ICWP_WhiteLabel
+	 */
+	protected static $oWhiteLabelSystem = NULL;
 
 	/**
 	 * @var ICWP_Stats
@@ -812,8 +812,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			add_filter( 'all_plugins', array( $this, 'hide_icwp_plugin' ) ); //removes the plugin from the plugins listing.
 		}
 
-		$this->setPluginLabelData();
-		
+		if ( is_admin() ) {
+			$this->runWhiteLabelSystem();
+		}
+
 		add_action( 'wp_enqueue_scripts', array( $this, 'onWpEnqueueScripts' ) );
 		add_action( 'wp_footer', array( $this, 'printPluginUri') );
 	}
@@ -1157,11 +1159,42 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 
 	/**
-	 * @return array|boolean
+	 * This is a filter method designed to say whether WordPress plugin upgrades should be permitted,
+	 * based on the plugin settings.
+	 *
+	 * @param boolean $infUpdate
+	 * @param boolean $insPluginSlug
+	 * @return boolean
 	 */
-	public function setPluginLabelData() {
-		$aWhiteLabelData = $this->getWhiteLabelData();
-		$this->m_aLabelData = empty( $aWhiteLabelData )? $this->getDefaultPluginLabelData() : $aWhiteLabelData;
+	public function autoupdate_me( $infUpdate, $insPluginSlug ) {
+		if ( $insPluginSlug === $this->m_sPluginFile ) {
+			return true;
+		}
+		return $infUpdate;
+	}
+
+	/**
+	 * @return ICWP_WhiteLabel
+	 */
+	public static function & GetWhiteLabelSystem() {
+		if ( is_null( self::$oWhiteLabelSystem ) ) {
+			self::$oWhiteLabelSystem = ( include_once( dirname(__FILE__).'/src/plugin/system-white-label.php' ) );
+		}
+		return self::$oWhiteLabelSystem;
+	}
+
+	/**
+	 * Runs the white label processes
+	 */
+	protected function runWhiteLabelSystem() {
+		$oWhiteLabelSystem = self::GetWhiteLabelSystem();
+		$this->m_aLabelData = $this->getDefaultPluginLabelData();
+		if ( $oWhiteLabelSystem->getIsSystemEnabled() ) {
+			$aWhiteLabelData = $oWhiteLabelSystem->getSystemOptions();
+			if ( !empty($aWhiteLabelData) ) {
+				$this->m_aLabelData = $aWhiteLabelData;
+			}
+		}
 	}
 
 	/**
@@ -1175,28 +1208,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			'icon_url_16x16'	=> $this->getImageUrl( 'icontrolwp_16x16.png' ),
 			'icon_url_32x32'	=> $this->getImageUrl( 'icontrolwp_32x32.png' )
 		);
-	}
-
-	/**
-	 * @return array|boolean
-	 */
-	public function getWhiteLabelData() {
-		return $this->getOption( self::WhiteLabelDataKey );
-	}
-
-	/**
-	 * This is a filter method designed to say whether WordPress plugin upgrades should be permitted,
-	 * based on the plugin settings.
-	 *
-	 * @param boolean $infUpdate
-	 * @param boolean $insPluginSlug
-	 * @return boolean
-	 */
-	public function autoupdate_me( $infUpdate, $insPluginSlug ) {
-		if ( $insPluginSlug === $this->m_sPluginFile ) {
-			return true;
-		}
-		return $infUpdate;
 	}
 
 	/**
@@ -1303,7 +1314,6 @@ class Worpit_Uninstall {
 	// TODO: when uninstalling, maybe have a iControlWP save settings offsite-like setting
 	
 	/**
-	 * @return void
 	 */
 	public function __construct() {
 		register_deactivation_hook( __FILE__, array( $this, 'onWpDeactivatePlugin' ) );

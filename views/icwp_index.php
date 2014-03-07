@@ -1,11 +1,13 @@
 <?php
-	$sServiceName = $wpv_label_data['service_name'];
-	$sUrlServiceHome = $wpv_label_data['plugin_url_home'];
-	$sUrlServiceHomeHelp = 'http://icwp.io/help';
-	$sUrlServiceHomeFeatures = 'http://icwp.io/features';
-	
-	$sUrlPlugin_TwitterBootstrap = 'http://icwp.io/pluginbootstrap';
-	$sUrlPlugin_WpPlugins = 'http://icwp.io/wpplugins';
+$sServiceName = $wpv_label_data['service_name'];
+$sUrlServiceHome = $wpv_label_data['plugin_url_home'];
+$sUrlServiceHomeHelp = 'http://icwp.io/help';
+$sUrlServiceHomeFeatures = 'http://icwp.io/features';
+
+$sUrlPlugin_TwitterBootstrap = 'http://icwp.io/pluginbootstrap';
+$sUrlPlugin_WpPlugins = 'http://icwp.io/wpplugins';
+
+$fWhitelabelled = ($sServiceName != 'iControlWP');
 
 	function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 
@@ -113,8 +115,8 @@
 					?>
 					<div class="assigned-state">
 						<?php if ( $wpv_assigned === 'Y' ): ?>
-							<h3 id="isAssigned">Currently connected to <?php echo $sServiceName; ?> account: <?php echo $wpv_assigned_to; ?></h3>
-							
+							<h3 id="isAssigned"><?php echo sprintf( 'Currently connected to %s account.%s', "<u>$sServiceName</u>", ($fWhitelabelled? '' : " ($wpv_assigned_to)") ); ?></h3>
+
 						<?php else: ?>
 							<h3>The unique <?php echo $sServiceName; ?> Access Key for this site is: <span class="the-key"><?php echo $wpv_key; ?></span></h3>
 
@@ -209,7 +211,7 @@
 			</div>
 		</div>
 
-		<?php if ( $sServiceName == 'iControlWP' ) : ?>
+		<?php if ( !$fWhitelabelled ) : ?>
 
 		<div class="row">
 			<div class="span12">

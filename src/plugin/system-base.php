@@ -126,6 +126,9 @@ class ICWP_System_Base {
 		$aMinimumDefaults = array(
 			'enabled'					=> false
 		);
+		if ( !is_array( $this->aOptions ) ) {
+			$this->aOptions = array();
+		}
 		$this->aOptions = array_merge( $aMinimumDefaults, $this->aOptions );
 	}
 
