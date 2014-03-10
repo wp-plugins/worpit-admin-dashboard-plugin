@@ -38,19 +38,14 @@ class ICWP_Processor_GoogleAnalytics_CP extends ICWP_Processor_Base_CP {
 	}
 
 	/**
-	 * @param bool $infPrint
 	 * @return void|string
 	 */
-	public function printGoogleAnalytics( $infPrint = true ) {
+	public function printGoogleAnalytics() {
 		if ( !$this->canPrintAnalytics() ) {
 			return '';
 		}
-
 		$sCode = $this->getAnalyticsCode();
-		if ( $infPrint ) {
-			echo $sCode;
-		}
-		return $sCode;
+		echo $sCode;
 	}
 
 	/**
