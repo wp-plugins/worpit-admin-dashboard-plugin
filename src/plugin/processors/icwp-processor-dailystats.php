@@ -39,7 +39,7 @@ class ICWP_Processor_DailyStats_CP extends ICWP_Processor_BaseStats_CP {
 	 */
 	public function run() {
 		parent::run();
-		if ( $this->m_aOptions[ 'do_page_stats_daily' ] && !self::$fStatRegistered ) {
+		if ( $this->getOption( 'do_page_stats_daily', false ) && !self::$fStatRegistered ) {
 			$this->doPageStats();
 			self::$fStatRegistered = true;
 		}

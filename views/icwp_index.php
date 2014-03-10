@@ -1,6 +1,6 @@
 <?php
 $sServiceName = $wpv_label_data['service_name'];
-$sUrlServiceHome = $wpv_label_data['plugin_url_home'];
+$sUrlServiceHome = $wpv_label_data['plugin_home_url'];
 $sUrlServiceHomeHelp = 'http://icwp.io/help';
 $sUrlServiceHomeFeatures = 'http://icwp.io/features';
 
@@ -9,29 +9,29 @@ $sUrlPlugin_WpPlugins = 'http://icwp.io/wpplugins';
 
 $fWhitelabelled = ($sServiceName != 'iControlWP');
 
-	function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
+function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 
-		if ( $insServiceName == 'iControlWP' ) {
-			$sIconLink = 'http://icwp.io/2k';
-			$sTitleLink = 'http://icwp.io/3f';
-		}
-		else {
-			$sIconLink = $insUrl;
-			$sTitleLink = $insUrl;
-		}
-
-		$sLinkedIcwp = sprintf( '<a href="%s" target="_blank">%s</a>', $sTitleLink, $insServiceName );
-		echo '<div class="page-header">';
-		echo sprintf( '<h2><a id="pluginlogo_32" class="header-icon32" href="%s" target="_blank"></a>', $sIconLink );
-		$sBaseTitle = sprintf( '%s Client Configuration', $sLinkedIcwp );
-		if ( !empty($insSection) ) {
-			echo sprintf( '%s :: %s', $insSection, $sBaseTitle );
-		}
-		else {
-			echo $sBaseTitle;
-		}
-		echo '</h2></div>';
+	if ( $insServiceName == 'iControlWP' ) {
+		$sIconLink = 'http://icwp.io/2k';
+		$sTitleLink = 'http://icwp.io/3f';
 	}
+	else {
+		$sIconLink = $insUrl;
+		$sTitleLink = $insUrl;
+	}
+
+	$sLinkedIcwp = sprintf( '<a href="%s" target="_blank">%s</a>', $sTitleLink, $insServiceName );
+	echo '<div class="page-header">';
+	echo sprintf( '<h2><a id="pluginlogo_32" class="header-icon32" href="%s" target="_blank"></a>', $sIconLink );
+	$sBaseTitle = sprintf( '%s Client Configuration', $sLinkedIcwp );
+	if ( !empty($insSection) ) {
+		echo sprintf( '%s :: %s', $insSection, $sBaseTitle );
+	}
+	else {
+		echo $sBaseTitle;
+	}
+	echo '</h2></div>';
+}
 ?>
 <style>
 	#pluginlogo_32 {

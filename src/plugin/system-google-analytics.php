@@ -83,7 +83,9 @@ class ICWP_GoogleAnalytics extends ICWP_System_Base {
 			'enabled'						=> false,
 			'do_insert_google_analytics'	=> false,
 			'tracking_id'					=> '',
-			'in_footer'						=> false
+			'in_footer'						=> false,
+			'ignore_logged_in_user'			=> false,
+			'ignore_from_user_level'		=> 11, //max is 10 so by default ignore no-one
 		);
 		$this->aOptions = array_merge( $aMinimumDefaults, $this->aOptions );
 	}

@@ -32,19 +32,49 @@ class ICWP_Processor_GoogleAnalytics_CP extends ICWP_Processor_Base_CP {
 	 */
 	public function run() {
 		parent::run();
-		if ( isset( $this->m_aOptions[ 'do_insert_google_analytics' ] ) && $this->m_aOptions[ 'do_insert_google_analytics' ] ) {
+		if ( $this->getOption( 'do_insert_google_analytics', false ) ) {
 			add_action( $this->getWpHook(), array($this, 'printGoogleAnalytics' ), 100 );
 		}
 	}
 
 	/**
-	 * @return array
+	 * @param bool $infPrint
+	 * @return void|string
 	 */
-	public function printGoogleAnalytics() {
-		if ( empty( $this->m_aOptions[ 'tracking_id' ] ) ) {
-			return;
+	public function printGoogleAnalytics( $infPrint = true ) {
+		if ( !$this->canPrintAnalytics() ) {
+			return '';
 		}
-		echo $this->getAnalyticsCode();
+
+		$sCode = $this->getAnalyticsCode();
+		if ( $infPrint ) {
+			echo $sCode;
+		}
+		return $sCode;
+	}
+
+	/**
+	 * Based on various settings will determine whether the code may be printed
+	 *
+	 * @return boolean
+	 */
+	protected function canPrintAnalytics() {
+		$sId = $this->getOption('tracking_id');
+		if ( empty( $sId ) ) {
+			return false;
+		}
+
+		$fIgnoreLoggedInUser = $this->getOption('ignore_logged_in_user', false);
+		if ( $fIgnoreLoggedInUser && $this->getIsUserLoggedIn() ) {
+			return false;
+		}
+
+		$nIgnoreFromUserLevel = $this->getOption( 'ignore_from_user_level', 11 );
+		if ( $this->getCurrentUserLevel() >= $nIgnoreFromUserLevel ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -57,11 +87,11 @@ class ICWP_Processor_GoogleAnalytics_CP extends ICWP_Processor_Base_CP {
 			_gaq.push(['_trackPageview']);
 			(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src=('https:'==document.location.protocol?'https://ssl':'http://www')+'.google-analytics.com/ga.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})();
 		</script>";
-		return preg_replace( '/[\n\r\s]+/', ' ', sprintf( $sRaw, $this->m_aOptions[ 'tracking_id' ] ) );
+		return preg_replace( '/[\n\r\s]+/', ' ', sprintf( $sRaw, $this->getOption('tracking_id') ) );
 	}
 
 	protected function getWpHook() {
-		if ( isset( $this->m_aOptions['in_footer'] ) && $this->m_aOptions['in_footer'] ) {
+		if ( $this->getOption('in_footer') ) {
 			return 'wp_print_footer_scripts';
 		}
 		return 'wp_head';

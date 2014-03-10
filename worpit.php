@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.7.0
+Version: 2.7.1
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -72,7 +72,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.7.0';
+	static public $VERSION = '2.7.1';
 	
 	/**
 	 * @access static
@@ -800,22 +800,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	public function onWpInit() {
 		parent::onWpInit();
 
-		if ( self::getOption( 'white_label_hide' ) != 'Y' ) {
+		if ( is_admin() ) {
 			add_action( 'admin_menu', array( $this, 'onWpAdminMenu' ) );
 			if ( self::$NetworkAdminOnly ) {
 				add_action(	'network_admin_menu', array( $this, 'onWpNetworkAdminMenu' ) );
 			}
-			add_action( 'plugin_action_links', array( $this, 'onWpPluginActionLinks' ), 10, 4 );
-			add_filter( 'all_plugins', array( $this, 'relabel_icwp_plugin' ) ); //renames parts of the plugin for white label.
-		}
-		else {
-			add_filter( 'all_plugins', array( $this, 'hide_icwp_plugin' ) ); //removes the plugin from the plugins listing.
-		}
-
-		if ( is_admin() ) {
 			$this->runWhiteLabelSystem();
 		}
-
 		add_action( 'wp_enqueue_scripts', array( $this, 'onWpEnqueueScripts' ) );
 		add_action( 'wp_footer', array( $this, 'printPluginUri') );
 	}
@@ -845,8 +836,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	public function hide_icwp_plugin( $inaPlugins ) {
 		foreach ( $inaPlugins as $sName => $aData ) {
 			if ( strpos( $sName, 'worpit-admin-dashboard-plugin' ) === 0 ) {
-				unset( $inaPlugins[$sName] );
 			}
+		}
+		if ( array_key_exists( $this->m_sPluginFile, $inaPlugins ) ) {
+			unset( $inaPlugins[$this->m_sPluginFile] );
 		}
 		return $inaPlugins;
 	}
@@ -860,16 +853,15 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			return $inaPlugins;
 		}
 
-		foreach ( $inaPlugins as $sName => $aData ) {
-			if ( strpos( $sName, 'worpit-admin-dashboard-plugin' ) === 0 ) {
-				$inaPlugins[$sName]['Name'] = $this->m_aLabelData['service_name'];
-				$inaPlugins[$sName]['Title'] = $this->m_aLabelData['service_name'];
-				$inaPlugins[$sName]['Author'] = $this->m_aLabelData['service_name'];
-				$inaPlugins[$sName]['AuthorName'] = $this->m_aLabelData['service_name'];
-				$inaPlugins[$sName]['PluginURI'] = $this->m_aLabelData['plugin_url_home'];
-				$inaPlugins[$sName]['AuthorURI'] = $this->m_aLabelData['plugin_url_home'];
-			}
+		if ( array_key_exists( $this->m_sPluginFile, $inaPlugins ) ) {
+			$inaPlugins[$this->m_sPluginFile]['Name'] = $this->m_aLabelData['service_name'];
+			$inaPlugins[$this->m_sPluginFile]['Title'] = $this->m_aLabelData['service_name'];
+			$inaPlugins[$this->m_sPluginFile]['Author'] = $this->m_aLabelData['service_name'];
+			$inaPlugins[$this->m_sPluginFile]['AuthorName'] = $this->m_aLabelData['service_name'];
+			$inaPlugins[$this->m_sPluginFile]['PluginURI'] = $this->m_aLabelData['plugin_home_url'];
+			$inaPlugins[$this->m_sPluginFile]['AuthorURI'] = $this->m_aLabelData['plugin_home_url'];
 		}
+		return $inaPlugins;
 	}
 
 	/**
@@ -918,6 +910,19 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	public function onWpAdminInit() {
 		parent::onWpAdminInit();
+
+		if ( is_admin() ) {
+			if ( self::$oWhiteLabelSystem->getIsSystemEnabled() ) {
+				//renames parts of the plugin for white label within the plugins listing.
+				add_filter( 'all_plugins', array( $this, 'relabel_icwp_plugin' ) );
+			}
+		}
+		add_action( 'plugin_action_links', array( $this, 'onWpPluginActionLinks' ), 10, 4 );
+
+		// TODO
+		if ( self::getOption( 'white_label_hide' ) == 'TODO' ) {
+			add_filter( 'all_plugins', array( $this, 'hide_icwp_plugin' ) ); //removes the plugin from the plugins listing.
+		}
 
 		//Do Plugin-Specific Admin Work
 		if ( $this->isSelfAdminPage() ) {
@@ -1204,7 +1209,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		return array(
 			'service_name'		=> self::ServiceName,
 			'tag_line'			=> 'Take Control Of All WordPress Sites From A Single Dashboard',
-			'plugin_url_home'	=> 'http://icwp.io/home',
+			'plugin_home_url'	=> 'http://icwp.io/home',
 			'icon_url_16x16'	=> $this->getImageUrl( 'icontrolwp_16x16.png' ),
 			'icon_url_32x32'	=> $this->getImageUrl( 'icontrolwp_32x32.png' )
 		);

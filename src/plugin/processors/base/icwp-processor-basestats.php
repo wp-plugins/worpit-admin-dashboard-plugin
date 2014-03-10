@@ -46,9 +46,6 @@ class ICWP_Processor_BaseStats_CP extends ICWP_Processor_BaseDb_CP {
 	 */
 	public function run() {
 		parent::run();
-		if ( $this->m_aOptions[ 'do_page_stats' ] == 'Y' ) {
-			add_action(	'shutdown',					array( $this, 'doPageStats' ), 1 );
-		}
 	}
 
 	/**

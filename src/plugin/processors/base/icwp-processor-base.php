@@ -68,7 +68,7 @@ class ICWP_Processor_Base_CP {
 	/**
 	 * @var array
 	 */
-	protected $m_aOptions;
+	protected $aOptions;
 	
 	/**
 	 * @var ICWP_OptionsHandler_Base_WPSF
@@ -138,7 +138,7 @@ class ICWP_Processor_Base_CP {
 	 * @param array $inaOptions
 	 */
 	public function setOptions( &$inaOptions ) {
-		$this->m_aOptions = $inaOptions;
+		$this->aOptions = $inaOptions;
 	}
 	/**
 	 *
@@ -146,7 +146,7 @@ class ICWP_Processor_Base_CP {
 	 */
 	public function setOptionsHandler( &$inoOptionsHandler ) {
 		$this->m_oOptionsHandler = $inoOptionsHandler;
-		$this->m_aOptions = $this->m_oOptionsHandler->getPluginOptionsValues();
+		$this->aOptions = $this->m_oOptionsHandler->getPluginOptionsValues();
 	}
 	
 	/**
@@ -311,6 +311,18 @@ class ICWP_Processor_Base_CP {
 	}
 
 	/**
+	 * @param string $insOptionKey
+	 * @param mixed $insDefault
+	 * @return mixed
+	 */
+	protected function getOption( $insOptionKey, $insDefault = '' ) {
+		if ( !isset( $this->aOptions ) || !is_array( $this->aOptions ) || !isset( $this->aOptions[$insOptionKey] ) ) {
+			return $insDefault;
+		}
+		return $this->aOptions[$insOptionKey];
+	}
+
+	/**
 	 * Checks the $inaData contains valid key values as laid out in $inaChecks
 	 *
 	 * @param array $inaData
@@ -341,6 +353,28 @@ class ICWP_Processor_Base_CP {
 	 */
 	public function deleteAndCleanUp() {
 		$this->deleteStore();
+	}
+
+	/**
+	 * @return bool
+	 */
+	protected function getIsUserLoggedIn() {
+		return function_exists('is_user_logged_in')? is_user_logged_in() : false;
+	}
+
+	/**
+	 * @return integer
+	 */
+	protected function getCurrentUserLevel() {
+		$oUser = function_exists('wp_get_current_user')? wp_get_current_user() : null;
+		return ( is_object($oUser) && ($oUser instanceof WP_User) )? $oUser->user_level : 0;
+	}
+
+	/**
+	 * @return bool
+	 */
+	protected function getIsCurrentUserAdmin() {
+		return $this->getIsUserLoggedIn() && current_user_can( 'manage_options' );
 	}
 }
 
