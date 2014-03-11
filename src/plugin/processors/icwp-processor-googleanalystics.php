@@ -61,14 +61,11 @@ class ICWP_Processor_GoogleAnalytics_CP extends ICWP_Processor_Base_CP {
 
 		$fIgnoreLoggedInUser = $this->getOption('ignore_logged_in_user', false);
 		if ( $fIgnoreLoggedInUser && $this->getIsUserLoggedIn() ) {
-			return false;
+			$nIgnoreFromUserLevel = $this->getOption( 'ignore_from_user_level', 11 );
+			if ( $this->getCurrentUserLevel() >= $nIgnoreFromUserLevel ) {
+				return false;
+			}
 		}
-
-		$nIgnoreFromUserLevel = $this->getOption( 'ignore_from_user_level', 11 );
-		if ( $this->getCurrentUserLevel() >= $nIgnoreFromUserLevel ) {
-			return false;
-		}
-
 		return true;
 	}
 

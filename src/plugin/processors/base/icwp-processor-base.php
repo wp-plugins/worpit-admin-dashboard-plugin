@@ -367,7 +367,7 @@ class ICWP_Processor_Base_CP {
 	 */
 	protected function getCurrentUserLevel() {
 		$oUser = function_exists('wp_get_current_user')? wp_get_current_user() : null;
-		return ( is_object($oUser) && ($oUser instanceof WP_User) )? $oUser->user_level : 0;
+		return ( is_object($oUser) && ($oUser instanceof WP_User) )? $oUser->user_level : -1;
 	}
 
 	/**
