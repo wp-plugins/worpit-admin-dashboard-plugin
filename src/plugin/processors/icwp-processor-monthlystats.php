@@ -36,13 +36,30 @@ class ICWP_Processor_MonthlyStats_CP extends ICWP_Processor_BaseStats_CP {
 	}
 
 	/**
+	 * @return boolean
 	 */
 	public function run() {
 		parent::run();
-		if ( $this->getOption( 'do_page_stats_monthly', false ) && !self::$fStatRegistered ) {
+		if ( $this->getCanRun() ) {
 			$this->doPageStats();
 			self::$fStatRegistered = true;
 		}
+	}
+
+	/**
+	 * @return boolean
+	 */
+	protected function getCanRun() {
+		if ( !$this->getOption( 'do_page_stats_monthly', false ) ){
+			return false;
+		}
+		if ( self::$fStatRegistered ) {
+			return false;
+		}
+		if ( $this->getDoIgnoreCurrentUser() ) {
+			return false;
+		}
+		return true;
 	}
 
 	/**

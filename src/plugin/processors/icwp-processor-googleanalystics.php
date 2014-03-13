@@ -32,20 +32,9 @@ class ICWP_Processor_GoogleAnalytics_CP extends ICWP_Processor_Base_CP {
 	 */
 	public function run() {
 		parent::run();
-		if ( $this->getOption( 'do_insert_google_analytics', false ) ) {
-			add_action( $this->getWpHook(), array($this, 'printGoogleAnalytics' ), 100 );
+		if ( $this->getCanRun() ) {
+			add_action( $this->getWpHook(), array( $this, 'printGoogleAnalytics' ), 100 );
 		}
-	}
-
-	/**
-	 * @return void|string
-	 */
-	public function printGoogleAnalytics() {
-		if ( !$this->canPrintAnalytics() ) {
-			return '';
-		}
-		$sCode = $this->getAnalyticsCode();
-		echo $sCode;
 	}
 
 	/**
@@ -53,26 +42,33 @@ class ICWP_Processor_GoogleAnalytics_CP extends ICWP_Processor_Base_CP {
 	 *
 	 * @return boolean
 	 */
-	protected function canPrintAnalytics() {
+	protected function getCanRun() {
+		if ( !$this->getOption( 'do_insert_google_analytics', false )  ) {
+			return false;
+		}
 		$sId = $this->getOption('tracking_id');
 		if ( empty( $sId ) ) {
 			return false;
 		}
-
-		$fIgnoreLoggedInUser = $this->getOption('ignore_logged_in_user', false);
-		if ( $fIgnoreLoggedInUser && $this->getIsUserLoggedIn() ) {
-			$nIgnoreFromUserLevel = $this->getOption( 'ignore_from_user_level', 11 );
-			if ( $this->getCurrentUserLevel() >= $nIgnoreFromUserLevel ) {
-				return false;
-			}
+		if ( $this->getDoIgnoreCurrentUser() ) {
+			return false;
 		}
+
 		return true;
+	}
+
+	/**
+	 * @return void|string
+	 */
+	public function printGoogleAnalytics() {
+		$sCode = $this->getAnalyticsCode();
+		echo $sCode;
 	}
 
 	/**
 	 * @return string
 	 */
-	protected function getAnalyticsCode() {
+	public function getAnalyticsCode() {
 		$sRaw = "<!-- Google Analytics Tracking by iControlWP --><script>
 			var _gaq=_gaq||[];
 			_gaq.push(['_setAccount','%s']);
@@ -82,6 +78,9 @@ class ICWP_Processor_GoogleAnalytics_CP extends ICWP_Processor_Base_CP {
 		return preg_replace( '/[\n\r\s]+/', ' ', sprintf( $sRaw, $this->getOption('tracking_id') ) );
 	}
 
+	/**
+	 * @return string
+	 */
 	protected function getWpHook() {
 		if ( $this->getOption('in_footer') ) {
 			return 'wp_print_footer_scripts';

@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, wordpress manage, wordpress admin, backup, restore, bulk, icontrolwp, worpit
 Requires at least: 3.2.0
 Tested up to: 3.8
-Stable tag: 2.7.3
+Stable tag: 2.7.4
 
 == Description ==
 
@@ -98,6 +98,10 @@ No. WorpDrive is available for a small monthly fee.
 4. Get a view of all your plugins and how each one is distributed across each site.
 
 == Changelog ==
+
+= 2.7.4 =
+
+* CHANGED:	tweak to white labelling and stats with more options.
 
 = 2.7.3 =
 

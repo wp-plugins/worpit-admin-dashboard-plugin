@@ -36,13 +36,32 @@ class ICWP_Processor_DailyStats_CP extends ICWP_Processor_BaseStats_CP {
 	}
 
 	/**
+	 * @return boolean
 	 */
 	public function run() {
 		parent::run();
-		if ( $this->getOption( 'do_page_stats_daily', false ) && !self::$fStatRegistered ) {
+		if ( $this->getCanRun() ) {
 			$this->doPageStats();
 			self::$fStatRegistered = true;
 		}
+		return true;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	protected function getCanRun() {
+		if ( !$this->getOption( 'do_page_stats_daily', false ) ){
+			return false;
+		}
+		if ( self::$fStatRegistered ) {
+			return false;
+		}
+		if ( $this->getDoIgnoreCurrentUser() ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

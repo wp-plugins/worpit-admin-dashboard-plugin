@@ -111,7 +111,9 @@ class ICWP_Stats extends ICWP_System_Base {
 		$aMinimumDefaults = array(
 			'enabled'					=> false,
 			'do_page_stats_daily'		=> false,
-			'do_page_stats_monthly'		=> false
+			'do_page_stats_monthly'		=> false,
+			'ignore_logged_in_user'			=> false,
+			'ignore_from_user_level'		=> 11, //max is 10 so by default ignore no-one
 		);
 		$this->aOptions = array_merge( $aMinimumDefaults, $this->aOptions );
 	}

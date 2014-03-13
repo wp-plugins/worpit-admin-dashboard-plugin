@@ -371,6 +371,22 @@ class ICWP_Processor_Base_CP {
 	}
 
 	/**
+	 * By default, if no settings are set, returns false.
+	 *
+	 * @return bool
+	 */
+	protected function getDoIgnoreCurrentUser() {
+		$fIgnoreLoggedInUser = $this->getOption( 'ignore_logged_in_user', false );
+		if ( $fIgnoreLoggedInUser && $this->getIsUserLoggedIn() ) {
+			$nIgnoreFromUserLevel = $this->getOption( 'ignore_from_user_level', 11 );
+			if ( $this->getCurrentUserLevel() >= $nIgnoreFromUserLevel ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * @return bool
 	 */
 	protected function getIsCurrentUserAdmin() {
