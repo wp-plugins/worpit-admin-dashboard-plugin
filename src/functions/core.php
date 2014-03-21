@@ -99,6 +99,19 @@ function worpitGetOption( $insName ) {
 	return get_option( Worpit_Plugin::$VariablePrefix.$insName );
 }
 
+
+/**
+ * @param string $insName
+ * @param mixed $inmValue
+ * @return string
+ */
+function icwpUpdateOption( $insName, $inmValue ) {
+	if ( $inmValue == worpitGetOption($insName) ) {
+		return true;
+	}
+	return update_option( Worpit_Plugin::$VariablePrefix.$insName, $inmValue );
+}
+
 /**
  * @param array $inaData
  * @return boolean

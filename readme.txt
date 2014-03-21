@@ -99,6 +99,10 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= 2.8.0 =
+
+* CHANGED:	auto-updates system is now directly integrated into plugin instead of using separate plugin.
+
 = 2.7.4 =
 
 * CHANGED:	tweak to white labelling and stats with more options.

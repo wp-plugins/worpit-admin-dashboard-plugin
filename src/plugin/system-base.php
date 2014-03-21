@@ -77,6 +77,22 @@ class ICWP_System_Base {
 	}
 
 	/**
+	 * Use this to update 1 or more options at a time.
+	 *
+	 * @param string $insKey
+	 * @param mixed $inmValue
+	 * @return boolean
+	 */
+	public function updateSystemOption( $insKey, $inmValue ) {
+		$this->loadSystemOptions();
+		if ( isset( $this->aOptions[$insKey] ) && $this->aOptions[$insKey] == $inmValue ) {
+			return true;
+		}
+		$this->aOptions[$insKey] = $inmValue;
+		return $this->saveSystemOptions();
+	}
+
+	/**
 	 * Use this to completely empty/clear the options
 	 *
 	 * @return boolean
@@ -95,11 +111,36 @@ class ICWP_System_Base {
 	}
 
 	/**
+	 * @param string $insOptionKey
+	 * @param mixed $insDefault
+	 * @return mixed
+	 */
+	public function getOption( $insOptionKey, $insDefault = '' ) {
+		if ( !isset( $this->aOptions ) || !is_array( $this->aOptions ) ) {
+			$this->loadSystemOptions();
+		}
+		if ( !isset( $this->aOptions[$insOptionKey] ) ) {
+			return $insDefault;
+		}
+		return $this->aOptions[$insOptionKey];
+	}
+
+	/**
+	 * It's now just an alias.
+	 *
+	 * @param string $insOptionKey
+	 * @param mixed $inmValue
+	 * @return mixed
+	 */
+	public function setOption( $insOptionKey, $inmValue = false ) {
+		$this->updateSystemOption( $insOptionKey, $inmValue );
+	}
+
+	/**
 	 * @return boolean
 	 */
 	public function getIsSystemEnabled() {
-		$aOptions = $this->getSystemOptions();
-		return $aOptions['enabled'];
+		return $this->getOption( 'enabled', false );
 	}
 
 	/**
@@ -124,7 +165,9 @@ class ICWP_System_Base {
 	 */
 	protected function validateOptions() {
 		$aMinimumDefaults = array(
-			'enabled'					=> false
+			'enabled'					=> false,
+			'ignore_logged_in_user'		=> false,
+			'ignore_from_user_level'	=> 11, //max is 10 so by default ignore no-one
 		);
 		if ( !is_array( $this->aOptions ) ) {
 			$this->aOptions = array();

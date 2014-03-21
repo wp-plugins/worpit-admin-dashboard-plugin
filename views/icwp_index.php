@@ -211,6 +211,50 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 			</div>
 		</div>
 
+		<?php if ( true ) : ?>
+			<div class="row">
+				<div class="span6">
+					<div class="well">
+						<div class="">
+							<h3>Google Analytics</h3>
+							<ul>
+								<?php if ($wpv_options_ga['enabled'] ) : ?>
+									<li>Enabled</li>
+									<li>Tracking ID: <?php echo $wpv_options_ga['tracking_id']; ?></li>
+									<li>Ignore Logged-In User Level: <?php echo $wpv_options_ga['ignore_logged_in_user']? $wpv_options_ga['ignore_from_user_level'] : 'No'; ?>+</li>
+								<?php else : ?>
+									<li>Disabled</li>
+								<?php endif; ?>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="span6">
+					<div class="well">
+						<div class="">
+							<h3>Automatic Updates</h3>
+							<ul>
+								<?php if ($wpv_options_au['enabled'] ) : ?>
+									<li>Enabled</li>
+									<?php if ( !empty($wpv_options_au['auto_update_plugins']) ) : ?>
+										<li>Auto Update Plugins:
+											<ul style="list-style: lower-roman outside none;">
+											<?php foreach( $wpv_options_au['auto_update_plugins'] as $sPlugin ) : ?>
+												<li style="margin: 0;"><?php echo $sPlugin; ?></li>
+											<?php endforeach; ?>
+											</ul>
+										</li>
+									<?php endif; ?>
+								<?php else : ?>
+									<li>Disabled</li>
+								<?php endif; ?>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		<?php endif; ?>
+
 		<?php if ( !$fWhitelabelled ) : ?>
 
 		<div class="row">

@@ -93,6 +93,16 @@ class ICWP_Processor_Base_CP {
 	 * Override to set what this processor does when it's "run"
 	 */
 	public function run() { }
+
+	/**
+	 * @return boolean
+	 */
+	protected function getCanRun() {
+		if ( $this->getDoIgnoreCurrentUser() ) {
+			return false;
+		}
+		return true;
+	}
 	
 	/**
 	 * Ensure that when we save the object later, it doesn't save unnecessary data.
@@ -365,8 +375,15 @@ class ICWP_Processor_Base_CP {
 	/**
 	 * @return integer
 	 */
+	protected function getCurrentUser() {
+		return function_exists('wp_get_current_user')? wp_get_current_user() : null;
+	}
+
+	/**
+	 * @return integer
+	 */
 	protected function getCurrentUserLevel() {
-		$oUser = function_exists('wp_get_current_user')? wp_get_current_user() : null;
+		$oUser = $this->getCurrentUser();
 		return ( is_object($oUser) && ($oUser instanceof WP_User) )? $oUser->user_level : -1;
 	}
 
