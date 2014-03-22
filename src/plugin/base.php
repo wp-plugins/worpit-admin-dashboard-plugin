@@ -74,7 +74,7 @@ class Worpit_Plugin_Base {
 		}
 		
 		if ( count( $inaData ) > 0 ) {
-			extract( $inaData, EXTR_PREFIX_ALL, 'wpv' );
+			extract( $inaData, EXTR_PREFIX_ALL, 'icwp' );
 		}
 		
 		ob_start();
@@ -290,8 +290,8 @@ class Worpit_Plugin_Base {
 		return $aResponseBody;
 	}
 	
-	static public function getOption( $insKey ) {
-		return get_option( self::$VariablePrefix.$insKey );
+	static public function getOption( $insKey, $infDefault = false ) {
+		return get_option( self::$VariablePrefix.$insKey, $infDefault );
 	}
 
 	static public function addOption( $insKey, $insValue ) {

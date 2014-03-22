@@ -398,7 +398,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 
 	/**
-	 * A modified copy of that in transport.php to verfiy the key and the pin
+	 * A modified copy of that in transport.php to verify the key and the pin
 	 *
 	 * @return boolean
 	 */
@@ -738,7 +738,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 						$aOptions = Worpit_Plugin::GetPluginDefaultOptions();
 						foreach( $aOptions as $sKey => $mValue ) {
-							Worpit_Plugin::addOption( $sKey, $mValue );
+							Worpit_Plugin::updateOption( $sKey, $mValue );
 						}
 					}
 				break;
@@ -758,6 +758,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 		if ( version_compare( $sInstalledVersion, '2.8.0', '<' ) ) {
 			Worpit_Plugin::deleteOption( 'display_promo' );
+			$oAutoUpdates = $this->GetAutoUpdatesSystem();
+			$oAutoUpdates->convertFromOldSystem();
 		}
 
 		if ( version_compare( $sInstalledVersion, '1.0.5' ) < 0 ) {
@@ -789,9 +791,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 *
 	 */
 	public function onWpLoaded() {
-		if ( is_admin() ) {
-			$this->handlePluginUpgrade();
-		}
 		$this->runGoogleAnalyticsSystem();
 		$this->runAutoUpdatesSystem();
 	}
@@ -884,6 +883,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 
 		if ( is_admin() ) {
+			$this->handlePluginUpgrade();
 			$this->addToWhitelists();
 		}
 		// Always auto-update this plugin

@@ -1,6 +1,6 @@
 <?php
-$sServiceName = $wpv_label_data['service_name'];
-$sUrlServiceHome = $wpv_label_data['plugin_home_url'];
+$sServiceName = $icwp_label_data['service_name'];
+$sUrlServiceHome = $icwp_label_data['plugin_home_url'];
 $sUrlServiceHomeHelp = 'http://icwp.io/help';
 $sUrlServiceHomeFeatures = 'http://icwp.io/features';
 
@@ -35,7 +35,7 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 ?>
 <style>
 	#pluginlogo_32 {
-		background: url( "<?php echo $wpv_label_data['icon_url_32x32']; ?>" ) no-repeat 0px 3px transparent;
+		background: url( "<?php echo $icwp_label_data['icon_url_32x32']; ?>" ) no-repeat 0px 3px transparent;
 	}
 </style>
 <div class="wrap">
@@ -59,12 +59,12 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 		}
 		.assigned-state #isAssigned {
 			color: #00A500;
-			background: url("<?php echo $wpv_image_url; ?>pinvoke/tick.png") no-repeat 0 50% transparent;
+			background: url("<?php echo $icwp_image_url; ?>pinvoke/tick.png") no-repeat 0 50% transparent;
 			padding-left: 25px;
 			margin-bottom: 15px;
 		}
 		.assigned-state #isNotAssigned {
-			background: url("<?php echo $wpv_image_url; ?>pinvoke/status-amber.png") no-repeat 0 1px transparent;
+			background: url("<?php echo $icwp_image_url; ?>pinvoke/status-amber.png") no-repeat 0 1px transparent;
 			padding-left: 25px;
 			margin-bottom: 15px;
 		}
@@ -109,16 +109,16 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 			<div class="span12">
 				<div class="well">
 					<?php
-						if ( empty($wpv_key) ) {
+						if ( empty($icwp_key) ) {
 							echo '<h3>You need to generate your Access Key - reset your key using the red button below.</h3>';
 						}
 					?>
 					<div class="assigned-state">
-						<?php if ( $wpv_assigned === 'Y' ): ?>
-							<h3 id="isAssigned"><?php echo sprintf( 'Currently connected to %s account.%s', "<u>$sServiceName</u>", ($fWhitelabelled? '' : " ($wpv_assigned_to)") ); ?></h3>
+						<?php if ( $icwp_assigned === 'Y' ): ?>
+							<h3 id="isAssigned"><?php echo sprintf( 'Currently connected to %s account.%s', "<u>$sServiceName</u>", ($fWhitelabelled? '' : " ($icwp_assigned_to)") ); ?></h3>
 
 						<?php else: ?>
-							<h3>The unique <?php echo $sServiceName; ?> Access Key for this site is: <span class="the-key"><?php echo $wpv_key; ?></span></h3>
+							<h3>The unique <?php echo $sServiceName; ?> Access Key for this site is: <span class="the-key"><?php echo $icwp_key; ?></span></h3>
 
 							<h4 id="isNotAssigned">Currently waiting for connection from a <?php echo $sServiceName; ?> account. [ <a href="<?php echo $sUrlServiceHome; ?>" id="signupLinkIcwp" target="_blank">Don't have a <?php echo $sServiceName; ?> account? Get it today!</a> ]</h4>
 							<p><strong>Important:</strong> if you don't plan to add this site now, disable this plugin to prevent this site from being added to another <?php echo $sServiceName; ?> account.</p>
@@ -128,15 +128,15 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 				</div>
 			</div>
 		</div>
-		<?php if ( !$wpv_is_linked ) : ?>
+		<?php if ( !$icwp_is_linked ) : ?>
 		<div class="row">
 			<div class="span12">
 				<div class="well">
 					<h3>Remotely add site to <?php echo $sServiceName; ?> account</h3>
 					<p>You may add your site to your <?php echo $sServiceName; ?> from here, or from within your <?php echo $sServiceName; ?> Dashboard. Both methods are supported and secure.</p>
 					<p>Note: If this doesn't work, your web host probably has restrictions on outgoing web connections. Please try adding this site from you <?php echo $sServiceName; ?> dashboard.</p>
-					<form action="<?php echo $wpv_form_action; ?>" method="POST" name="icwpform-remote-add-site" id="form-remote-add-site" class="">
-						<?php wp_nonce_field( $wpv_nonce_field ); ?>
+					<form action="<?php echo $icwp_form_action; ?>" method="POST" name="icwpform-remote-add-site" id="form-remote-add-site" class="">
+						<?php wp_nonce_field( $icwp_nonce_field ); ?>
 						<input type="hidden" name="icwp_admin_form_submit" value="1" />
 						<input type="hidden" name="icwp_admin_form_submit_add_remotely" value="1" />
 						<fieldset>
@@ -162,9 +162,9 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 						<p>Normally, this option is not turned on because some websites do not support it.</p>
 						<p>If you do turn it on, it will greatly increase your security - the plugin will "phone home" to the <?php echo $sServiceName; ?> Dashboard with every connection to ensure the request originated from <?php echo $sServiceName; ?>.</p>
 						<p><strong>Warning:</strong> Do not enable this option until you have synchronized your site with your <?php echo $sServiceName; ?> account.</p>
-						<div class="<?php echo ( $wpv_can_handshake !== 'Y' )? 'cant-handshake' : ''; ?>">
-							<form action="<?php echo ( $wpv_can_handshake === 'Y' )? $wpv_form_action : ''; ?>" method="POST" name="form-hand-shaking" id="form-hand-shaking">
-								<?php wp_nonce_field( $wpv_nonce_field ); ?>
+						<div class="<?php echo ( $icwp_can_handshake !== 'Y' )? 'cant-handshake' : ''; ?>">
+							<form action="<?php echo ( $icwp_can_handshake === 'Y' )? $icwp_form_action : ''; ?>" method="POST" name="form-hand-shaking" id="form-hand-shaking">
+								<?php wp_nonce_field( $icwp_nonce_field ); ?>
 								<input type="hidden" name="icwp_admin_form_submit" value="1" />
 								<input type="hidden" name="icwp_admin_form_submit_handshake" value="1" />
 								<label>
@@ -174,11 +174,11 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 									value="Y"
 									class=""
 									id="icwp_admin_handshake_enabled"
-									<?php echo ( $wpv_handshake_enabled === 'Y' )? ' checked="checked"' : ''; ?>
-									<?php echo ( $wpv_can_handshake !== 'Y' )? ' disabled="disabled"' : ''; ?>
+									<?php echo ( $icwp_handshake_enabled === 'Y' )? ' checked="checked"' : ''; ?>
+									<?php echo ( $icwp_can_handshake !== 'Y' )? ' disabled="disabled"' : ''; ?>
 									/> If this box is checked, plugin handshaking will be enabled. If you have problems syncing with <?php echo $sServiceName; ?>, disable this option.
 								</label>
-								<button class="btn btn-warning" name="submit" type="submit" <?php echo ( $wpv_can_handshake !== 'Y' )? 'disabled="disabled"' : ''; ?>>Change Option</button>
+								<button class="btn btn-warning" name="submit" type="submit" <?php echo ( $icwp_can_handshake !== 'Y' )? 'disabled="disabled"' : ''; ?>>Change Option</button>
 							</form>
 						</div>
 					</div>
@@ -195,8 +195,8 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 						<p>You can break the connection with <?php echo $sServiceName; ?> and regenerate a new access key, using the button below</p>
 						<p><strong>Warning:</strong> Clicking this button <em>will disconnect this site if it has been added to a <?php echo $sServiceName; ?> account</em>. <u>Not Recommended</u>.</p>
 						<div>
-							<form action="<?php echo $wpv_form_action; ?>" method="POST" name="form-reset-auth" id="form-reset-auth">
-								<?php wp_nonce_field( $wpv_nonce_field ); ?>
+							<form action="<?php echo $icwp_form_action; ?>" method="POST" name="form-reset-auth" id="form-reset-auth">
+								<?php wp_nonce_field( $icwp_nonce_field ); ?>
 								<input type="hidden" name="icwp_admin_form_submit" value="1" />
 								<input type="hidden" name="icwp_admin_form_submit_resetplugin" value="1" />
 								<label>
@@ -218,10 +218,10 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 						<div class="">
 							<h3>Google Analytics</h3>
 							<ul>
-								<?php if ($wpv_options_ga['enabled'] ) : ?>
+								<?php if ($icwp_options_ga['enabled'] ) : ?>
 									<li>Enabled</li>
-									<li>Tracking ID: <?php echo $wpv_options_ga['tracking_id']; ?></li>
-									<li>Ignore Logged-In User Level: <?php echo $wpv_options_ga['ignore_logged_in_user']? $wpv_options_ga['ignore_from_user_level'] : 'No'; ?>+</li>
+									<li>Tracking ID: <?php echo $icwp_options_ga['tracking_id']; ?></li>
+									<li>Ignore Logged-In User Level: <?php echo $icwp_options_ga['ignore_logged_in_user']? $icwp_options_ga['ignore_from_user_level'] : 'No'; ?>+</li>
 								<?php else : ?>
 									<li>Disabled</li>
 								<?php endif; ?>
@@ -234,12 +234,12 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 						<div class="">
 							<h3>Automatic Updates</h3>
 							<ul>
-								<?php if ($wpv_options_au['enabled'] ) : ?>
+								<?php if ($icwp_options_au['enabled'] ) : ?>
 									<li>Enabled</li>
-									<?php if ( !empty($wpv_options_au['auto_update_plugins']) ) : ?>
+									<?php if ( !empty($icwp_options_au['auto_update_plugins']) ) : ?>
 										<li>Auto Update Plugins:
 											<ul style="list-style: lower-roman outside none;">
-											<?php foreach( $wpv_options_au['auto_update_plugins'] as $sPlugin ) : ?>
+											<?php foreach( $icwp_options_au['auto_update_plugins'] as $sPlugin ) : ?>
 												<li style="margin: 0;"><?php echo $sPlugin; ?></li>
 											<?php endforeach; ?>
 											</ul>
@@ -270,19 +270,19 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 						<p>We <strong>wont collect sensitive information</strong> about you or any passwords etc. We're only interested in information about the plugins you're
 						using, your WordPress version, your PHP and server configuration. Further, you will be able to review what will be sent before you send it.</p>
 						<div>
-							<form action="<?php echo $wpv_form_action; ?>" method="POST" name="form-send-debug" id="form-send-debug">
-								<?php wp_nonce_field( $wpv_nonce_field ); ?>
+							<form action="<?php echo $icwp_form_action; ?>" method="POST" name="form-send-debug" id="form-send-debug">
+								<?php wp_nonce_field( $icwp_nonce_field ); ?>
 								<input type="hidden" name="icwp_admin_form_submit" value="1" />
 								<input type="hidden" name="icwp_admin_form_submit_debug" value="1" />
 								<button class="btn btn-inverse" name="submit_gather" type="submit" style="margin-right:8px;">Gather Information</button>
 								
-								<?php if ( !$wpv_debug_file_url ): ?>
+								<?php if ( !$icwp_debug_file_url ): ?>
 									<button class="btn btn-info" name="view_information" type="submit" style="margin-right:8px;" disabled="disabled">View Information</button>
 								<?php else: ?>
-									<a href="<?php echo $wpv_debug_file_url; ?>" class="btn btn-info" name="view_information" type="submit" style="margin-right:8px;" target="_blank">View Information</a>
+									<a href="<?php echo $icwp_debug_file_url; ?>" class="btn btn-info" name="view_information" type="submit" style="margin-right:8px;" target="_blank">View Information</a>
 								<?php endif; ?>
 								
-								<button class="btn btn-success" name="submit_information" type="submit" style="margin-right:8px;" <?php if ( !$wpv_debug_file_url ): ?>disabled="disabled"<?php endif; ?>>Send Debug Information</button>
+								<button class="btn btn-success" name="submit_information" type="submit" style="margin-right:8px;" <?php if ( !$icwp_debug_file_url ): ?>disabled="disabled"<?php endif; ?>>Send Debug Information</button>
 							</form>
 						</div>
 					</div>

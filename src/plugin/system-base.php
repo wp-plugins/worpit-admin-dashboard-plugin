@@ -88,8 +88,7 @@ class ICWP_System_Base {
 		if ( isset( $this->aOptions[$insKey] ) && $this->aOptions[$insKey] == $inmValue ) {
 			return true;
 		}
-		$this->aOptions[$insKey] = $inmValue;
-		return $this->saveSystemOptions();
+		return $this->updateSystemOptions( array( $insKey => $inmValue ) );
 	}
 
 	/**
@@ -148,11 +147,7 @@ class ICWP_System_Base {
 	 * @return boolean
 	 */
 	public function setIsSystemEnabled( $infEnabled = true ) {
-		return $this->updateSystemOptions(
-			array(
-				'enabled' => $infEnabled
-			)
-		);
+		return $this->updateSystemOption( 'enabled', $infEnabled );
 	}
 
 	/**

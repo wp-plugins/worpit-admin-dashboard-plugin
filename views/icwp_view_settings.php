@@ -9,7 +9,7 @@
 			<h2><?php _hlt_e( 'Worpit Plugin Settings' ); ?></h2><?php _hlt_e( '' ); ?>
 		</div>
 		<?php
-			printAllPluginOptionsForm( $wpv_aAllOptions, $wpv_var_prefix, 1 );
+			printAllPluginOptionsForm( $icwp_aAllOptions, $icwp_var_prefix, 1 );
 		?>
 	
 	</div><!-- /.bootstrap-wpadmin -->
