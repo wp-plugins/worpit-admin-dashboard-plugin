@@ -184,9 +184,9 @@ class ICWP_Processor_AutoUpdates_CP extends ICWP_Processor_Base_CP {
 			return true;
 		}
 
-		$aAutoUpdatePluginFiles = $this->getOption('auto_update_plugins');
-		if ( !empty( $aAutoUpdatePluginFiles ) && is_array($aAutoUpdatePluginFiles) ) {
-			if ( in_array( $insPluginSlug, $aAutoUpdatePluginFiles ) ) {
+		$aAutoUpdateFiles = $this->getOption('auto_update_plugins');
+		if ( !empty( $aAutoUpdateFiles ) && is_array($aAutoUpdateFiles) ) {
+			if ( in_array( $insPluginSlug, $aAutoUpdateFiles ) ) {
 				return true;
 			}
 		}
@@ -208,7 +208,7 @@ class ICWP_Processor_AutoUpdates_CP extends ICWP_Processor_Base_CP {
 			return true;
 		}
 
-		$aAutoUpdateFiles = apply_filters( 'icwp_wpsf_autoupdate_themes', $this->getOption('auto_update_themes') );
+		$aAutoUpdateFiles = $this->getOption('auto_update_themes');
 		if ( !empty( $aAutoUpdateFiles ) && is_array($aAutoUpdateFiles) ) {
 			if ( in_array( $insThemeSlug, $aAutoUpdateFiles ) ) {
 				return true;

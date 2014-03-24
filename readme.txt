@@ -1,28 +1,44 @@
 === iControlWP - Take Control of WordPress  ===
 Contributors: paultgoodchild, dlgoodchild
 Donate link: http://www.icontrolwp.com/
-Tags: manage, wordpress manage, wordpress admin, backup, restore, bulk, icontrolwp, worpit
+Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, worpit, icontrolwp, automatic updates
 Requires at least: 3.2.0
 Tested up to: 3.8
 Stable tag: 2.7.4
 
 == Description ==
 
-The [iControlWP Secure WordPress Manager](http://www.icontrolwp.com/?src=icwp_readme) lets you manage all your WordPress websites from a central dashboard.
+The [iControlWP Secure WordPress Manager](http://www.icontrolwp.com/?src=icwp_readme) is the only solution you need to
+manage all your WordPress websites.
+
+We're serious about helping you, so we neither charge you with silly pricing tiers like "Pro" and "Business", and we're certainly not free.
+
+*Our Mission - Fewer WordPress Plugin; More Free Time*
+
+With iControlWP you need fewer WordPress plugins on your sites because you can centrally manage much more from within your
+control panel. For example:
+
+*	You don't need an extra plugin for Google Analytics tracking codes.
+*	You don't need an extra plugin for CloudFlare integration and management
+*	You don't need an extra plugin to optimize your databases
+*	You don't need an extra plugin to clean up old drafts, comments and post revisions
+*	You don't need an extra plugin to manage WordPress automatic updates
 
 With iControlWP you can:
 
-*	Manage WordPress websites from a single centralized Dashboard.
-*	One-click update a plugin, a theme or even the WordPress Core.
-*	Update all plugins, all themes, all WordPress cores across all sites, or just a selection at once.
-*	Optimize all your WordPress sites without extra plugins: [clean up WordPress](http://www.icontrolwp.com/2012/07/optimize-clean-up-wordpress-worpit/?src=wpt_readme) 
-and [optimize the WordPress database](http://www.icontrolwp.com/2012/07/how-to-optimize-wordpress-databases-with-worpit/?src=wpt_readme).
-*	Add WordPress security options across all your websites at once. 
-*	Install a brand new WordPress website automatically, anywhere you have cPanel web hosting
-*	Install the iControlWP WordPress plugin from WordPress.org, or have iControlWP do it for you automatically
-*	Log into your WordPress sites without remembering your WordPress login details.
+*	Manage ALL WordPress websites from a single, centralized control panel.
+*	One-click update WordPress Plugin (premium ones too!), Themes, and the WordPress Core.
+*   Bulk update all plugins, themes and WordPress cores.
+*   Very finely tune WordPress Automatic Updates for every plugin on every site.
+*   Manage CloudFlare settings using our unique CloudFlare integration.
+*   Insert Google Analytics Tracking code.
+*	[Clean up WordPress]http://www.icontrolwp.com/2012/07/optimize-clean-up-wordpress-worpit/?src=wpt_readme)
+and [Optimize WordPress databases](http://www.icontrolwp.com/2012/07/how-to-optimize-wordpress-databases-with-worpit/?src=wpt_readme)
+*	Manage WordPress Security setting across all your sites.
+*	Install new WordPress websites automatically, anywhere you have cPanel web hosting
+*	Automatically log into your WordPress sites without remembering your WordPress login details.
+*	Collect useful visitor site statistics and view them directly from within your control panel.
 
-No more logging in to each individual website to perform the same, repetitive tasks.  Do them in bulk, on all your sites at once.
 
 == Frequently Asked Questions ==
 
@@ -99,9 +115,9 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
-= 2.8.0 =
+= 2.7.5 =
 
-* CHANGED:	auto-updates system is now directly integrated into plugin instead of using separate plugin.
+* CHANGED:	auto-updates system is now integrated directly into plugin instead of using a separate plugin.
 
 = 2.7.4 =
 

@@ -70,11 +70,6 @@ class ICWP_Processor_Base_CP {
 	 */
 	protected $aOptions;
 	
-	/**
-	 * @var ICWP_OptionsHandler_Base_WPSF
-	 */
-	protected $m_oOptionsHandler;
-
 	public function __construct( $insStorageKey ) {
 		$this->m_sStorageKey = $insStorageKey;
 		$this->m_fNeedSave = true;
@@ -150,15 +145,7 @@ class ICWP_Processor_Base_CP {
 	public function setOptions( &$inaOptions ) {
 		$this->aOptions = $inaOptions;
 	}
-	/**
-	 *
-	 * @param array $inoOptionsHandler
-	 */
-	public function setOptionsHandler( &$inoOptionsHandler ) {
-		$this->m_oOptionsHandler = $inoOptionsHandler;
-		$this->aOptions = $this->m_oOptionsHandler->getPluginOptionsValues();
-	}
-	
+
 	/**
 	 * Resets the log
 	 */

@@ -8,8 +8,7 @@ function printAllPluginOptionsForm( $inaAllPluginOptions, $insVarPrefix = '', $i
 
 	$iRowWidth = 8; //8 spans.
 	$iOptionWidth = $iRowWidth / $iOptionsPerRow;
-	$sOptionValue;
-	
+
 	//Take each Options Section in turn
 	foreach ( $inaAllPluginOptions as $sOptionSection ) {
 		

@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.8.0
+Version: 2.7.5
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -1292,93 +1292,8 @@ class Worpit_Uninstall {
 	public function onWpDeactivatePlugin() { }
 }
 
-class Worpit_Auditor {
-	
-	protected $m_sUniqId;
-	
-	protected $m_aActions;
-	protected $m_aQueries;
-	
-	public function __construct() {
-		$this->m_aUniqId = uniqid();
-		$this->m_aActions = array();
-		$this->m_aQueries = array();
-		
-		/**
-		 * Add all the actions and filters
-		 */
-		add_action( 'shutdown', array( &$this, 'onShutdown' ) );
-		if ( !defined( 'SAVEQUERIES' ) ){
-			define( 'SAVEQUERIES', true );
-		}
-		
-		/**
-		 * We don't want to have to call add_action continuously, as that's repetitive, so we make
-		 * a predictable loop (i.e. we know what way the function name will be written)
-		 */
-		$aActions = array(
-			'wp_login'
-		);
-		
-		foreach ( $aActions as $sAction ) {
-			$sFunction = 'on'.str_replace( ' ', '', ucwords( str_replace( '_', ' ', $sAction ) ) );
-			add_action( $sAction, array( &$this, $sFunction ) );
-		}
-	}
-	
-	public function __destruct() {
-		// save ALL the queries and the actions to the new "worpit_audit" and "worpit_audit_item" tables
-		// the SQL of which is execute when the plugin is activated (TODO: see function executeSql ).
-		
-		// insert a new worpit_audit record using the uniqid
-		foreach ( $this->m_aActions as $aAction ) {
-			// use $wpdb and save the $aAction information.
-			// insert new worpit_audit_item records and be sure to use the last insert id of the worpit_audit above.
-		}
-		
-		foreach ( $this->m_aQueries as $sQuery ) {
-			// maybe do some crude regexp to get rid of most.
-			if ( preg_match( '/^select/i', trim( $sQuery ) ) ) {
-				continue;
-			}
-			
-			// use wpdb and insert the query into the worpit_audit_query
-			// also use the last insert id of the worpit audit record to link as parent of this log entry
-		}
-	}
-	
-	public function onShutdown() {
-		// get all the queries from the wpdb object and assign to array
-		$this->m_aQueries = array();// = wpdb->getqueries?
-	}
-	
-	/**
-	 * Potentially massive list of actions here:
-	 *
-	 * @link http://codex.wordpress.org/Plugin_API/Action_Reference/wp_login
-	 */
-	public function onWpLogin( $insUserLogin ) {
-		$this->logAction(
-			'wp_login',
-			'User "'.$insUserLogin.'" logged in.',
-			func_get_args()
-		);
-	}
-	
-	/**
-	 * @link http://codex.wordpress.org/Plugin_API/Action_Reference/delete_user
-	 */
-	public function onDeleteUser( $insUserId ) {
-		
-	}
-	
-	/**
-	 * The parameters are subject to change! They are just an initial sketch, maybe you can
-	 * think more about this.
-	 */
-	protected function logAction( $insAction, $insText, $inaArgs ) {
-		$this->m_aActions[] = array_merge( func_get_args(), array( time() ) );
-	}
+if ( !class_exists('ICWP_Plugin') ) {
+	class ICWP_Plugin extends Worpit_Plugin {}
 }
 
 $g_oWorpit = Worpit_Plugin::GetInstance();
