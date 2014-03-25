@@ -167,7 +167,7 @@ class Worpit_Plugin_Base {
 
 	protected function createPluginSubMenuItems(){
 		$this->m_aPluginMenu = array();
-	}//createPluginSubMenuItems
+	}
 
 	public function onDisplayMainMenu() {
 		$aData = array(
@@ -197,7 +197,7 @@ class Worpit_Plugin_Base {
 	/**
 	 *
 	 */
-	protected function loadDataProcessor() {
+	protected static function loadDataProcessor() {
 		require_once( dirname(__FILE__).'/processors/base/icwp-processor-data.php');
 	}
 
@@ -207,6 +207,7 @@ class Worpit_Plugin_Base {
 	 * @param integer $innLength
 	 * @param integer $innStrength
 	 * @param boolean $infIgnoreAmb
+	 * @return string
 	 */
 	static public function Generate( $innLength = 10, $innStrength = 7, $infIgnoreAmb = true ) {
 		$aChars = array( 'abcdefghijkmnopqrstuvwxyz' );

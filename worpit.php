@@ -56,23 +56,37 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	const ServiceName = 'iControlWP';
 
 	/**
-	 * @access static
-	 * @var array
+	 * @var integer
 	 */
-	static private $ServiceIpAddresses = array(
-		'198.61.176.9',
-		'198.61.173.69',
-//		'198.61.171.158',
-//		'198.101.154.236'
-		'23.253.56.59',
-		'23.253.62.185'
-	);
-	
+	const LinkLimitTimeout = 0; //1hr
+
 	/**
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.8.0';
+	static public $VERSION = '2.7.5';
+
+	/**
+	 * @access static
+	 * @var array
+	 */
+	static private $ServiceIpAddressesIpv4 = array(
+		'198.61.176.9',
+		'198.61.173.69',
+		'23.253.56.59',
+		'23.253.62.185'
+	);
+
+	/**
+	 * @access static
+	 * @var array
+	 */
+	static private $ServiceIpAddressesIpv6 = array(
+		'2001:4801:7817:0072:ca75:cc9b:ff10:4699',
+		'2001:4801:7817:72:ca75:cc9b:ff10:4699',
+		'2001:4801:7824:0101:ca75:cc9b:ff10:a7b2',
+		'2001:4801:7824:101:ca75:cc9b:ff10:a7b2',
+	);
 	
 	/**
 	 * @access static
@@ -229,7 +243,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			
 		$fAdded = false;
 		$sWfIpWhitelist = wfConfig::get( 'whitelisted' );
-		$aServiceIps = self::$ServiceIpAddresses;
+		$aServiceIps = self::$ServiceIpAddressesIpv4;
 		if ( empty($sWfIpWhitelist) ) {
 			$aWfIps = $aServiceIps;
 			$fAdded = true;
@@ -258,7 +272,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return array
 	 */
 	public function addToSimpleFirewallWhitelist( $aWhitelistIps ) {
-		foreach ( self::$ServiceIpAddresses as $sAddress ) {
+		foreach ( self::$ServiceIpAddressesIpv4 as $sAddress ) {
 			if ( !in_array( $sAddress, $aWhitelistIps ) ) {
 				$aWhitelistIps[ $sAddress ] = $this->m_aLabelData['service_name'];
 			}
@@ -280,7 +294,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				return;
 			}
 			
-			foreach( self::$ServiceIpAddresses as $sAddress ) {
+			foreach( self::$ServiceIpAddressesIpv4 as $sAddress ) {
 				if ( !in_array( $sAddress, $aFirewallIps ) ) {
 					$aFirewallIps[] = $sAddress;
 					$fUpdate = true;
@@ -472,7 +486,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		// Adds our IP addresses to the BWPS whitelist
 		if ( !is_null( $bwpsoptions ) && is_array( $bwpsoptions ) ) {
 			$fAdded = true;
-			$sServiceIps = implode( "\n", self::$ServiceIpAddresses );
+			$sServiceIps = implode( "\n", self::$ServiceIpAddressesIpv4 );
 			if ( !isset( $bwpsoptions['id_whitelist'] ) || strlen( $bwpsoptions['id_whitelist'] ) == 0 ) {
 				$bwpsoptions['id_whitelist'] = $sServiceIps;
 			}
@@ -756,10 +770,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			$sInstalledVersion = '0.1';
 		}
 
-		if ( version_compare( $sInstalledVersion, '2.8.0', '<' ) ) {
+		if ( version_compare( $sInstalledVersion, '2.7.5', '<' ) ) {
 			Worpit_Plugin::deleteOption( 'display_promo' );
-			$oAutoUpdates = $this->GetAutoUpdatesSystem();
-			$oAutoUpdates->convertFromOldSystem();
 		}
 
 		if ( version_compare( $sInstalledVersion, '1.0.5' ) < 0 ) {
@@ -1087,7 +1099,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	public function isVisitorIcwp() {
 		$sIp = $this->getVisitorIpAddress( false );
-		return ( $sIp === false || in_array( $sIp, self::$ServiceIpAddresses ) );
+		return ( $sIp === false || in_array( $sIp, self::$ServiceIpAddressesIpv4 ) );
 	}
 
 	/**
@@ -1220,6 +1232,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	protected function runAutoUpdatesSystem() {
 		$oAutoUpdatesSystem = self::GetAutoUpdatesSystem();
+		$oAutoUpdatesSystem->convertFromOldSystem();
 		if ( $oAutoUpdatesSystem->getIsSystemEnabled() ) {
 			$oAutoUpdatesSystem->run();
 		}

@@ -215,7 +215,7 @@ class ICWP_Processor_Base_CP {
 	 * @return integer - visitor IP Address as IP2Long
 	 */
 	public function getVisitorIpAddress( $infAsLong = true ) {
-		require_once(dirname(__FILE__) . '/icwp-processor-data.php');
+		$this->loadDataProcessor();
 		return ICWP_Processor_Data_CP::GetVisitorIpAddress( $infAsLong );
 	}
 
@@ -395,6 +395,12 @@ class ICWP_Processor_Base_CP {
 	 */
 	protected function getIsCurrentUserAdmin() {
 		return $this->getIsUserLoggedIn() && current_user_can( 'manage_options' );
+	}
+
+	/**
+	 */
+	protected function loadDataProcessor() {
+		require_once( dirname(__FILE__) . '/icwp-processor-data.php' );
 	}
 }
 

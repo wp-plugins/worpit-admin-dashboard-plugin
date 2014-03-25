@@ -62,6 +62,46 @@ class ICWP_Processor_Data_CP {
 		}
 		return false;
 	}
+
+	/**
+	 * For now will return true when it's a valid IPv4 or IPv6 address and you have access to filter_var()
+	 *
+	 * otherwise, if it's Ipv6 it'll return false always or will attempt to manually parse IPv4.
+	 *
+	 * @param string
+	 * @return boolean
+	 */
+	public static function GetIsValidIpAddress( $insIpAddress ) {
+		if ( function_exists('filter_var') && defined('FILTER_VALIDATE_IP') && defined('FILTER_FLAG_IPV4') && defined('FILTER_FLAG_IPV6') ) {
+
+			if ( filter_var( $insIpAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
+				return true;
+			}
+			else {
+				return filter_var( $insIpAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 );
+			}
+		}
+
+		if ( preg_match( '/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\z/', $insIpAddress ) ) { //It's a valid IPv4 format, now check components
+			$aParts = explode( '.', $insIpAddress );
+			foreach ( $aParts as $sPart ) {
+				$sPart = intval( $sPart );
+				if ( $sPart < 0 || $sPart > 255 ) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 *
+	 */
+	public static function GetIsAddressIpv6() {
+
+	}
 	
 	/**
 	 * Assumes a valid IPv4 address is provided as we're only testing for a whether the IP is public or not.
@@ -304,6 +344,67 @@ class ICWP_Processor_Data_CP {
 			$sPassword .= $sCharset[ ( rand() % strlen( $sCharset ) ) ];
 		}
 		return $sPassword;
+	}
+
+	/**
+	 * @param string $insKey
+	 * @param boolean $infIncludeCookie
+	 * @return mixed|null
+	 */
+	public static function FetchRequest( $insKey, $infIncludeCookie = true ) {
+		$mFetchVal = self::fetchPost( $insKey );
+		if ( is_null( $mFetchVal ) ) {
+			$mFetchVal = self::fetchGet( $insKey );
+			if ( is_null( $mFetchVal && $infIncludeCookie ) ) {
+				$mFetchVal = self::fetchCookie( $insKey );
+			}
+		}
+		return $mFetchVal;
+	}
+	/**
+	 * @param string $insKey
+	 * @return mixed|null
+	 */
+	public static function FetchGet( $insKey ) {
+		if ( function_exists( 'filter_input' ) && defined( 'INPUT_GET' ) ) {
+			return filter_input( INPUT_GET, $insKey );
+		}
+		return self::ArrayFetch( $_GET, $insKey );
+	}
+	/**
+	 * @param string $insKey		The $_POST key
+	 * @return mixed|null
+	 */
+	public static function FetchPost( $insKey ) {
+		if ( function_exists( 'filter_input' ) && defined( 'INPUT_POST' ) ) {
+			return filter_input( INPUT_POST, $insKey );
+		}
+		return self::ArrayFetch( $_POST, $insKey );
+	}
+	/**
+	 * @param string $insKey		The $_POST key
+	 * @return mixed|null
+	 */
+	public static function FetchCookie( $insKey ) {
+		if ( function_exists( 'filter_input' ) && defined( 'INPUT_COOKIE' ) ) {
+			return filter_input( INPUT_COOKIE, $insKey );
+		}
+		return self::ArrayFetch( $_COOKIE, $insKey );
+	}
+
+	/**
+	 * @param array $inaArray
+	 * @param string $insKey		The array key
+	 * @return mixed|null
+	 */
+	public static function ArrayFetch( &$inaArray, $insKey ) {
+		if ( empty( $inaArray ) ) {
+			return null;
+		}
+		if ( !isset( $inaArray[$insKey] ) ) {
+			return null;
+		}
+		return $inaArray[$insKey];
 	}
 }
 
