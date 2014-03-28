@@ -69,9 +69,9 @@ class ICWP_Processor_GoogleAnalytics_CP extends ICWP_Processor_Base_CP {
 	 * @return string
 	 */
 	public function getAnalyticsCode() {
-		$sRaw = "<!-- Google Analytics Tracking by iControlWP -->
+		$sRaw = "
+		<!-- Google Analytics Tracking by iControlWP -->
 		<script type=\"text/javascript\">//<![CDATA[
-            <script>//<![CDATA[
 			var _gaq=_gaq||[];
 			_gaq.push(['_setAccount','%s']);
 			_gaq.push(['_trackPageview']);
@@ -83,7 +83,8 @@ class ICWP_Processor_GoogleAnalytics_CP extends ICWP_Processor_Base_CP {
 				var s=document.getElementsByTagName('script')[0];
 				s.parentNode.insertBefore(ga,s);
 			})();
-		 //]]></script>";
+		 //]]></script>
+		 ";
 		return sprintf( $sRaw, $this->getOption('tracking_id') );
 	}
 
