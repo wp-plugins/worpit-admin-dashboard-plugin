@@ -130,16 +130,19 @@ class ICWP_AutoUpdates extends ICWP_System_Base {
 
 		// handle the old style of automatic updates.
 		if ( defined('DOING_CRON') && DOING_CRON ) {
-			$this->cleanup_lists();
+			add_action( 'wp_loaded', array($this, 'cleanup_lists') );
 		}
 	}
 
 	/**
 	 *
 	 */
-	private function cleanup_lists() {
+	public function cleanup_lists() {
+		if ( !function_exists('get_plugins') ) {
+			return;
+		}
 		$aPlugins = get_plugins();
-		$aUpdatePlugins = $this->getOption( 'auto_update_plugins' );
+		$aUpdatePlugins = $this->getOption( 'auto_update_plugins', array() );
 		$fChanged = false;
 		foreach( $aUpdatePlugins as $nKey => $sPlugin ) {
 			if ( !array_key_exists( $sPlugin, $aPlugins ) ) {

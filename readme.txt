@@ -3,8 +3,8 @@ Contributors: paultgoodchild, dlgoodchild
 Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, worpit, icontrolwp, automatic updates
 Requires at least: 3.2.0
-Tested up to: 3.8
-Stable tag: 2.7.6
+Tested up to: 3.9
+Stable tag: 2.7.7
 
 == Description ==
 
@@ -13,7 +13,7 @@ manage all your WordPress websites.
 
 We're serious about helping you, so we neither charge you with silly pricing tiers like "Pro" and "Business", and we're certainly not free.
 
-*Our Mission - Fewer WordPress Plugin; More Free Time*
+*Our Mission - Fewer WordPress Plugins; More Free Time*
 
 With iControlWP you need fewer WordPress plugins on your sites because you can centrally manage much more from within your
 control panel. For example:
@@ -32,7 +32,7 @@ With iControlWP you can:
 *   Very finely tune WordPress Automatic Updates for every plugin on every site.
 *   Manage CloudFlare settings using our unique CloudFlare integration.
 *   Insert Google Analytics Tracking code.
-*	[Clean up WordPress]http://www.icontrolwp.com/2012/07/optimize-clean-up-wordpress-worpit/?src=wpt_readme)
+*	[Clean up WordPress](http://www.icontrolwp.com/2012/07/optimize-clean-up-wordpress-worpit/?src=wpt_readme)
 and [Optimize WordPress databases](http://www.icontrolwp.com/2012/07/how-to-optimize-wordpress-databases-with-worpit/?src=wpt_readme)
 *	Manage WordPress Security setting across all your sites.
 *	Install new WordPress websites automatically, anywhere you have cPanel web hosting
@@ -115,9 +115,9 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
-= 2.7.6 =
+= 2.7.7 =
 
-* FIX:      for google analytics js code.
+* FIX:      for cron error code and google analytics js code
 
 = 2.7.5 =
 
