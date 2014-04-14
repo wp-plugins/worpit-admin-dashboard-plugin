@@ -117,6 +117,7 @@ class ICWP_AutoUpdates extends ICWP_System_Base {
 		$aMinimumDefaults = array(
 			'enable_autoupdate_disable_all'			=> false,
 			'autoupdate_core'						=> 'core_minor',
+			'autoupdate_plugin_self'				=> true,
 			'enable_autoupdate_plugins'				=> false,
 			'enable_autoupdate_themes'				=> false,
 			'enable_autoupdate_translations'		=> false,

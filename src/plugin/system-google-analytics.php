@@ -79,13 +79,11 @@ class ICWP_GoogleAnalytics extends ICWP_System_Base {
 	 * @return void
 	 */
 	protected function validateOptions() {
+		parent::validateOptions();
 		$aMinimumDefaults = array(
-			'enabled'						=> false,
 			'do_insert_google_analytics'	=> false,
 			'tracking_id'					=> '',
-			'in_footer'						=> false,
-			'ignore_logged_in_user'			=> false,
-			'ignore_from_user_level'		=> 11, //max is 10 so by default ignore no-one
+			'in_footer'						=> false
 		);
 		$this->aOptions = array_merge( $aMinimumDefaults, $this->aOptions );
 	}

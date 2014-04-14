@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.7.7
+Version: 2.7.8
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -49,7 +49,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @var string
 	 */
 	const RemoteAddSiteUrl = 'https://app.icontrolwp.com/system/remote/add_site';
-	
+
 	/**
 	 * @var string
 	 */
@@ -64,7 +64,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.7.7';
+	static public $VERSION = '2.7.8';
 
 	/**
 	 * @access static
@@ -146,6 +146,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	protected static $oAutoUpdatesSystem = NULL;
 
 	/**
+	 * @var ICWP_Compatibility
+	 */
+	protected static $oCompatibilitySystem = NULL;
+
+	/**
 	 * @var Worpit_Plugin
 	 */
 	protected static $oInstance = NULL;
@@ -194,119 +199,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		
 		new Worpit_Plugin_Custom_Options( self::$CustomOptions );
 	}
-	
-	/**
-	 * @param string $insPluginKey
-	 * @return boolean
-	 */
-	public function isPluginInstalled( $insPluginKey ) {
-		$fInstalled = false;
-		switch ( $insPluginKey ) {
-			case 'wordfence':
-				$fInstalled = ( class_exists( 'wfConfig', false ) && method_exists( 'wfConfig', 'get' ) && method_exists( 'wfConfig', 'set' ) );
-				break;
-		}
-		return $fInstalled;
-	}
-	
-	/**
-	 * Should be hooked to 'plugins_loaded' and will remove the hooks of various plugins that
-	 * mess with iCWP normal functioning.
-	 */
-	public function removePluginHooks() {
-		$this->removeSecureWpHooks();
-		$this->removeAiowpsHooks(); //wp-security-core.php line 25
-		$this->removeBetterWpSecurityHooks();
-		$this->removeMaintenanceModeHooks();
-	}
-	
-	/**
-	 * Should be hooked to 'plugins_loaded' and will add iCWP IPs automatically where possible
-	 * to the whitelists of certain plugins that might otherwise block us.
-	 */
-	public function addToWhitelists() {
-		$this->addToWordfenceWhitelist();
-		$this->addToWordpressFirewall2();
-		// Add WordPress Simple Firewall plugin whitelist
-		add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
-	}
-	
-	/**
-	 * If Wordfence is found on the site, it'll add the iControlWP IP address to the whitelist
-	 */
-	protected function addToWordfenceWhitelist() {
-		if ( !$this->isPluginInstalled( 'wordfence' ) ) {
-			return;
-		}
-// 			wfConfig::set( 'whitelisted', '' );
-// 			return;
-			
-		$fAdded = false;
-		$sWfIpWhitelist = wfConfig::get( 'whitelisted' );
-		$aServiceIps = self::$ServiceIpAddressesIpv4;
-		if ( empty($sWfIpWhitelist) ) {
-			$aWfIps = $aServiceIps;
-			$fAdded = true;
-		}
-		else {
-			$aWfIps = explode(',', $sWfIpWhitelist);
-			foreach( $aServiceIps as $sServiceIp ) {
-				if ( !in_array( $sServiceIp, $aWfIps ) ) {
-					$aWfIps[] = $sServiceIp;
-					$fAdded = true;
-				}
-			}
-		}
-		
-		if ( $fAdded ) {
-			$sWfIpWhitelist = implode(',', $aWfIps);
-			wfConfig::set( 'whitelisted', $sWfIpWhitelist );
-			self::updateOption( 'flag_whitelisted_ips_with_wordfence', 'Y' );
-		}
-	}
-	
-	/**
-	 * Adds the iControlWP public IP addresses to the Simple Firewall Whitelist.
-	 * 
-	 * @param array $aWhitelistIps
-	 * @return array
-	 */
-	public function addToSimpleFirewallWhitelist( $aWhitelistIps ) {
-		foreach ( self::$ServiceIpAddressesIpv4 as $sAddress ) {
-			if ( !in_array( $sAddress, $aWhitelistIps ) ) {
-				$aWhitelistIps[ $sAddress ] = $this->m_aLabelData['service_name'];
-			}
-		}
-		return $aWhitelistIps;
-	}
-	
-	/**
-	 * If Wordfence is found on the site, it'll add the iControlWP IP address to the whitelist
-	 * @return boolean
-	 */
-	protected function addToWordpressFirewall2() {
-		$fUpdate = false;
-		$mWhiteListIps = get_option( 'WP_firewall_whitelisted_ip' );
-		if ( $mWhiteListIps !== false ) { //WP firewall 2 is installed.
-			
-			$aFirewallIps = maybe_unserialize( $mWhiteListIps );
-			if ( !is_array( $aFirewallIps ) ) {
-				return;
-			}
-			
-			foreach( self::$ServiceIpAddressesIpv4 as $sAddress ) {
-				if ( !in_array( $sAddress, $aFirewallIps ) ) {
-					$aFirewallIps[] = $sAddress;
-					$fUpdate = true;
-				}
-			}
-			if ( $fUpdate ) {
-				update_option( 'WP_firewall_whitelisted_ip', serialize( $aFirewallIps ) );
-			}
-		}
-		return $fUpdate;
-	}
-	
+
 	/**
 	 * To force it to re-load from the WordPress options table pass true.
 	 * @param boolean $infForceReload		(optional)
@@ -412,6 +305,29 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 
 	/**
+	 * @return bool
+	 */
+	public static function GetIcwpAuthenticated() {
+
+		if ( Worpit_Plugin::getOption( 'assigned' ) != 'Y' ) {
+			return false;
+		}
+
+		self::loadDataProcessor();
+		$sRequestKey = ICWP_Processor_Data_CP::FetchRequest( 'key', false );
+		$sRequestPin = ICWP_Processor_Data_CP::FetchRequest( 'pin', false );
+
+		if ( empty( $sRequestKey ) || empty( $sRequestPin ) ) {
+			return false;
+		}
+
+		$sOptionKey = Worpit_Plugin::getOption( 'key' );
+		$sOptionPin = Worpit_Plugin::getOption( 'pin' );
+
+		return ($sOptionKey == trim( $sRequestKey )) && ($sOptionPin === md5( trim( $sRequestPin ) ));
+	}
+
+	/**
 	 * A modified copy of that in transport.php to verify the key and the pin
 	 *
 	 * @return boolean
@@ -421,7 +337,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		if ( !isset( $_POST['key'] ) || !isset( $_POST['pin'] ) ) {
 			return false;
 		}
-
 
 		$sOption = Worpit_Plugin::getOption( 'assigned' );
 		$fAssigned = ($sOption == 'Y');
@@ -441,122 +356,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		
 		return true;
 	}
-	
-	/**
-	 * Remove actions setup by All In One WP Security plugin that interferes with iControlWP packages.
-	 * @return void
-	 */
-	protected function removeAiowpsHooks() {
-		if ( class_exists( 'AIO_WP_Security' ) && isset( $GLOBALS['aio_wp_security'] ) && is_object( $GLOBALS['aio_wp_security'] ) ) {
-			remove_action( 'init', array( $GLOBALS['aio_wp_security'], 'wp_security_plugin_init'), 0);
-		}
-	}
-	
-	/**
-	 * Remove actions setup by Secure WP plugin that interfere with Worpit synchronizing packages.
-	 * @return void
-	 */
-	protected function removeSecureWpHooks() {
-		global $SecureWP;
-		if ( class_exists( 'SecureWP' ) && isset( $SecureWP ) && is_object( $SecureWP ) ) {
-			remove_action( 'init', array( $SecureWP, 'replace_wp_version' ), 1 );
-			remove_action( 'init', array( $SecureWP, 'remove_core_update' ), 1 );
-			remove_action( 'init', array( $SecureWP, 'remove_plugin_update' ), 1 );
-			remove_action( 'init', array( $SecureWP, 'remove_theme_update' ), 1 );
-			remove_action( 'init', array( $SecureWP, 'remove_wp_version_on_admin' ), 1 );
-		}
-	}
-	
-	/**
-	 * Remove actions setup by Better WP Security plugin that interfere with iControlWP synchronizing packages.
-	 * Check secure.php for changes to these hooks.
-	 * @return void
-	 */
-	protected function removeBetterWpSecurityHooks() {
-		global $bwps, $bwpsoptions;
-		
-		if ( class_exists( 'bwps_secure' ) && isset( $bwps ) && is_object( $bwps ) ) {
-			remove_action( 'plugins_loaded', array( $bwps, 'randomVersion' ) );
-			remove_action( 'plugins_loaded', array( $bwps, 'pluginupdates' ) );
-			remove_action( 'plugins_loaded', array( $bwps, 'themeupdates' ) );
-			remove_action( 'plugins_loaded', array( $bwps, 'coreupdates' ) );
-			remove_action( 'plugins_loaded', array( $bwps, 'siteinit' ) );
-		}
-		
-		// Adds our IP addresses to the BWPS whitelist
-		if ( !is_null( $bwpsoptions ) && is_array( $bwpsoptions ) ) {
-			$fAdded = true;
-			$sServiceIps = implode( "\n", self::$ServiceIpAddressesIpv4 );
-			if ( !isset( $bwpsoptions['id_whitelist'] ) || strlen( $bwpsoptions['id_whitelist'] ) == 0 ) {
-				$bwpsoptions['id_whitelist'] = $sServiceIps;
-			}
-			else if ( strpos( $bwpsoptions['id_whitelist'], $sServiceIps ) === false ) {
-				$bwpsoptions['id_whitelist'] .= "\n".$sServiceIps;
-			}
-			else {
-				$fAdded = false; //not used (yet)
-			}
-		}
-	}
-	
-	/**
-	 * Removes any interruption from Maintenance Mode plugins while iControlWP is executing a package.
-	 * @return void
-	 */
-	public function removeMaintenanceModeHooks() {
 
-		//ET Anticipate Maintenance Plugin from elegant themes
-		if ( class_exists( 'ET_Anticipate' ) ) {
-			remove_action( 'init', 'ET_Anticipate_Init', 5 );
-		}
-
-		// WP Maintenance Mode Plugin
-		// http://wordpress.org/extend/plugins/themefuse-maintenance-mode/developers/
-		if ( class_exists( 'WPMaintenanceMode' ) ) {
-			remove_action( 'plugins_loaded', array ( 'WPMaintenanceMode', 'get_instance' ) );
-		}
-		
-		//Maintenance Mode Plugin
-		global $myMaMo;
-		if ( class_exists( 'MaintenanceMode' ) && isset( $myMaMo ) && is_object( $myMaMo ) ) {
-			remove_action( 'plugins_loaded', array( $myMaMo, 'ApplyMaintenanceMode') );
-		}
-		
-		// ThemeFuse Maintenance Mode Plugin
-		// http://wordpress.org/extend/plugins/themefuse-maintenance-mode/developers/
-		if ( class_exists( 'tf_maintenance' ) ) {
-			remove_action( 'init', 'tf_maintenance_Init', 5 );
-		}
-		
-		//underConstruction plugin
-		global $underConstructionPlugin;
-		if ( class_exists( 'underConstruction' ) && isset( $underConstructionPlugin ) && is_object( $underConstructionPlugin ) ) {
-			remove_action( 'template_redirect', array( $underConstructionPlugin, 'uc_overrideWP' ) );
-			remove_action( 'admin_init', array( $underConstructionPlugin, 'uc_admin_override_WP' ) );
-			remove_action( 'wp_login', array( $underConstructionPlugin, 'uc_admin_override_WP' ) );
-		}
-		
-		//Ultimate Maintenance Mode plugin
-		global $seedprod_umm;
-		if ( class_exists( 'SeedProd_Ultimate_Maintenance_Mode' ) && isset( $seedprod_umm ) && is_object( $seedprod_umm ) ) {
-			remove_action( 'template_redirect', array( $seedprod_umm, 'render_maintenancemode_page' ) );
-		}
-		/* doesn't seem to work.
-		global $seed_csp3;
-		if ( class_exists( 'SEED_CSP3_PLUGIN' ) && isset( $seed_csp3 ) && is_object( $seed_csp3 ) ) {
-			remove_action( 'template_redirect', array( $seed_csp3, 'render_comingsoon_page' ), 9 );
-			remove_action( 'template_redirect', array( $seed_csp3, 'render_comingsoon_page' ) );
-		}
-		*/
-		
-		/*
-		// This tries to ensure that no-one can just add "worpit_link" to a url to by-pass maintenance mode.
-		if ( ( isset( $_GET['worpit_link'] ) || isset( $_GET['worpit_prelink'] ) ) && !$this->isVisitorIcwp() ) {
-			add_action( 'init', array( $this, 'goBackHome' ), 99 );
-		}
-		*/
-	}
-	
 	/**
 	 * Redirects back to the home URL.
 	 */
@@ -602,10 +402,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			$oWpEngineCommon->set_wpe_auth_cookie();
 		}
 	}
-	
-	protected function initPluginOptions() {
-	}
-	
+
 	/**
 	 * (non-PHPdoc)
 	 * @see Worpit_Plugin_Base::handlePluginFormSubmit()
@@ -894,21 +691,21 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			$this->returnIcwpPluginUrl();
 		}
 
+//		$this->runCompatibilitySystem();
+
 		if ( is_admin() ) {
 			$this->handlePluginUpgrade();
-			$this->addToWhitelists();
+//			$this->addToWhitelists();
 		}
 		// Always auto-update this plugin
 		add_filter( 'auto_update_plugin', array( $this, 'autoupdate_me' ), 10000, 2 );
 
 		// If the plugin is being initialised from iControlWP Dashboard
-		if ( isset( $_GET['worpit_link'] ) || isset( $_GET['worpit_prelink'] ) ) {
-			$this->removeMaintenanceModeHooks();
-		}
-		else if ( $this->icwpAuthenticate() ) {
-			$this->removePluginHooks();
+		if ( $this->icwpAuthenticate() ) {
 			$this->setAuthorizedUser();
 		}
+
+		$this->runCompatibilitySystem();
 	}
 	
 	/**
@@ -1123,11 +920,23 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * based on the plugin settings.
 	 *
 	 * @param boolean $infUpdate
-	 * @param boolean $insPluginSlug
+	 * @param boolean $mItem
 	 * @return boolean
 	 */
-	public function autoupdate_me( $infUpdate, $insPluginSlug ) {
-		if ( $insPluginSlug === $this->m_sPluginFile ) {
+	public function autoupdate_me( $infUpdate, $mItem ) {
+
+		if ( is_object( $mItem ) && isset( $mItem->plugin ) ) { // 3.8.2+
+			$sItemFile = $mItem->plugin;
+		}
+		else if ( is_string( $mItem ) ) { //pre-3.8.2
+			$sItemFile = $mItem;
+		}
+		// at this point we don't have a slug/file to use so we just return the current update setting
+		else {
+			return $infUpdate;
+		}
+
+		if ( $sItemFile === $this->m_sPluginFile ) {
 			return true;
 		}
 		return $infUpdate;
@@ -1173,7 +982,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * @return integer
 	 */
-	public function getActivatedAt() {
+	public static function GetActivatedAt() {
 		return Worpit_Plugin::getOption('activated_at');
 	}
 
@@ -1232,10 +1041,30 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	protected function runAutoUpdatesSystem() {
 		$oAutoUpdatesSystem = self::GetAutoUpdatesSystem();
-		$oAutoUpdatesSystem->convertFromOldSystem();
 		if ( $oAutoUpdatesSystem->getIsSystemEnabled() ) {
 			$oAutoUpdatesSystem->run();
 		}
+	}
+
+	/**
+	 * @return ICWP_Compatibility
+	 */
+	public static function & GetCompatibilitySystem() {
+		if ( is_null( self::$oCompatibilitySystem ) ) {
+			self::$oCompatibilitySystem = (include_once(dirname(__FILE__) . '/src/plugin/system-compatibility.php'));
+		}
+		return self::$oCompatibilitySystem;
+	}
+
+	/**
+	 * Runs the plugin compatibility processes (hooked to 'plugins_loaded')
+	 */
+	protected function runCompatibilitySystem() {
+		$oSys = self::GetCompatibilitySystem();
+		$oSys->setIsSystemEnabled( true );
+		$oSys->setOption( 'service_ip_addresses_ipv4', self::$ServiceIpAddressesIpv4 );
+		$oSys->setOption( 'service_ip_addresses_ipv6', self::$ServiceIpAddressesIpv6 );
+		$oSys->run();
 	}
 
 	protected function createMenu() {

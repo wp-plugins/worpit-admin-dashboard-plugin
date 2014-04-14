@@ -171,24 +171,37 @@ class ICWP_Processor_AutoUpdates_CP extends ICWP_Processor_Base_CP {
 	 * based on the plugin settings.
 	 * 
 	 * @param boolean $infUpdate
-	 * @param boolean $insPluginSlug
+	 * @param boolean $mItem
 	 * @return boolean
 	 */
-	public function autoupdate_plugins( $infUpdate, $insPluginSlug ) {
-
-		if ( $insPluginSlug === $this->sPluginFile ) {
-			return $this->getOption( 'autoupdate_plugin_self' );
-		}
+	public function autoupdate_plugins( $infUpdate, $mItem ) {
 
 		if ( $this->getOption( 'enable_autoupdate_plugins' ) ) {
 			return true;
 		}
 
+		if ( is_object( $mItem ) && isset( $mItem->plugin ) ) { // 3.8.2+
+			$sItemFile = $mItem->plugin;
+		}
+		else if ( is_string( $mItem ) ) { //pre-3.8.2
+			$sItemFile = $mItem;
+		}
+		// at this point we don't have a slug/file to use so we just return the current update setting
+		else {
+			return $infUpdate;
+		}
+
+		if ( $sItemFile === $this->sPluginFile && $this->getOption( 'autoupdate_plugin_self' ) ) {
+			return true;
+		}
+
 		$aAutoUpdateFiles = $this->getOption('auto_update_plugins');
-		if ( !empty( $aAutoUpdateFiles ) && is_array($aAutoUpdateFiles) ) {
-			if ( in_array( $insPluginSlug, $aAutoUpdateFiles ) ) {
-				return true;
-			}
+
+		if ( !empty( $aAutoUpdateFiles )
+			&& is_array($aAutoUpdateFiles)
+			&& in_array( $sItemFile, $aAutoUpdateFiles ) ) {
+
+			return true;
 		}
 
 		return $infUpdate;
@@ -199,22 +212,35 @@ class ICWP_Processor_AutoUpdates_CP extends ICWP_Processor_Base_CP {
 	 * based on the plugin settings.
 	 *
 	 * @param boolean $infUpdate
-	 * @param string $insThemeSlug
+	 * @param string $mItem
 	 * @return boolean
 	 */
-	public function autoupdate_themes( $infUpdate, $insThemeSlug ) {
+	public function autoupdate_themes( $infUpdate, $mItem ) {
 
 		if ( $this->getOption( 'enable_autoupdate_themes' ) ) {
 			return true;
 		}
 
-		$aAutoUpdateFiles = $this->getOption('auto_update_themes');
-		if ( !empty( $aAutoUpdateFiles ) && is_array($aAutoUpdateFiles) ) {
-			if ( in_array( $insThemeSlug, $aAutoUpdateFiles ) ) {
-				return true;
-			}
+		if ( is_object( $mItem ) && isset( $mItem->theme ) ) { // 3.8.2+
+			$sItemFile = $mItem->theme;
 		}
-		
+		else if ( is_string( $mItem ) ) { //pre-3.8.2
+			$sItemFile = $mItem;
+		}
+		// at this point we don't have a slug to use so we just return the current update setting
+		else {
+			return $infUpdate;
+		}
+
+		$aAutoUpdateFiles = $this->getOption('auto_update_themes');
+
+		if ( !empty( $aAutoUpdateFiles )
+			&& is_array($aAutoUpdateFiles)
+			&& in_array( $sItemFile, $aAutoUpdateFiles ) ) {
+
+			return true;
+		}
+
 		return $infUpdate;
 	}
 	

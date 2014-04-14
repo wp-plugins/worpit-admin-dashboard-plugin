@@ -115,6 +115,10 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= 2.7.8 =
+
+* FIX:      WordPress 3.8.2 breaks automatic updates code. This update addresses that change.
+
 = 2.7.7 =
 
 * FIX:      for cron error code and google analytics js code
