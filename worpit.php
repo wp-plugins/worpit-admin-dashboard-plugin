@@ -991,7 +991,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	public static function & GetStatsSystem() {
 		if ( is_null( self::$oStatsSystem ) ) {
-			self::$oStatsSystem = ( include_once( dirname(__FILE__).'/src/plugin/stats.php' ) );
+			self::$oStatsSystem = ( include_once( dirname(__FILE__).'/src/plugin/system-stats.php' ) );
 		}
 		return self::$oStatsSystem;
 	}
