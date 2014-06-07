@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.7.8
+Version: 2.7.9
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -64,7 +64,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.7.8';
+	static public $VERSION = '2.7.9';
 
 	/**
 	 * @access static
@@ -301,60 +301,78 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return void
 	 */
 	public function returnIcwpPluginUrl() {
-		die( '<worpitresponse>'. plugins_url( '/', __FILE__ ) .'</worpitresponse>' );
+		die( '<worpitresponse>'. $this->getIcwpPluginUrl() .'</worpitresponse>' );
 	}
 
 	/**
-	 * @return bool
+	 * @return string
 	 */
-	public static function GetIcwpAuthenticated() {
+	public function getIcwpPluginUrl() {
+		return plugins_url( '/', __FILE__ );
+	}
 
-		if ( Worpit_Plugin::getOption( 'assigned' ) != 'Y' ) {
+	/**
+	 * same as icwpAuthenticate
+	 *
+	 * @param $fCheckIps
+	 * @return boolean
+	 */
+	public static function GetIcwpAuthenticated( $fCheckIps = false ) {
+
+		// We shouldn't be recognised as authenticated unless we're at least assigned
+		if ( self::getOption( 'assigned' ) != 'Y' ) {
 			return false;
 		}
+
+		$sAuthKey = self::getOption( 'key' );
 
 		self::loadDataProcessor();
-		$sRequestKey = ICWP_Processor_Data_CP::FetchRequest( 'key', false );
-		$sRequestPin = ICWP_Processor_Data_CP::FetchRequest( 'pin', false );
+		// This relies on the fact that if handshaking is enabled, we also pre-check (handshake) package requests.
+		$sGetIcwpKey = ICWP_Processor_Data_CP::FetchGet( 'icwp_key' );
+		if ( !empty( $sGetIcwpKey ) && ($sGetIcwpKey == $sAuthKey) && self::GetIsHandshakeEnabled() ) {
+			return true;
+		}
 
-		if ( empty( $sRequestKey ) || empty( $sRequestPin ) ) {
+		// Otherwise we use the old-style Key + PIN Auth sent in the POST
+		$sPostKey = ICWP_Processor_Data_CP::FetchPost( 'key' );
+		$sPostPin = ICWP_Processor_Data_CP::FetchPost( 'pin' );
+		if ( empty( $sPostKey ) || empty( $sPostPin ) ) {
 			return false;
 		}
 
-		$sOptionKey = Worpit_Plugin::getOption( 'key' );
-		$sOptionPin = Worpit_Plugin::getOption( 'pin' );
+		if ( $sAuthKey != trim( $sPostKey ) ) {
+			return false;
+		}
 
-		return ($sOptionKey == trim( $sRequestKey )) && ($sOptionPin === md5( trim( $sRequestPin ) ));
+		$sPin = self::getOption( 'pin' );
+		if ( $sPin !== md5( trim( $sPostPin ) ) ) {
+			return false;
+		}
+
+		if ( $fCheckIps ) {
+			return self::GetIsVisitorIcwp();
+		}
+
+		return true;
 	}
 
 	/**
 	 * A modified copy of that in transport.php to verify the key and the pin
 	 *
+	 * @param $fCheckIps
 	 * @return boolean
 	 */
-	public function icwpAuthenticate() {
-		
-		if ( !isset( $_POST['key'] ) || !isset( $_POST['pin'] ) ) {
-			return false;
-		}
+	public function icwpAuthenticate( $fCheckIps = false ) {
+		return self::GetIcwpAuthenticated( $fCheckIps );
+	}
 
-		$sOption = Worpit_Plugin::getOption( 'assigned' );
-		$fAssigned = ($sOption == 'Y');
-		if ( !$fAssigned ) {
-			return false;
-		}
-
-		$sKey = Worpit_Plugin::getOption( 'key' );
-		if ( $sKey != trim( $_POST['key'] ) ) {
-			return false;
-		}
-
-		$sPin = Worpit_Plugin::getOption( 'pin' );
-		if ( $sPin !== md5( trim( $_POST['pin'] ) ) ) {
-			return false;
-		}
-		
-		return true;
+	/**
+	 * @return bool
+	 */
+	public static function GetIsVisitorIcwp() {
+		self::loadDataProcessor();
+		$sIp = ICWP_Processor_Data_CP::GetVisitorIpAddress( false );
+		return in_array( $sIp, self::$ServiceIpAddressesIpv4 ) || in_array( $sIp, self::$ServiceIpAddressesIpv6 );
 	}
 
 	/**
@@ -368,6 +386,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return void
 	 */
 	public function setAuthorizedUser() {
+		// moved this to here to ensure it can't get called from elsewhere
+		if ( !$this->icwpAuthenticate( true ) ) {
+			return;
+		}
+
 		$nId = 1;
 		if ( isset( $_POST['wpadmin_user'] ) ) {
 			$oUser = function_exists( 'get_user_by' )? get_user_by( 'login', $_POST['wpadmin_user'] ): get_userdatabylogin( $_POST['wpadmin_user'] );
@@ -396,8 +419,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			wp_set_current_user( $nId );
 			wp_set_auth_cookie( $nId );
 		}
+	}
 
+	public function doWpe() {
 		if ( @getenv( 'IS_WPE' ) == '1' && class_exists( 'WpeCommon', false ) ) {
+			$this->setAuthorizedUser();
 			$oWpEngineCommon = WpeCommon::instance();
 			$oWpEngineCommon->set_wpe_auth_cookie();
 		}
@@ -425,10 +451,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		//Clicked the button to enable/disable hand-shaking
 		if ( $this->fetchPost( 'icwp_admin_form_submit_handshake' ) ) {
 			if ( $this->fetchPost( 'icwp_admin_handshake_enabled' ) ) {
-				Worpit_Plugin::updateOption( 'handshake_enabled', 'Y' );
+				$this->setHandshakeEnabled( true );
 			}
 			else {
-				Worpit_Plugin::updateOption( 'handshake_enabled', 'N' );
+				$this->setHandshakeEnabled( false );
 			}
 			header( "Location: admin.php?page=".self::$ParentMenuId );
 			return;
@@ -538,18 +564,18 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			switch ( $sPage ) {
 				case parent::$ParentMenuId :
 					if ( $this->fetchPost('icwp_admin_form_submit_resetplugin') ) {
-						$sTo = Worpit_Plugin::getOption( 'assigned_to' );
-						$sKey = Worpit_Plugin::getOption( 'key' );
-						$sPin = Worpit_Plugin::getOption( 'pin' );
+						$sTo = self::getOption( 'assigned_to' );
+						$sKey = self::getOption( 'key' );
+						$sPin = self::getOption( 'pin' );
 
 						if ( !empty( $sTo ) && !empty( $sKey ) && !empty( $sPin ) ) {
 							$aParts = array( urlencode( $sTo ), $sKey, $sPin );
 							$sContents = @file_get_contents( self::DashboardUrlBase.'system/verification/reset/'.implode( '/', $aParts ) );
 						}
 
-						$aOptions = Worpit_Plugin::GetPluginDefaultOptions();
+						$aOptions = self::GetPluginDefaultOptions();
 						foreach( $aOptions as $sKey => $mValue ) {
-							Worpit_Plugin::updateOption( $sKey, $mValue );
+							self::updateOption( $sKey, $mValue );
 						}
 					}
 				break;
@@ -686,28 +712,77 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	public function onWpPluginsLoaded() {
 		parent::onWpPluginsLoaded();
 
-		if ( ( isset( $_POST['getworpitpluginurl'] ) && $_POST['getworpitpluginurl'] == 1 )
-			|| ( isset( $_GET['getworpitpluginurl'] ) && $_GET['getworpitpluginurl'] == 1 ) ) {
-			$this->returnIcwpPluginUrl();
-		}
-
-//		$this->runCompatibilitySystem();
+		$this->doSetPluginStates();
+		$this->doGetPluginStates();
 
 		if ( is_admin() ) {
 			$this->handlePluginUpgrade();
-//			$this->addToWhitelists();
 		}
 		// Always auto-update this plugin
 		add_filter( 'auto_update_plugin', array( $this, 'autoupdate_me' ), 10000, 2 );
 
 		// If the plugin is being initialised from iControlWP Dashboard
-		if ( $this->icwpAuthenticate() ) {
-			$this->setAuthorizedUser();
-		}
+//			$this->setAuthorizedUser();
+		$this->doWpe();
 
 		$this->runCompatibilitySystem();
 	}
-	
+
+	/**
+	 * @param $fOverride
+	 */
+	protected function doGetPluginStates( $fOverride = false ) {
+		self::loadDataProcessor();
+
+		if ( ( ICWP_Processor_Data_CP::FetchRequest('getworpitpluginurl') == 1 ) ) {
+			$this->returnIcwpPluginUrl();
+		}
+
+		if ( $fOverride || ICWP_Processor_Data_CP::FetchGet('geticwpstate') ) {
+			$aStates = array(
+				'can_handshake'			=> self::getOption( 'can_handshake' ),
+				'handshake_enabled'		=> self::getOption( 'handshake_enabled' ),
+				'plugin_url'			=> $this->getIcwpPluginUrl()
+			);
+			$sResponse = '<icwpresponse>'.serialize( $aStates ).'</icwpresponse>';
+			die( $sResponse );
+		}
+	}
+
+	/**
+	 */
+	protected function doSetPluginStates() {
+
+		if ( !empty( $_GET['seticwpstate'] ) && self::GetIsVisitorIcwp() ) {
+			if ( isset( $_GET['handshake_enabled'] )
+				&& self::getOption('handshake_enabled') != 'Y'
+			) {
+				$this->setHandshakeEnabled( true );
+			}
+			$this->doGetPluginStates(true);
+		}
+	}
+
+	/**
+	 * @return bool
+	 */
+	public static function GetIsHandshakeEnabled() {
+		return self::getOption( 'can_handshake' ) == 'Y' && self::getOption( 'handshake_enabled' ) == 'Y';
+	}
+
+	/**
+	 * @param bool $fSetEnabled
+	 */
+	protected function setHandshakeEnabled( $fSetEnabled = true ) {
+		require_once( dirname(__FILE__).'/src/loader.php' );
+		$sCanHandshake = worpitCheckCanHandshake();
+		if ( $fSetEnabled && !$sCanHandshake ) {//only set enabled if it's possible
+			return;
+		}
+		self::updateOption( 'can_handshake', $sCanHandshake? 'Y':'N' );
+		self::updateOption( 'handshake_enabled', $fSetEnabled? 'Y':'N' );
+	}
+
 	/**
 	 * (non-PHPdoc)
 	 * @see Worpit_Plugin_Base::onWpAdminMenu()
@@ -739,14 +814,14 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		$aData = array(
 			'plugin_url'		=> self::$PluginUrl,
 			'label_data'		=> $this->m_aLabelData,
-			'key'				=> Worpit_Plugin::getOption( 'key' ),
-			'pin'				=> Worpit_Plugin::getOption( 'pin' ),
-			'assigned'			=> Worpit_Plugin::getOption( 'assigned' ),
-			'assigned_to'		=> Worpit_Plugin::getOption( 'assigned_to' ),
+			'key'				=> self::getOption( 'key' ),
+			'pin'				=> self::getOption( 'pin' ),
+			'assigned'			=> self::getOption( 'assigned' ),
+			'assigned_to'		=> self::getOption( 'assigned_to' ),
 			'is_linked'			=> self::IsLinked(),
 
-			'can_handshake'		=> Worpit_Plugin::getOption( 'can_handshake' ),
-			'handshake_enabled'	=> Worpit_Plugin::getOption( 'handshake_enabled' ),
+			'can_handshake'		=> self::getOption( 'can_handshake' ),
+			'handshake_enabled'	=> self::getOption( 'handshake_enabled' ),
 			'debug_file_url'	=> empty( $sDebugFile )? false: self::$PluginUrl.$sDebugFile,
 			
 			'nonce_field'		=> self::$ParentMenuId,
@@ -773,12 +848,12 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		
 		$aData = array(
 			'plugin_url'		=> self::$PluginUrl,
-			'assigned'			=> Worpit_Plugin::getOption( 'assigned' ),
-			'assigned_to'		=> Worpit_Plugin::getOption( 'assigned_to' ),
+			'assigned'			=> self::getOption( 'assigned' ),
+			'assigned_to'		=> self::getOption( 'assigned_to' ),
 			'aAllOptions'		=> $aAvailableOptions,
 
-			'can_handshake'		=> Worpit_Plugin::getOption( 'can_handshake' ),
-			'handshake_enabled'	=> Worpit_Plugin::getOption( 'handshake_enabled' ),
+			'can_handshake'		=> self::getOption( 'can_handshake' ),
+			'handshake_enabled'	=> self::getOption( 'handshake_enabled' ),
 			'image_url'			=> $this->getImageUrl( '' )
 		);
 		$this->display( 'icwp_view_settings', $aData );
@@ -892,19 +967,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 
 	/**
-	 * @return bool
-	 */
-	public function isVisitorIcwp() {
-		$sIp = $this->getVisitorIpAddress( false );
-		return ( $sIp === false || in_array( $sIp, self::$ServiceIpAddressesIpv4 ) );
-	}
-
-	/**
 	 *
 	 */
 	public static function GetPluginDefaultOptions() {
 		return array(
-			'key'				=> Worpit_Plugin::Generate( 24, 7 ),
+			'key'				=> self::Generate( 24, 7 ),
 			'pin'				=> '',
 			'assigned'			=> 'N',
 			'assigned_to'		=> '',

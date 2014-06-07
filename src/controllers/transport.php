@@ -62,25 +62,28 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 		
 		if ( is_wp_error( $sTmpFile ) ) {
 			if ( !is_object( $sTmpFile ) && is_file( $sTmpFile ) ) {
-				@unlink( $sTmpFile );
+				@icwpFsDeleteFile( $sTmpFile );
 			}
 
 			$sUrl = WORPIT_RETRIEVE_URL.$_GET['package_id'].'/'.worpitGetOption( 'key' ).'/'.worpitGetOption( 'pin' );
 			$sTmpFile = download_url( $sUrl );
 			if ( is_wp_error( $sTmpFile ) ) {
 				if ( !is_object( $sTmpFile ) && is_file( $sTmpFile ) ) {
-					@unlink( $sTmpFile );
+					@icwpFsDeleteFile( $sTmpFile );
 				}
 				return $this->fail( sprintf( 'The package could not be downloaded from "%s": %s', $sUrl, is_object( $sTmpFile )? $sTmpFile->get_error_message(): '#not-an-object#' ) );
 			}
 		}
-		
-		include_once( $sTmpFile );
+
+		$sNewFile = dirname( __FILE__ ).WORPIT_DS.basename( $sTmpFile );
+		$sFileToInclude = icwpFsMoveFile( $sTmpFile, $sNewFile )? $sNewFile : $sTmpFile;
+
+		include_once( $sFileToInclude );
 		if ( !class_exists( 'Worpit_Package_Installer', false ) ) {
 			return $this->fail( 'Worpit_Package_Installer does not exist: '.$sTmpFile );
 		}
-		@unlink( $sTmpFile );
-		
+		@icwpFsDeleteFile( $sFileToInclude );
+
 		$oInstall = new Worpit_Package_Installer();
 		$aInstallerResponse = $oInstall->run();
 		

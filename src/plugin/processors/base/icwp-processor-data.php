@@ -349,60 +349,65 @@ class ICWP_Processor_Data_CP {
 	/**
 	 * @param string $insKey
 	 * @param boolean $infIncludeCookie
+	 * @param mixed $mDefault
 	 * @return mixed|null
 	 */
-	public static function FetchRequest( $insKey, $infIncludeCookie = true ) {
-		$mFetchVal = self::fetchPost( $insKey );
+	public static function FetchRequest( $insKey, $infIncludeCookie = true, $mDefault = null ) {
+		$mFetchVal = self::FetchPost( $insKey );
 		if ( is_null( $mFetchVal ) ) {
-			$mFetchVal = self::fetchGet( $insKey );
+			$mFetchVal = self::FetchGet( $insKey );
 			if ( is_null( $mFetchVal && $infIncludeCookie ) ) {
-				$mFetchVal = self::fetchCookie( $insKey );
+				$mFetchVal = self::FetchCookie( $insKey );
 			}
 		}
-		return $mFetchVal;
+		return is_null( $mFetchVal )? $mDefault : $mFetchVal;
 	}
 	/**
 	 * @param string $insKey
+	 * @param mixed $mDefault
 	 * @return mixed|null
 	 */
-	public static function FetchGet( $insKey ) {
+	public static function FetchGet( $insKey, $mDefault = null ) {
 		if ( function_exists( 'filter_input' ) && defined( 'INPUT_GET' ) ) {
 			return filter_input( INPUT_GET, $insKey );
 		}
-		return self::ArrayFetch( $_GET, $insKey );
+		return self::ArrayFetch( $_GET, $insKey, $mDefault );
 	}
 	/**
 	 * @param string $insKey		The $_POST key
+	 * @param mixed $mDefault
 	 * @return mixed|null
 	 */
-	public static function FetchPost( $insKey ) {
+	public static function FetchPost( $insKey, $mDefault = null ) {
 		if ( function_exists( 'filter_input' ) && defined( 'INPUT_POST' ) ) {
 			return filter_input( INPUT_POST, $insKey );
 		}
-		return self::ArrayFetch( $_POST, $insKey );
+		return self::ArrayFetch( $_POST, $insKey, $mDefault );
 	}
 	/**
 	 * @param string $insKey		The $_POST key
+	 * @param mixed $mDefault
 	 * @return mixed|null
 	 */
-	public static function FetchCookie( $insKey ) {
+	public static function FetchCookie( $insKey, $mDefault = null ) {
 		if ( function_exists( 'filter_input' ) && defined( 'INPUT_COOKIE' ) ) {
 			return filter_input( INPUT_COOKIE, $insKey );
 		}
-		return self::ArrayFetch( $_COOKIE, $insKey );
+		return self::ArrayFetch( $_COOKIE, $insKey, $mDefault );
 	}
 
 	/**
 	 * @param array $inaArray
 	 * @param string $insKey		The array key
+	 * @param mixed $mDefault
 	 * @return mixed|null
 	 */
-	public static function ArrayFetch( &$inaArray, $insKey ) {
+	public static function ArrayFetch( &$inaArray, $insKey, $mDefault = null ) {
 		if ( empty( $inaArray ) ) {
-			return null;
+			return $mDefault;
 		}
 		if ( !isset( $inaArray[$insKey] ) ) {
-			return null;
+			return $mDefault;
 		}
 		return $inaArray[$insKey];
 	}

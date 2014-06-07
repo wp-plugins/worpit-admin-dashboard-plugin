@@ -93,3 +93,51 @@ if ( !function_exists( 'worpitBackwardsRecursiveFileSearch' ) ) {
 		return file_get_contents( $sSearchDir.'/'.$insForFilename );
 	}
 }
+
+/**
+ * @param string $insDir
+ * @param string $outsOutput
+ * @return boolean
+ */
+if ( !function_exists( 'icwpFsDeleteFile' ) ) {
+	function icwpFsDeleteFile( $sFilePath ) {
+		$oFs = icwpFsUseWp();
+		if ( $oFs ) {
+			$fSuccess = $oFs->delete( $sFilePath );
+		}
+		else {
+			$fSuccess = @unlink( $sFilePath );
+		}
+		return $fSuccess;
+	}
+}
+
+/**
+ * @param string $insDir
+ * @param string $outsOutput
+ * @return boolean
+ */
+if ( !function_exists( 'icwpFsMoveFile' ) ) {
+	function icwpFsMoveFile( $sFilePathSource, $sFilePathDestination ) {
+		$oFs = icwpFsUseWp();
+		if ( $oFs ) {
+			$fSuccess = $oFs->move( $sFilePathSource, $sFilePathDestination );
+		}
+		else {
+			$fSuccess = function_exists('rename') && @rename( $sFilePathSource, $sFilePathDestination );
+		}
+		return $fSuccess;
+	}
+}
+
+/**
+ * @param string $insDir
+ * @param string $outsOutput
+ * @return boolean
+ */
+if ( !function_exists( 'icwpFsUseWp' ) ) {
+	function icwpFsUseWp() {
+		global $wp_filesystem;
+		return ( isset( $wp_filesystem ) && is_object( $wp_filesystem ) )? $wp_filesystem : false;
+	}
+}
