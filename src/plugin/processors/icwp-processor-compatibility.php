@@ -72,6 +72,7 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 	 */
 	public function setupWhitelists() {
 		$this->addToWordfence();
+		$this->addToBadBehaviour();
 		$this->addToWordpressFirewall2();
 		// Add WordPress Simple Firewall plugin whitelist
 		add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
@@ -105,6 +106,34 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 			wfConfig::set( 'whitelisted', $sWfIpWhitelist );
 		}
 	}
+
+	protected function addToBadBehaviour() {
+		$fInstalled = ( defined('BB2_VERSION') && defined('BB2_CORE') && function_exists('bb2_read_whitelist') );
+		if ( !$fInstalled ) {
+			return;
+		}
+
+		$fAdded = false;
+		$aServiceIps = $this->getOption( 'service_ip_addresses_ipv4' );
+		$sBbIpWhitelist = bb2_read_whitelist();
+		if ( empty( $sBbIpWhitelist['ip'] ) || !is_array( $sBbIpWhitelist['ip'] ) ) {
+			$sBbIpWhitelist['ip'] = $aServiceIps;
+			$fAdded = true;
+		}
+		else {
+			foreach( $aServiceIps as $sServiceIp ) {
+				if ( !in_array( $sServiceIp, $sBbIpWhitelist['ip'] ) ) {
+					$sBbIpWhitelist['ip'][] = $sServiceIp;
+					$fAdded = true;
+				}
+			}
+		}
+
+		if ( $fAdded ) {
+			update_option( 'bad_behavior_whitelist', $sBbIpWhitelist );
+		}
+	}
+
 	/**
 	 * If Wordfence is found on the site, it'll add the iControlWP IP address to the whitelist
 	 * @return boolean
