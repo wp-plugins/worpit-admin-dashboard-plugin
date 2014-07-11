@@ -140,10 +140,10 @@ class ICWP_Processor_Base_CP {
 	}
 
 	/**
-	 * @param array $inaOptions
+	 * @param array $aOptions
 	 */
-	public function setOptions( &$inaOptions ) {
-		$this->aOptions = $inaOptions;
+	public function setOptions( $aOptions ) {
+		$this->aOptions = $aOptions;
 	}
 
 	/**
