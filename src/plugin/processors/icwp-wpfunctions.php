@@ -22,11 +22,6 @@ if ( !class_exists('ICWP_WpFunctions_CP') ):
 	class ICWP_WpFunctions_CP {
 
 		/**
-		 * @var string
-		 */
-		protected $sWpVersion;
-
-		/**
 		 * @var ICWP_WpFunctions_CP
 		 */
 		protected static $oInstance = NULL;
@@ -34,13 +29,22 @@ if ( !class_exists('ICWP_WpFunctions_CP') ):
 		/**
 		 * @return ICWP_WpFunctions_CP
 		 */
-		public static function & GetInstance() {
+		public static function GetInstance() {
 			if ( is_null( self::$oInstance ) ) {
-				self::$oInstance = new ICWP_WpFunctions_CP();
+				self::$oInstance = new self();
 			}
 			return self::$oInstance;
 		}
 
+		/**
+		 * @var string
+		 */
+		protected $sWpVersion;
+
+		/**
+		 * @var boolean
+		 */
+		protected $fIsMultisite;
 
 		public function __construct() {}
 
@@ -90,6 +94,7 @@ if ( !class_exists('ICWP_WpFunctions_CP') ):
 			wp_redirect( $sUrl );
 			exit();
 		}
+
 		/**
 		 * @param string $insKey
 		 * @return object
@@ -98,7 +103,7 @@ if ( !class_exists('ICWP_WpFunctions_CP') ):
 
 			// TODO: Handle multisite
 
-			if ( version_compare( $this->getWordPressVersion(), '2.7.9', '<=' ) ) {
+			if ( version_compare( $this->getWordpressVersion(), '2.7.9', '<=' ) ) {
 				return get_option( $insKey );
 			}
 
@@ -106,7 +111,7 @@ if ( !class_exists('ICWP_WpFunctions_CP') ):
 				return get_site_transient( $insKey );
 			}
 
-			if ( version_compare( $this->getWordPressVersion(), '2.9.9', '<=' ) ) {
+			if ( version_compare( $this->getWordpressVersion(), '2.9.9', '<=' ) ) {
 				return apply_filters( 'transient_'.$insKey, get_option( '_transient_'.$insKey ) );
 			}
 
@@ -116,7 +121,9 @@ if ( !class_exists('ICWP_WpFunctions_CP') ):
 		/**
 		 * @return string
 		 */
-		public function getWordPressVersion() {
+		public function getWordpressVersion() {
+			global $wp_version;
+
 			if ( empty( $this->sWpVersion ) ) {
 				$sVersionFile = ABSPATH.WPINC.'/version.php';
 				$sVersionContents = file_get_contents( $sVersionFile );
@@ -124,12 +131,187 @@ if ( !class_exists('ICWP_WpFunctions_CP') ):
 				if ( preg_match( '/wp_version\s=\s\'([^(\'|")]+)\'/i', $sVersionContents, $aMatches ) ) {
 					$this->sWpVersion = $aMatches[1];
 				}
-				else {
-					global $wp_version;
-					$this->sWpVersion = $wp_version;
+			}
+			return empty( $this->sWpVersion )? $wp_version : $this->sWpVersion;
+		}
+
+		/**
+		 * @param array $aQueryParams
+		 */
+		public function redirectToLogin( $aQueryParams = array() ) {
+			$sLoginUrl = $this->getWpLoginUrl();
+			$this->doRedirect( $sLoginUrl, $aQueryParams );
+		}
+		/**
+		 * @param $aQueryParams
+		 */
+		public function redirectToAdmin( $aQueryParams = array() ) {
+			$this->doRedirect( is_multisite()? get_admin_url() : admin_url(), $aQueryParams );
+		}
+		/**
+		 * @param $aQueryParams
+		 */
+		public function redirectToHome( $aQueryParams = array() ) {
+			$this->doRedirect( home_url(), $aQueryParams );
+		}
+
+		/**
+		 * @param $sUrl
+		 * @param $aQueryParams
+		 * @uses exit()
+		 */
+		public function doRedirect( $sUrl, $aQueryParams = array() ) {
+			$sUrl = empty( $aQueryParams ) ? $sUrl : add_query_arg( $aQueryParams, $sUrl ) ;
+			wp_safe_redirect( $sUrl );
+			exit();
+		}
+
+		/**
+		 * @return string
+		 */
+		public function getCurrentPage() {
+			global $pagenow;
+			return $pagenow;
+		}
+
+		/**
+		 * @param string
+		 * @return string
+		 */
+		public function getIsCurrentPage( $sPage ) {
+			return $sPage == $this->getCurrentPage();
+		}
+
+		/**
+		 * @return bool
+		 */
+		public function getIsLoginRequest() {
+			return ICWP_Processor_Data_CP::GetIsRequestPost()
+			&& $this->getIsCurrentPage('wp-login.php')
+			&& !is_null( ICWP_Processor_Data_CP::FetchPost('log') )
+			&& !is_null( ICWP_Processor_Data_CP::FetchPost('pwd') );
+		}
+
+		/**
+		 * @return string
+		 */
+		public function getSiteName() {
+			return function_exists( 'get_bloginfo' )? get_bloginfo('name') : 'WordPress Site';
+		}
+		/**
+		 * @return string
+		 */
+		public function getSiteAdminEmail() {
+			return function_exists( 'get_bloginfo' )? get_bloginfo('admin_email') : '';
+		}
+
+		/**
+		 * @return boolean
+		 */
+		public function getIsAjax() {
+			return defined( 'DOING_AJAX' ) && DOING_AJAX;
+		}
+
+		/**
+		 * @param array $aLoginUrlParams
+		 */
+		public function forceUserRelogin( $aLoginUrlParams = array() ) {
+			$this->logoutUser();
+			$this->redirectToLogin( $aLoginUrlParams );
+		}
+
+		/**
+		 * @param string $sRedirectUrl
+		 */
+		public function logoutUser( $sRedirectUrl = '' ) {
+			empty( $sRedirectUrl ) ? wp_logout() : wp_logout_url( $sRedirectUrl );
+		}
+
+		/**
+		 * @return bool
+		 */
+		public function isMultisite() {
+			if ( !isset( $this->fIsMultisite ) ) {
+				$this->fIsMultisite = function_exists( 'is_multisite' ) && is_multisite();
+			}
+			return $this->fIsMultisite;
+		}
+
+		/**
+		 * @param string $sKey
+		 * @param $sValue
+		 * @return mixed
+		 */
+		public function addOption( $sKey, $sValue ) {
+			return $this->isMultisite() ? add_site_option( $sKey, $sValue ) : add_option( $sKey, $sValue );
+		}
+
+		/**
+		 * @param string $sKey
+		 * @param $sValue
+		 * @return mixed
+		 */
+		public function updateOption( $sKey, $sValue ) {
+			return $this->isMultisite() ? update_site_option( $sKey, $sValue ) : update_option( $sKey, $sValue );
+		}
+
+		/**
+		 * @param string $sKey
+		 * @param mixed $mDefault
+		 * @return mixed
+		 */
+		public function getOption( $sKey, $mDefault = false ) {
+			return $this->isMultisite() ? get_site_option( $sKey, $mDefault ) : get_option( $sKey, $mDefault );
+		}
+
+		/**
+		 * @param string $sKey
+		 * @return mixed
+		 */
+		public function deleteOption( $sKey ) {
+			return $this->isMultisite() ? delete_site_option( $sKey ) : delete_option( $sKey );
+		}
+
+		/**
+		 */
+		public function getCurrentWpAdminPage() {
+			$sScript = isset( $_SERVER['SCRIPT_NAME'] )? $_SERVER['SCRIPT_NAME'] : $_SERVER['PHP_SELF'];
+			if ( is_admin() && !empty( $sScript ) && basename( $sScript ) == 'admin.php' && isset( $_GET['page'] ) ) {
+				$sCurrentPage = $_GET['page'];
+			}
+			return empty($sCurrentPage)? '' : $sCurrentPage;
+		}
+
+		/**
+		 * @return null|WP_User
+		 */
+		public function getCurrentWpUser() {
+			if ( is_user_logged_in() ) {
+				$oUser = wp_get_current_user();
+				if ( is_object( $oUser ) && $oUser instanceof WP_User ) {
+					return $oUser;
 				}
 			}
-			return $this->sWpVersion;
+			return null;
+		}
+
+		/**
+		 * @param $sUsername
+		 */
+		public function setUserLoggedIn( $sUsername ) {
+			$oUser = version_compare( $this->getWordpressVersion(), '2.8.0', '<' )? get_userdatabylogin( $sUsername ) : get_user_by( 'login', $sUsername );
+
+			wp_clear_auth_cookie();
+			wp_set_current_user ( $oUser->ID, $oUser->user_login );
+			wp_set_auth_cookie  ( $oUser->ID, true );
+			do_action( 'wp_login', $oUser->user_login, $oUser );
+		}
+
+		/**
+		 * @return string
+		 */
+		protected function getWpLoginUrl() {
+			return site_url() . '/wp-login.php';
 		}
 	}
 
