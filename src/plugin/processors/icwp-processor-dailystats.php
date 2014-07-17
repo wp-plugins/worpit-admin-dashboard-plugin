@@ -75,8 +75,9 @@ class ICWP_Processor_DailyStats_CP extends ICWP_Processor_BaseStats_CP {
 			GROUP BY `day_id`
 			ORDER BY `year_id` ASC, `month_id` ASC, `day_id` ASC
 		";
-		$sQuery = sprintf( $sBaseQuery,
-			$this->m_sTableName
+		$sQuery = sprintf(
+			$sBaseQuery,
+			$this->getTableName()
 		);
 		return $this->selectCustomFromTable( $sQuery );
 	}
@@ -100,7 +101,7 @@ class ICWP_Processor_DailyStats_CP extends ICWP_Processor_BaseStats_CP {
 				AND `day_id`	< '%s'
 		";
 		$sQuery = sprintf( $sQuery,
-			$this->m_sTableName,
+			$this->getTableName(),
 			$nPrevMonth,
 			$this->m_nDay
 		);

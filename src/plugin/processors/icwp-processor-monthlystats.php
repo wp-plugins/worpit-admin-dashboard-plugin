@@ -73,8 +73,9 @@ class ICWP_Processor_MonthlyStats_CP extends ICWP_Processor_BaseStats_CP {
 			GROUP BY `month_id`, `year_id`
 			ORDER BY `year_id` ASC, `month_id` ASC, `day_id` ASC
 		";
-		$sQuery = sprintf( $sBaseQuery,
-			$this->m_sTableName
+		$sQuery = sprintf(
+			$sBaseQuery,
+			$this->getTableName()
 		);
 		return $this->selectCustomFromTable( $sQuery );
 	}

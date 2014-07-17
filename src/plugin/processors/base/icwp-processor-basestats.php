@@ -148,7 +148,7 @@ class ICWP_Processor_BaseStats_CP extends ICWP_Processor_BaseDb_CP {
 				AND `deleted_at`	= '0'
 		";
 		$sQuery = sprintf( $sBaseQuery,
-			$this->m_sTableName,
+			$this->getTableName(),
 			$innPageId,
 			$innDay,
 			$innMonth,
@@ -180,7 +180,7 @@ class ICWP_Processor_BaseStats_CP extends ICWP_Processor_BaseDb_CP {
 				AND `year_id`	= '%s'
 		";
 		$sQuery = sprintf( $sQuery,
-			$this->m_sTableName,
+			$this->getTableName(),
 			$innPageId,
 			$this->m_nDay,
 			$this->m_nMonth,
@@ -241,7 +241,7 @@ class ICWP_Processor_BaseStats_CP extends ICWP_Processor_BaseDb_CP {
 			`deleted_at` TINYINT(1) NOT NULL DEFAULT '0',
  			PRIMARY KEY (`id`)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
-		return sprintf( $sSql, $this->m_sTableName );
+		return sprintf( $sSql, $this->getTableName() );
 	}
 
 	/**

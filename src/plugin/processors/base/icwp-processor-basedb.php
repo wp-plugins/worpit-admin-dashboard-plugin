@@ -32,13 +32,14 @@ if ( !class_exists('ICWP_Processor_BaseDb_CP') ):
 		 * A link to the WordPress Database object so we don't have to "global" that every time.
 		 * @var wpdb
 		 */
-		protected $m_oWpdb;
+		protected $oWpdb;
 
 		/**
 		 * The full database table name.
 		 * @var string
 		 */
-		protected $m_sTableName;
+		protected $sFullTableName;
+
 		/**
 		 * @var array
 		 */
@@ -46,7 +47,6 @@ if ( !class_exists('ICWP_Processor_BaseDb_CP') ):
 
 		public function __construct( $insStorageKey, $insTableName ) {
 			parent::__construct( $insStorageKey );
-			$this->reset();
 			$this->setTableName( $insTableName );
 			$this->createCleanupCron();
 		}
@@ -57,15 +57,7 @@ if ( !class_exists('ICWP_Processor_BaseDb_CP') ):
 		public function doPreStore() {
 			parent::doPreStore();
 			$this->commitData();
-			unset( $this->m_oWpdb );
-		}
-
-		/**
-		 * Resets the object values to be re-used anew
-		 */
-		public function reset() {
-			parent::reset();
-			$this->loadWpdb();
+			unset( $this->oWpdb );
 		}
 
 		/**
@@ -77,13 +69,15 @@ if ( !class_exists('ICWP_Processor_BaseDb_CP') ):
 
 		/**
 		 * Loads our WPDB object if required.
+		 *
+		 * @return wpdb
 		 */
 		protected function loadWpdb() {
-			if ( !is_null( $this->m_oWpdb ) ) {
-				return;
+			if ( is_null( $this->oWpdb ) ) {
+				global $wpdb;
+				$this->oWpdb = $wpdb;
 			}
-			global $wpdb;
-			$this->m_oWpdb = $wpdb;
+			return $this->oWpdb;
 		}
 
 		/**
@@ -105,13 +99,14 @@ if ( !class_exists('ICWP_Processor_BaseDb_CP') ):
 		 *
 		 * This should be overridden per implementation
 		 *
+		 * @param array $aLogData
 		 * @return array
 		 */
-		protected function completeDataForWrite( $inaLogData ) {
-			if ( is_null( $inaLogData ) ) {
+		protected function completeDataForWrite( $aLogData ) {
+			if ( is_null( $aLogData ) ) {
 				return array();
 			}
-			return $inaLogData;
+			return $aLogData;
 		}
 
 		/**
@@ -121,7 +116,6 @@ if ( !class_exists('ICWP_Processor_BaseDb_CP') ):
 			if ( empty( $this->m_aDataToWrite ) ) {
 				return;
 			}
-			$this->loadWpdb();
 			$fSuccess = true;
 			foreach( $this->m_aDataToWrite as $aDataEntry ) {
 				$fSuccess = $fSuccess && $this->insertIntoTable( $aDataEntry );
@@ -139,33 +133,62 @@ if ( !class_exists('ICWP_Processor_BaseDb_CP') ):
 			$this->m_aDataToWrite = null;
 		}
 
-		public function insertIntoTable( $inaData ) {
-			return $this->m_oWpdb->insert( $this->m_sTableName, $inaData );
-		}
-
-		public function selectAllFromTable( $innFormat = ARRAY_A ) {
-			$sQuery = sprintf( "SELECT * FROM `%s` WHERE `deleted_at` = '0'", $this->m_sTableName );
-			return $this->m_oWpdb->get_results( $sQuery, $innFormat );
+		/**
+		 * @param $aData
+		 * @return boolean
+		 */
+		public function insertIntoTable( $aData ) {
+			$oDb = $this->loadWpdb();
+			return $oDb->insert( $this->getTableName(), $aData );
 		}
 
 		/**
-		 * @param $insQuery
-		 * @return array
+		 * @param $nFormat
+		 * @return array|boolean
 		 */
-		public function selectCustomFromTable( $insQuery ) {
-			return $this->m_oWpdb->get_results( $insQuery, ARRAY_A );
+		public function selectAllFromTable( $nFormat = ARRAY_A ) {
+			$oDb = $this->loadWpdb();
+			$sQuery = sprintf( "SELECT * FROM `%s` WHERE `deleted_at` = '0'", $this->getTableName() );
+			return $oDb->get_results( $sQuery, $nFormat );
 		}
 
-		public function selectRowFromTable( $insQuery ) {
-			return $this->m_oWpdb->get_row( $insQuery, ARRAY_A );
+		/**
+		 * @param string $sQuery
+		 * @param $nFormat
+		 * @return array|boolean
+		 */
+		public function selectCustomFromTable( $sQuery, $nFormat = ARRAY_A ) {
+			$oDb = $this->loadWpdb();
+			return $oDb->get_results( $sQuery, $nFormat );
 		}
 
-		public function updateRowsFromTable( $inaData, $inaWhere ) {
-			return $this->m_oWpdb->update( $this->m_sTableName, $inaData, $inaWhere );
+		/**
+		 * @param string $sQuery
+		 * @param $nFormat
+		 * @return array|boolean
+		 */
+		public function selectRowFromTable( $sQuery, $nFormat = ARRAY_A ) {
+			$oDb = $this->loadWpdb();
+			return $oDb->get_row( $sQuery, $nFormat );
 		}
 
-		public function deleteRowsFromTable( $inaWhere ) {
-			return $this->m_oWpdb->delete( $this->m_sTableName, $inaWhere );
+		/**
+		 * @param array $aData - new insert data (associative array, column=>data)
+		 * @param array $aWhere - insert where (associative array)
+		 * @return integer|boolean (number of rows affected)
+		 */
+		public function updateRowsFromTable( $aData, $aWhere ) {
+			$oDb = $this->loadWpdb();
+			return $oDb->update( $this->getTableName(), $aData, $aWhere );
+		}
+
+		/**
+		 * @param array $aWhere - delete where (associative array)
+		 * @return integer|boolean (number of rows affected)
+		 */
+		public function deleteRowsFromTable( $aWhere ) {
+			$oDb = $this->loadWpdb();
+			return $oDb->delete( $this->getTableName(), $aWhere );
 		}
 
 		protected function deleteAllRowsOlderThan( $innTimeStamp ) {
@@ -174,11 +197,12 @@ if ( !class_exists('ICWP_Processor_BaseDb_CP') ):
 			WHERE
 				`created_at`		< '%s'
 		";
-			$sQuery = sprintf( $sQuery,
-				$this->m_sTableName,
+			$sQuery = sprintf(
+				$sQuery,
+				$this->getTableName(),
 				$innTimeStamp
 			);
-			$this->doSql( $sQuery );
+			return $this->doSql( $sQuery );
 		}
 
 		public function createTable() {
@@ -189,7 +213,7 @@ if ( !class_exists('ICWP_Processor_BaseDb_CP') ):
 		 * Will remove all data from this table (to delete the table see dropTable)
 		 */
 		public function emptyTable() {
-			$sQuery = sprintf( "TRUNCATE TABLE `%s`", $this->m_sTableName );
+			$sQuery = sprintf( "TRUNCATE TABLE `%s`", $this->getTableName() );
 			return $this->doSql( $sQuery );
 		}
 
@@ -205,21 +229,44 @@ if ( !class_exists('ICWP_Processor_BaseDb_CP') ):
 		 * Will completely remove this table from the database
 		 */
 		public function dropTable() {
-			$sQuery = sprintf( 'DROP TABLE IF EXISTS `%s`', $this->m_sTableName ) ;
+			$sQuery = sprintf( 'DROP TABLE IF EXISTS `%s`', $this->getTableName() ) ;
 			return $this->doSql( $sQuery );
 		}
 
 		/**
 		 * Given any SQL query, will perform it using the WordPress database object.
 		 *
-		 * @param string $insSql
+		 * @param string $sSqlQuery
+		 * @return integer|boolean (number of rows affected or just true/false)
 		 */
-		public function doSql( $insSql ) {
-			return $this->m_oWpdb->query( $insSql );
+		public function doSql( $sSqlQuery ) {
+			$oDb = $this->loadWpdb();
+			$mResult = $oDb->query( $sSqlQuery );
+			return $mResult;
 		}
 
-		private function setTableName( $insTableName ) {
-			return $this->m_sTableName = $this->m_oWpdb->base_prefix . self::DB_TABLE_PREFIX . $insTableName;
+		/**
+		 * @return string
+		 */
+		protected function getTableName() {
+			if ( empty( $this->sFullTableName ) ) {
+				return $this->setTableName();
+			}
+			return $this->sFullTableName;
+		}
+
+		/**
+		 * @param string $sTableName
+		 * @return mixed
+		 */
+		private function setTableName( $sTableName = '' ) {
+			$oDb = $this->loadWpdb();
+			$sTableString =
+				$oDb->prefix
+				. self::DB_TABLE_PREFIX
+				. ( empty( $sTableName ) ? '' : $sTableName );
+			$this->sFullTableName = esc_sql( $sTableString );
+			return $this->sFullTableName;
 		}
 
 		/**

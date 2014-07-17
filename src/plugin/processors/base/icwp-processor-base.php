@@ -49,9 +49,17 @@ if ( !class_exists('ICWP_Processor_Base_CP') ):
 		protected $m_aLogMessages;
 
 		/**
+		 * @var long
+		 */
+		protected static $nRequestIp;
+		/**
+		 * @var long
+		 */
+		protected static $nRequestPostId;
+		/**
 		 * @var integer
 		 */
-		protected $m_nRequestIp;
+		protected static $nRequestTimestamp;
 
 		/**
 		 * @var boolean
@@ -78,7 +86,12 @@ if ( !class_exists('ICWP_Processor_Base_CP') ):
 		 * Resets the object values to be re-used anew
 		 */
 		public function reset() {
-			$this->m_nRequestIp = $this->getVisitorIpAddress();
+			if ( !isset( self::$nRequestIp ) ) {
+				self::$nRequestIp = ICWP_Processor_Data_CP::GetVisitorIpAddress();
+			}
+			if ( !isset( self::$nRequestTimestamp ) ) {
+				self::$nRequestTimestamp = ICWP_Processor_Data_CP::GetRequestTime();
+			}
 			$this->resetLog();
 		}
 
