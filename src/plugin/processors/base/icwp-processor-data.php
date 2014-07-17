@@ -296,27 +296,6 @@ if ( !class_exists('ICWP_Processor_Data_CP') ):
 			return $insRawAddress;
 		}
 
-		public static function Verify_Ip_Address( $insIpAddress ) {
-			if ( self::$fUseFilter ) {
-				if ( filter_var( $insIpAddress, FILTER_VALIDATE_IP ) ) {
-					return ip2long( $insIpAddress );
-				}
-			}
-			else {
-				if ( preg_match( '/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\z/', $insIpAddress ) ) { //It's a valid IPv4 format, now check components
-					$aParts = explode( '.', $insIpAddress );
-					foreach ( $aParts as $sPart ) {
-						$sPart = intval( $sPart );
-						if ( $sPart < 0 || $sPart > 255 ) {
-							return false;
-						}
-					}
-					return ip2long( $insIpAddress );
-				}
-			}
-			return false;
-		}
-
 		/**
 		 * Taken from http://www.phacks.net/detecting-search-engine-bot-and-web-spiders/
 		 */
@@ -331,6 +310,16 @@ if ( !class_exists('ICWP_Processor_Data_CP') ):
 				.'|Sogou web spider|Yahoo! Slurp|facebookexternalhit|PrintfulBot|msnbot|UnwindFetchor|urlresolver|Butterfly|TweetmemeBot';
 
 			return ( preg_match( "/$sBots/", $sUserAgent ) > 0 );
+		}
+
+		/**
+		 * Returns IP Address as long if verified.
+		 *
+		 * @param string $sIpAddress
+		 * @return bool|int
+		 */
+		public static function Verify_Ip_Address( $sIpAddress ) {
+			return self::GetIsValidIpAddress( $sIpAddress ) ? ip2long( $sIpAddress ) : false;
 		}
 
 		/**
@@ -414,8 +403,17 @@ if ( !class_exists('ICWP_Processor_Data_CP') ):
 		 * @return bool
 		 */
 		static public function GetIsRequestPost() {
+			return ( self::GetRequestMethod() == 'post' );
+		}
+
+		/**
+		 * Returns the current request method as an all-lower-case string
+		 *
+		 * @return bool|string
+		 */
+		static public function GetRequestMethod() {
 			$sRequestMethod = self::FetchServer( 'REQUEST_METHOD' );
-			return strtolower( empty($sRequestMethod)? '' : $sRequestMethod ) == 'post';
+			return ( empty( $sRequestMethod ) ? false : strtolower( $sRequestMethod ) );
 		}
 
 		/**
