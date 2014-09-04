@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.7.11
+Version: 2.7.12
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -64,7 +64,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.7.11';
+	static public $VERSION = '2.7.12';
 
 	/**
 	 * @access static
@@ -116,9 +116,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	protected $m_sPluginFile;
 
 	/**
-	 * @var string
+	 * @var array
 	 */
-	protected $m_aLabelData;
+	protected $aLabelData;
 
 	/**
 	 * @var ICWP_Stats
@@ -661,18 +661,19 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @return array
 	 */
 	public function relabel_icwp_plugin( $inaPlugins ) {
-		if ( $this->m_aLabelData['service_name'] == self::ServiceName ) {
+		$aLabelData = $this->getPluginLabelData();
+		if ( $aLabelData['service_name'] == self::ServiceName ) {
 			return $inaPlugins;
 		}
 
 		if ( array_key_exists( $this->m_sPluginFile, $inaPlugins ) ) {
-			$inaPlugins[$this->m_sPluginFile]['Name'] = $this->m_aLabelData['service_name'];
-			$inaPlugins[$this->m_sPluginFile]['Description'] = $this->m_aLabelData['tag_line'];
-			$inaPlugins[$this->m_sPluginFile]['Title'] = $this->m_aLabelData['service_name'];
-			$inaPlugins[$this->m_sPluginFile]['Author'] = $this->m_aLabelData['service_name'];
-			$inaPlugins[$this->m_sPluginFile]['AuthorName'] = $this->m_aLabelData['service_name'];
-			$inaPlugins[$this->m_sPluginFile]['PluginURI'] = $this->m_aLabelData['plugin_home_url'];
-			$inaPlugins[$this->m_sPluginFile]['AuthorURI'] = $this->m_aLabelData['plugin_home_url'];
+			$inaPlugins[$this->m_sPluginFile]['Name'] = $aLabelData['service_name'];
+			$inaPlugins[$this->m_sPluginFile]['Description'] = $aLabelData['tag_line'];
+			$inaPlugins[$this->m_sPluginFile]['Title'] = $aLabelData['service_name'];
+			$inaPlugins[$this->m_sPluginFile]['Author'] = $aLabelData['service_name'];
+			$inaPlugins[$this->m_sPluginFile]['AuthorName'] = $aLabelData['service_name'];
+			$inaPlugins[$this->m_sPluginFile]['PluginURI'] = $aLabelData['plugin_home_url'];
+			$inaPlugins[$this->m_sPluginFile]['AuthorURI'] = $aLabelData['plugin_home_url'];
 		}
 		return $inaPlugins;
 	}
@@ -813,7 +814,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		$sDebugFile = Worpit_Plugin::getOption( 'debug_file' );
 		$aData = array(
 			'plugin_url'		=> self::$PluginUrl,
-			'label_data'		=> $this->m_aLabelData,
+			'label_data'		=> $this->getPluginLabelData(),
 			'key'				=> self::getOption( 'key' ),
 			'pin'				=> self::getOption( 'pin' ),
 			'assigned'			=> self::getOption( 'assigned' ),
@@ -1024,11 +1025,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	protected function runWhiteLabelSystem() {
 		$oWhiteLabelSystem = self::GetWhiteLabelSystem();
-		$this->m_aLabelData = $this->getDefaultPluginLabelData();
+		$this->aLabelData = $this->getDefaultPluginLabelData();
 		if ( $oWhiteLabelSystem->getIsSystemEnabled() ) {
 			$aWhiteLabelData = $oWhiteLabelSystem->getSystemOptions();
-			if ( !empty($aWhiteLabelData) ) {
-				$this->m_aLabelData = $aWhiteLabelData;
+			if ( !empty( $aWhiteLabelData ) ) {
+				$this->aLabelData = $aWhiteLabelData;
 			}
 		}
 	}
@@ -1044,6 +1045,16 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			'icon_url_16x16'	=> $this->getImageUrl( 'icontrolwp_16x16.png' ),
 			'icon_url_32x32'	=> $this->getImageUrl( 'icontrolwp_32x32.png' )
 		);
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getPluginLabelData() {
+		if ( empty( $this->aLabelData ) ) {
+			$this->runWhiteLabelSystem();
+		}
+		return $this->aLabelData;
 	}
 
 	/**
@@ -1127,10 +1138,14 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * Runs the plugin compatibility processes (hooked to 'plugins_loaded')
 	 */
 	protected function runCompatibilitySystem() {
+
+		$aLabelData = $this->getPluginLabelData();
+
 		$oSys = self::GetCompatibilitySystem();
 		$oSys->setIsSystemEnabled( true );
 		$oSys->setOption( 'service_ip_addresses_ipv4', self::$ServiceIpAddressesIpv4 );
 		$oSys->setOption( 'service_ip_addresses_ipv6', self::$ServiceIpAddressesIpv6 );
+		$oSys->setOption( 'service_name', $aLabelData['service_name'] );
 		$oSys->run();
 	}
 
@@ -1144,13 +1159,14 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 
 		$sFullParentMenuId = $this->getFullParentMenuId();
+		$aLabelData = $this->getPluginLabelData();
 		add_menu_page(
-			$this->m_aLabelData['service_name'], //self::$ParentTitle
-			$this->m_aLabelData['service_name'], //self::$ParentName
+			$aLabelData['service_name'], //self::$ParentTitle
+			$aLabelData['service_name'], //self::$ParentName
 			self::$ParentPermissions,
 			$sFullParentMenuId,
 			array( $this, 'onDisplayMainMenu' ),
-			$this->m_aLabelData['icon_url_16x16']
+			$aLabelData['icon_url_16x16']
 		);
 
 		$this->fixSubmenu();

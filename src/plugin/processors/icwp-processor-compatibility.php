@@ -74,6 +74,7 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 		$this->addToWordfence();
 		$this->addToBadBehaviour();
 		$this->addToWordpressFirewall2();
+		$this->addToIThemesSecurity();
 		// Add WordPress Simple Firewall plugin whitelist
 		add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
 	}
@@ -163,6 +164,38 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 	}
 
 	/**
+	 * If Wordfence is found on the site, it'll add the iControlWP IP address to the whitelist
+	 * @return boolean
+	 */
+	protected function addToIThemesSecurity() {
+		// Now handle it as the new iThemes Security
+		global $itsec_globals;
+		if ( isset( $itsec_globals ) && is_array( $itsec_globals ) && !empty( $itsec_globals['settings'] ) ) {
+			$aItsecIpsWhiteList = isset( $itsec_globals['settings']['white_list'] ) ? $itsec_globals['settings']['white_list'] : array();
+			$aItsecIpsLockoutWhiteList = isset( $itsec_globals['settings']['lockout_white_list'] ) ? $itsec_globals['settings']['lockout_white_list'] : array();
+
+			$aOurIps = $this->getOption( 'service_ip_addresses_ipv4', array() );
+			$fAdded = false;
+			foreach( $aOurIps as $sIp ) {
+				if ( !in_array( $sIp, $aItsecIpsWhiteList ) ) {
+					$aItsecIpsWhiteList[] = $sIp;
+					$fAdded = true;
+				}
+
+				if ( !in_array( $sIp, $aItsecIpsLockoutWhiteList ) ) {
+					$aItsecIpsLockoutWhiteList[] = $sIp;
+					$fAdded = true;
+				}
+			}
+			if ( $fAdded ) {
+				$itsec_globals['settings']['lockout_white_list'] = $aItsecIpsLockoutWhiteList;
+				$itsec_globals['settings']['white_list'] = $aItsecIpsWhiteList;
+				update_site_option( 'itsec_global', $itsec_globals );
+			}
+		}
+	}
+
+	/**
 	 * Adds the iControlWP public IP addresses to the Simple Firewall Whitelist.
 	 *
 	 * @param array $aWhitelistIps
@@ -172,7 +205,7 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 		$aServiceIps = $this->getOption( 'service_ip_addresses_ipv4', array() );
 		foreach ( $aServiceIps as $sAddress ) {
 			if ( !in_array( $sAddress, $aWhitelistIps ) ) {
-				$aWhitelistIps[ $sAddress ] = $this->m_aLabelData['service_name'];
+				$aWhitelistIps[ $sAddress ] = $this->getOption( 'service_name', 'iControlWP' );
 			}
 		}
 		return $aWhitelistIps;
@@ -283,16 +316,12 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 
 		// Adds our IP addresses to the BWPS whitelist
 		if ( !is_null( $bwpsoptions ) && is_array( $bwpsoptions ) ) {
-			$fAdded = true;
 			$sServiceIps = implode( "\n", $this->getOption( 'service_ip_addresses_ipv4', array() ) );
 			if ( !isset( $bwpsoptions['id_whitelist'] ) || strlen( $bwpsoptions['id_whitelist'] ) == 0 ) {
 				$bwpsoptions['id_whitelist'] = $sServiceIps;
 			}
 			else if ( strpos( $bwpsoptions['id_whitelist'], $sServiceIps ) === false ) {
 				$bwpsoptions['id_whitelist'] .= "\n".$sServiceIps;
-			}
-			else {
-				$fAdded = false; //not used (yet)
 			}
 		}
 	}
