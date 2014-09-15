@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, worpit, icontrolwp, automatic updates
 Requires at least: 3.2.0
 Tested up to: 4.0
-Stable tag: 2.7.12
+Stable tag: 2.7.13
 
 == Description ==
 
@@ -115,9 +115,13 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= 2.7.13 =
+
+* FIX:	    Error with automatic whitelisting in some cases.
+
 = 2.7.12 =
 
-* FIX:	    A few PHP notices, and update to WordPress 4.0 compatibilty.
+* FIX:	    A few PHP notices, and update to WordPress 4.0 compatibility.
 
 = 2.7.11 =
 

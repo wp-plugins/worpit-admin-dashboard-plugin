@@ -74,7 +74,7 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 		$this->addToWordfence();
 		$this->addToBadBehaviour();
 		$this->addToWordpressFirewall2();
-		$this->addToIThemesSecurity();
+//		$this->addToIThemesSecurity();
 		// Add WordPress Simple Firewall plugin whitelist
 		add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
 	}
