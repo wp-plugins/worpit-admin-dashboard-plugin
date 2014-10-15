@@ -202,12 +202,30 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 	 * @return array
 	 */
 	public function addToSimpleFirewallWhitelist( $aWhitelistIps ) {
-		$aServiceIps = $this->getOption( 'service_ip_addresses_ipv4', array() );
-		foreach ( $aServiceIps as $sAddress ) {
-			if ( !in_array( $sAddress, $aWhitelistIps ) ) {
-				$aWhitelistIps[ $sAddress ] = $this->getOption( 'service_name', 'iControlWP' );
+		$sServiceName = $this->getOption( 'service_name', 'iControlWP' );
+		$aIpLists = array(
+			$this->getOption( 'service_ip_addresses_ipv4', array() ),
+			$this->getOption( 'service_ip_addresses_ipv6', array() )
+		);
+
+		foreach( $aIpLists as $aServiceIps ) {
+
+			if ( !empty( $aServiceIps['valid'] ) ) {
+				foreach ( $aServiceIps['valid'] as $sAddress ) {
+					if ( !in_array( $sAddress, $aWhitelistIps ) ) {
+						$aWhitelistIps[ $sAddress ] = $sServiceName;
+					}
+				}
 			}
+//			if ( !empty( $aServiceIps['old'] ) ) {
+//				foreach ( $aServiceIps['old'] as $sAddress ) {
+//					if ( in_array( $sAddress, $aWhitelistIps ) ) {
+//						unset( $aWhitelistIps[ $sAddress ] );
+//					}
+//				}
+//			}
 		}
+
 		return $aWhitelistIps;
 	}
 
@@ -283,6 +301,7 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 			remove_action( 'init', array( $GLOBALS['aio_wp_security'], 'wp_security_plugin_init'), 0);
 		}
 	}
+
 	/**
 	 * Remove actions setup by Secure WP plugin that interfere with Worpit synchronizing packages.
 	 * @return void

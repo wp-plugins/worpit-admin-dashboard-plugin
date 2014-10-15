@@ -3,13 +3,13 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.7.13
+Version: 2.8.0
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
 
 /**
- * Copyright (c) 2013 iControlWP <support@icontrolwp.com>
+ * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
  * "iControlWP" (previously "Worpit") is distributed under the GNU General Public License, Version 2,
@@ -64,17 +64,22 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.7.13';
+	static public $VERSION = '2.8.0';
 
 	/**
 	 * @access static
 	 * @var array
 	 */
 	static private $ServiceIpAddressesIpv4 = array(
-		'198.61.176.9',
-		'198.61.173.69',
-		'23.253.56.59',
-		'23.253.62.185'
+		'valid' => array(
+			'198.61.176.9', //wd01
+			'23.253.56.59', //app01
+			'23.253.62.185', //app01
+			'23.253.32.180' //wd02
+		),
+		'old' => array(
+			'198.61.173.69'
+		)
 	);
 
 	/**
@@ -82,10 +87,15 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @var array
 	 */
 	static private $ServiceIpAddressesIpv6 = array(
-		'2001:4801:7817:0072:ca75:cc9b:ff10:4699',
-		'2001:4801:7817:72:ca75:cc9b:ff10:4699',
-		'2001:4801:7824:0101:ca75:cc9b:ff10:a7b2',
-		'2001:4801:7824:101:ca75:cc9b:ff10:a7b2',
+		'valid' => array(
+			'2001:4801:7817:0072:ca75:cc9b:ff10:4699', //wd01
+			'2001:4801:7817:72:ca75:cc9b:ff10:4699', //wd01
+			'2001:4801:7824:0101:ca75:cc9b:ff10:a7b2', //app01
+			'2001:4801:7824:101:ca75:cc9b:ff10:a7b2', //app01
+			'2001:4801:7822:0103:be76:4eff:fe10:89a9', //wd02
+			'2001:4801:7822:103:be76:4eff:fe10:89a9' //wd02
+		),
+		'old' => array()
 	);
 	
 	/**
@@ -144,6 +154,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @var ICWP_AutoUpdates
 	 */
 	protected static $oAutoUpdatesSystem = NULL;
+
+	/**
+	 * @var ICWP_Security
+	 */
+	protected static $oSecuritySystem = NULL;
 
 	/**
 	 * @var ICWP_Compatibility
@@ -726,6 +741,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 //			$this->setAuthorizedUser();
 		$this->doWpe();
 
+		$this->runSecuritySystem();
 		$this->runCompatibilitySystem();
 	}
 
@@ -830,36 +846,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				
 			'image_url'			=> $this->getImageUrl( '' ),
 
-			'options_ga'		=> self::GetGoogleAnalyticsSystem()->getSystemOptions(),
-			'options_au'		=> self::GetAutoUpdatesSystem()->getSystemOptions(),
-			'options_ss'		=> self::GetStatsSystem()->getSystemOptions()
+			'options_ga'		=> $this->getGoogleAnalyticsSystem()->getSystemOptions(),
+			'options_au'		=> $this->getAutoUpdatesSystem()->getSystemOptions(),
+			'options_ss'		=> $this->getStatsSystem()->getSystemOptions()
 		);
 		$this->display( 'icwp_index', $aData );
 	}
 	
-	/**
-	 *
-	 */
-	public function onDisplayViewSettings() {
-		//populates plugin options with existing configuration
-		$this->populateAllPluginOptions();
-		
-		//Specify what set of options are available for this page
-		$aAvailableOptions = array( $this->m_aWordPressSecurityOptions ) ;
-		
-		$aData = array(
-			'plugin_url'		=> self::$PluginUrl,
-			'assigned'			=> self::getOption( 'assigned' ),
-			'assigned_to'		=> self::getOption( 'assigned_to' ),
-			'aAllOptions'		=> $aAvailableOptions,
-
-			'can_handshake'		=> self::getOption( 'can_handshake' ),
-			'handshake_enabled'	=> self::getOption( 'handshake_enabled' ),
-			'image_url'			=> $this->getImageUrl( '' )
-		);
-		$this->display( 'icwp_view_settings', $aData );
-	}
-
 	/**
 	 * Override this method to handle all the admin notices
 	 *
@@ -936,23 +929,23 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * This function always returns false, however the return is never actually used just yet.
 	 *
-	 * @param string $insAuthKey
-	 * @param string $insEmailAddress
+	 * @param string $sAuthKey
+	 * @param string $sEmailAddress
 	 * @return boolean
 	 */
-	public function doRemoteLink( $insAuthKey, $insEmailAddress ) {
+	public function doRemoteLink( $sAuthKey, $sEmailAddress ) {
 		if ( self::IsLinked() ) {
 			return false;
 		}
 		
- 		if ( strlen( $insAuthKey ) == 32 && is_email( $insEmailAddress ) ) {
+ 		if ( strlen( $sAuthKey ) == 32 && is_email( $sEmailAddress ) ) {
 				
 			//looks good. Now attempt remote link.
 			$aPostVars = array(
 				'wordpress_url'				=> home_url(),
 				'plugin_url'				=> self::$PluginUrl,
-				'account_email_address'		=> $insEmailAddress,
-				'account_auth_key'			=> $insAuthKey,
+				'account_email_address'		=> $sEmailAddress,
+				'account_auth_key'			=> $sAuthKey,
 				'plugin_key'				=> self::getOption( 'key' )
 			);
 			$aArgs = array(
@@ -1013,9 +1006,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * @return ICWP_WhiteLabel
 	 */
-	public static function & GetWhiteLabelSystem() {
+	public function getWhiteLabelSystem() {
 		if ( is_null( self::$oWhiteLabelSystem ) ) {
-			self::$oWhiteLabelSystem = ( include_once( dirname(__FILE__).'/src/plugin/system-white-label.php' ) );
+			self::$oWhiteLabelSystem = include_once( $this->getSrcDir_Systems( 'system-white-label.php' ) );
 		}
 		return self::$oWhiteLabelSystem;
 	}
@@ -1024,8 +1017,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * Runs the white label processes
 	 */
 	protected function runWhiteLabelSystem() {
-		$oWhiteLabelSystem = self::GetWhiteLabelSystem();
 		$this->aLabelData = $this->getDefaultPluginLabelData();
+
+		$oWhiteLabelSystem = $this->getWhiteLabelSystem();
 		if ( $oWhiteLabelSystem->getIsSystemEnabled() ) {
 			$aWhiteLabelData = $oWhiteLabelSystem->getSystemOptions();
 			if ( !empty( $aWhiteLabelData ) ) {
@@ -1067,9 +1061,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * @return ICWP_Stats
 	 */
-	public static function & GetStatsSystem() {
+	protected function getStatsSystem() {
 		if ( is_null( self::$oStatsSystem ) ) {
-			self::$oStatsSystem = ( include_once( dirname(__FILE__).'/src/plugin/system-stats.php' ) );
+			self::$oStatsSystem = include_once( $this->getSrcDir_Systems( 'system-stats.php' ) );
 		}
 		return self::$oStatsSystem;
 	}
@@ -1078,7 +1072,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * Runs the statistic processes (hooked to 'shutdown')
 	 */
 	protected function runStatsSystem() {
-		$oStatsSystem = self::GetStatsSystem();
+		$oStatsSystem = $this->getStatsSystem();
 		if ( $oStatsSystem->getIsSystemEnabled() ) {
 			$oStatsSystem->run();
 		}
@@ -1087,9 +1081,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * @return ICWP_GoogleAnalytics
 	 */
-	public static function & GetGoogleAnalyticsSystem() {
+	protected function getGoogleAnalyticsSystem() {
 		if ( is_null( self::$oGoogleAnalyticsSystem ) ) {
-			self::$oGoogleAnalyticsSystem = (include_once(dirname(__FILE__) . '/src/plugin/system-google-analytics.php'));
+			self::$oGoogleAnalyticsSystem = include_once( $this->getSrcDir_Systems( 'system-google-analytics.php' ) );
 		}
 		return self::$oGoogleAnalyticsSystem;
 	}
@@ -1098,7 +1092,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * Runs the statistic processes (hooked to 'wp_loaded')
 	 */
 	protected function runGoogleAnalyticsSystem() {
-		$oGoogleAnalyticsSystem = self::GetGoogleAnalyticsSystem();
+		$oGoogleAnalyticsSystem = $this->getGoogleAnalyticsSystem();
 		if ( $oGoogleAnalyticsSystem->getIsSystemEnabled() ) {
 			$oGoogleAnalyticsSystem->run();
 		}
@@ -1107,9 +1101,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * @return ICWP_AutoUpdates
 	 */
-	public static function & GetAutoUpdatesSystem() {
+	protected function getAutoUpdatesSystem() {
 		if ( is_null( self::$oAutoUpdatesSystem ) ) {
-			self::$oAutoUpdatesSystem = (include_once(dirname(__FILE__) . '/src/plugin/system-autoupdates.php'));
+			self::$oAutoUpdatesSystem = include_once( $this->getSrcDir_Systems( 'system-autoupdates.php' ) );
 		}
 		return self::$oAutoUpdatesSystem;
 	}
@@ -1118,18 +1112,38 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * Runs the statistic processes (hooked to 'wp_loaded')
 	 */
 	protected function runAutoUpdatesSystem() {
-		$oAutoUpdatesSystem = self::GetAutoUpdatesSystem();
+		$oAutoUpdatesSystem = $this->getAutoUpdatesSystem();
 		if ( $oAutoUpdatesSystem->getIsSystemEnabled() ) {
 			$oAutoUpdatesSystem->run();
 		}
 	}
 
 	/**
+	 * @return ICWP_Security
+	 */
+	protected function getSecuritySystem() {
+		if ( is_null( self::$oSecuritySystem ) ) {
+			self::$oSecuritySystem = include_once( $this->getSrcDir_Systems( 'system-security.php' ) );
+		}
+		return self::$oSecuritySystem;
+	}
+
+	/**
+	 * Runs the statistic processes (hooked to 'plugins_loaded')
+	 */
+	protected function runSecuritySystem() {
+		$oSecuritySystem = $this->getSecuritySystem();
+		if ( $oSecuritySystem->getIsSystemEnabled() ) {
+			$oSecuritySystem->run();
+		}
+	}
+
+	/**
 	 * @return ICWP_Compatibility
 	 */
-	public static function & GetCompatibilitySystem() {
+	protected function getCompatibilitySystem() {
 		if ( is_null( self::$oCompatibilitySystem ) ) {
-			self::$oCompatibilitySystem = (include_once(dirname(__FILE__) . '/src/plugin/system-compatibility.php'));
+			self::$oCompatibilitySystem = include_once( $this->getSrcDir_Systems( 'system-compatibility.php' ) );
 		}
 		return self::$oCompatibilitySystem;
 	}
@@ -1141,7 +1155,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 		$aLabelData = $this->getPluginLabelData();
 
-		$oSys = self::GetCompatibilitySystem();
+		$oSys = $this->getCompatibilitySystem();
 		$oSys->setIsSystemEnabled( true );
 		$oSys->setOption( 'service_ip_addresses_ipv4', self::$ServiceIpAddressesIpv4 );
 		$oSys->setOption( 'service_ip_addresses_ipv6', self::$ServiceIpAddressesIpv6 );
@@ -1171,6 +1185,15 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 		$this->fixSubmenu();
 	}
+
+	/**
+	 * @param string $sFile
+	 *
+	 * @return string
+	 */
+	private function getSrcDir_Systems( $sFile = '' ) {
+		return dirname(__FILE__).WORPIT_DS.'src'.WORPIT_DS.'plugin'.WORPIT_DS.$sFile;
+	}
 }
 
 class Worpit_Install {
@@ -1191,7 +1214,7 @@ class Worpit_Install {
 			foreach( $aOptions as $sKey => $mValue ) {
 				Worpit_Plugin::addOption( $sKey, $mValue );
 			}
-			Worpit_Plugin::addOption( 'installed_at',	Worpit_Plugin::getOption( 'activated_at' ) );
+			Worpit_Plugin::addOption( 'installed_at', Worpit_Plugin::getOption( 'activated_at' ) );
 		}
 
 		// Allows for redirect to plugin page once the plugin is activated.
