@@ -319,15 +319,26 @@ if ( !class_exists('ICWP_Processor_Base_CP') ):
 		}
 
 		/**
-		 * @param string $insOptionKey
-		 * @param mixed $insDefault
+		 * @param string $sOptionKey
+		 * @param mixed $mDefault
+		 *
 		 * @return mixed
 		 */
-		protected function getOption( $insOptionKey, $insDefault = '' ) {
-			if ( !isset( $this->aOptions ) || !is_array( $this->aOptions ) || !isset( $this->aOptions[$insOptionKey] ) ) {
-				return $insDefault;
+		protected function getOption( $sOptionKey, $mDefault = '' ) {
+			if ( empty( $this->aOptions ) || !is_array( $this->aOptions ) || !isset( $this->aOptions[$sOptionKey] ) ) {
+				return $mDefault;
 			}
-			return $this->aOptions[$insOptionKey];
+			return $this->aOptions[$sOptionKey];
+		}
+		/**
+		 * @param $sKey
+		 * @param mixed $mValueToTest
+		 * @param boolean $fStrict
+		 * @return bool
+		 */
+		public function getOptionIs( $sKey, $mValueToTest, $fStrict = false ) {
+			$mOptionValue = $this->getOption( $sKey );
+			return $fStrict? $mOptionValue === $mValueToTest : $mOptionValue == $mValueToTest;
 		}
 
 		/**

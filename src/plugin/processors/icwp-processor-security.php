@@ -33,28 +33,34 @@ if ( !class_exists('ICWP_Processor_Security_CP') ):
 		public function run() {
 			parent::run();
 			if ( !$this->getCanRun() ) {
-
-				add_filter( 'user_has_cap', array( $this, 'disableFileEditing' ), 0, 3 );
-
-				if ( $this->getIsOption( 'force_ssl_login', 'Y' ) && function_exists( 'force_ssl_login' ) ) {
-					if ( !defined( 'FORCE_SSL_LOGIN' ) ) {
-						define( 'FORCE_SSL_LOGIN', true );
-					}
-					force_ssl_login( true );
-				}
-
-				if ( $this->getIsOption( 'force_ssl_admin', 'Y' ) && function_exists( 'force_ssl_admin' ) ) {
-					if ( !defined( 'FORCE_SSL_ADMIN' ) ) {
-						define( 'FORCE_SSL_ADMIN', true );
-					}
-					force_ssl_admin( true );
-				}
-
-				if ( $this->getIsOption( 'hide_wordpress_generator_tag', 'Y' ) ) {
-					remove_action( 'wp_head', 'wp_generator' );
-				}
-
+				return;
 			}
+			if ( $this->getOptionIs( 'disallow_file_edit', 'Y' ) ) {
+				if ( !defined( 'DISALLOW_FILE_EDIT' ) ) {
+					define( 'DISALLOW_FILE_EDIT', true );
+				}
+				add_filter( 'user_has_cap', array( $this, 'disallowFileEditing' ), 100, 3 );
+			}
+
+			if ( $this->getOptionIs( 'force_ssl_admin', 'Y' ) && function_exists( 'force_ssl_admin' ) ) {
+				if ( !defined( 'FORCE_SSL_ADMIN' ) ) {
+					define( 'FORCE_SSL_ADMIN', true );
+				}
+				force_ssl_admin( true );
+			}
+
+			if ( $this->getOptionIs( 'hide_wp_version', 'Y' ) ) {
+				remove_action( 'wp_head', 'wp_generator' );
+			}
+
+			if ( $this->getOptionIs( 'hide_wlmanifest_link', 'Y' ) ) {
+				remove_action( 'wp_head', 'wlwmanifest_link' );
+			}
+
+			if ( $this->getOptionIs( 'hide_rsd_link', 'Y' ) ) {
+				remove_action( 'wp_head', 'rsd_link' );
+			}
+
 		}
 
 		/**
@@ -64,7 +70,7 @@ if ( !class_exists('ICWP_Processor_Security_CP') ):
 		 *
 		 * @return array
 		 */
-		public function disableFileEditing( $aAllCaps, $aCap, $aArgs ) {
+		public function disallowFileEditing( $aAllCaps, $aCap, $aArgs ) {
 
 			$aEditCapabilities = array( 'edit_themes', 'edit_plugins', 'edit_files' );
 			$sRequestedCapability = $aArgs[0];

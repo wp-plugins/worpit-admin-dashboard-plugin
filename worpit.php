@@ -97,28 +97,18 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		),
 		'old' => array()
 	);
-	
+
 	/**
 	 * @access static
 	 * @var string
 	 */
 	static public $CustomOptionsDbName = 'custom_options';
-	
+
 	/**
 	 * @access static
 	 * @var array
 	 */
 	static public $CustomOptions; //the array of options written to WP Options
-	
-	/**
-	 * @var array
-	 */
-	protected $m_aWordPressSecurityOptions;
-	
-	/**
-	 * @var Worpit_Auditor
-	 */
-	protected $m_oAuditor;
 
 	/**
 	 * @var string
@@ -129,11 +119,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @var array
 	 */
 	protected $aLabelData;
-
-	/**
-	 * @var ICWP_Stats
-	 */
-	protected static $oStats = NULL;
 
 	/**
 	 * @var ICWP_WhiteLabel
@@ -638,7 +623,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 
 	/**
-	 *
 	 */
 	public function onWpLoaded() {
 		$this->runGoogleAnalyticsSystem();
@@ -1004,31 +988,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 
 	/**
-	 * @return ICWP_WhiteLabel
-	 */
-	public function getWhiteLabelSystem() {
-		if ( is_null( self::$oWhiteLabelSystem ) ) {
-			self::$oWhiteLabelSystem = include_once( $this->getSrcDir_Systems( 'system-white-label.php' ) );
-		}
-		return self::$oWhiteLabelSystem;
-	}
-
-	/**
-	 * Runs the white label processes
-	 */
-	protected function runWhiteLabelSystem() {
-		$this->aLabelData = $this->getDefaultPluginLabelData();
-
-		$oWhiteLabelSystem = $this->getWhiteLabelSystem();
-		if ( $oWhiteLabelSystem->getIsSystemEnabled() ) {
-			$aWhiteLabelData = $oWhiteLabelSystem->getSystemOptions();
-			if ( !empty( $aWhiteLabelData ) ) {
-				$this->aLabelData = $aWhiteLabelData;
-			}
-		}
-	}
-
-	/**
 	 * @return array|boolean
 	 */
 	public function getDefaultPluginLabelData() {
@@ -1059,11 +1018,36 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	}
 
 	/**
+	 * @return ICWP_WhiteLabel
+	 */
+	public static function GetWhiteLabelSystem() {
+		if ( is_null( self::$oWhiteLabelSystem ) ) {
+			self::$oWhiteLabelSystem = include_once( self::GetSrcDir_Systems( 'system-white-label.php' ) );
+		}
+		return self::$oWhiteLabelSystem;
+	}
+
+	/**
+	 * Runs the white label processes
+	 */
+	protected function runWhiteLabelSystem() {
+		$this->aLabelData = $this->getDefaultPluginLabelData();
+
+		$oWhiteLabelSystem = $this->getWhiteLabelSystem();
+		if ( $oWhiteLabelSystem->getIsSystemEnabled() ) {
+			$aWhiteLabelData = $oWhiteLabelSystem->getSystemOptions();
+			if ( !empty( $aWhiteLabelData ) ) {
+				$this->aLabelData = $aWhiteLabelData;
+			}
+		}
+	}
+
+	/**
 	 * @return ICWP_Stats
 	 */
-	protected function getStatsSystem() {
+	public static function GetStatsSystem() {
 		if ( is_null( self::$oStatsSystem ) ) {
-			self::$oStatsSystem = include_once( $this->getSrcDir_Systems( 'system-stats.php' ) );
+			self::$oStatsSystem = include_once( self::GetSrcDir_Systems( 'system-stats.php' ) );
 		}
 		return self::$oStatsSystem;
 	}
@@ -1081,9 +1065,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * @return ICWP_GoogleAnalytics
 	 */
-	protected function getGoogleAnalyticsSystem() {
+	public static function GetGoogleAnalyticsSystem() {
 		if ( is_null( self::$oGoogleAnalyticsSystem ) ) {
-			self::$oGoogleAnalyticsSystem = include_once( $this->getSrcDir_Systems( 'system-google-analytics.php' ) );
+			self::$oGoogleAnalyticsSystem = include_once( self::GetSrcDir_Systems( 'system-google-analytics.php' ) );
 		}
 		return self::$oGoogleAnalyticsSystem;
 	}
@@ -1101,9 +1085,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * @return ICWP_AutoUpdates
 	 */
-	protected function getAutoUpdatesSystem() {
+	public static function GetAutoUpdatesSystem() {
 		if ( is_null( self::$oAutoUpdatesSystem ) ) {
-			self::$oAutoUpdatesSystem = include_once( $this->getSrcDir_Systems( 'system-autoupdates.php' ) );
+			self::$oAutoUpdatesSystem = include_once( self::GetSrcDir_Systems( 'system-autoupdates.php' ) );
 		}
 		return self::$oAutoUpdatesSystem;
 	}
@@ -1121,9 +1105,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * @return ICWP_Security
 	 */
-	protected function getSecuritySystem() {
+	public static function GetSecuritySystem() {
 		if ( is_null( self::$oSecuritySystem ) ) {
-			self::$oSecuritySystem = include_once( $this->getSrcDir_Systems( 'system-security.php' ) );
+			self::$oSecuritySystem = include_once( self::GetSrcDir_Systems( 'system-security.php' ) );
 		}
 		return self::$oSecuritySystem;
 	}
@@ -1141,9 +1125,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	/**
 	 * @return ICWP_Compatibility
 	 */
-	protected function getCompatibilitySystem() {
+	public static function GetCompatibilitySystem() {
 		if ( is_null( self::$oCompatibilitySystem ) ) {
-			self::$oCompatibilitySystem = include_once( $this->getSrcDir_Systems( 'system-compatibility.php' ) );
+			self::$oCompatibilitySystem = include_once( self::GetSrcDir_Systems( 'system-compatibility.php' ) );
 		}
 		return self::$oCompatibilitySystem;
 	}
@@ -1191,7 +1175,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 *
 	 * @return string
 	 */
-	private function getSrcDir_Systems( $sFile = '' ) {
+	static private function GetSrcDir_Systems( $sFile = '' ) {
 		return dirname(__FILE__).WORPIT_DS.'src'.WORPIT_DS.'plugin'.WORPIT_DS.$sFile;
 	}
 }
