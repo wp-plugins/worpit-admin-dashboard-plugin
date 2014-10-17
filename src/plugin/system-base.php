@@ -79,16 +79,16 @@ class ICWP_System_Base {
 	/**
 	 * Use this to update 1 or more options at a time.
 	 *
-	 * @param string $insKey
-	 * @param mixed $inmValue
+	 * @param string $sKey
+	 * @param mixed $mValue
 	 * @return boolean
 	 */
-	public function updateSystemOption( $insKey, $inmValue ) {
+	public function updateSystemOption( $sKey, $mValue ) {
 		$this->loadSystemOptions();
-		if ( isset( $this->aOptions[$insKey] ) && $this->aOptions[$insKey] == $inmValue ) {
+		if ( isset( $this->aOptions[$sKey] ) && $this->aOptions[$sKey] == $mValue ) {
 			return true;
 		}
-		return $this->updateSystemOptions( array( $insKey => $inmValue ) );
+		return $this->updateSystemOptions( array( $sKey => $mValue ) );
 	}
 
 	/**
@@ -110,29 +110,29 @@ class ICWP_System_Base {
 	}
 
 	/**
-	 * @param string $insOptionKey
-	 * @param mixed $insDefault
+	 * @param string $sOptionKey
+	 * @param mixed $sDefault
 	 * @return mixed
 	 */
-	public function getOption( $insOptionKey, $insDefault = '' ) {
+	public function getOption( $sOptionKey, $sDefault = '' ) {
 		if ( !isset( $this->aOptions ) || !is_array( $this->aOptions ) ) {
 			$this->loadSystemOptions();
 		}
-		if ( !isset( $this->aOptions[$insOptionKey] ) ) {
-			return $insDefault;
+		if ( !isset( $this->aOptions[$sOptionKey] ) ) {
+			return $sDefault;
 		}
-		return $this->aOptions[$insOptionKey];
+		return $this->aOptions[$sOptionKey];
 	}
 
 	/**
 	 * It's now just an alias.
 	 *
-	 * @param string $insOptionKey
-	 * @param mixed $inmValue
+	 * @param string $sOptionKey
+	 * @param mixed $mValue
 	 * @return mixed
 	 */
-	public function setOption( $insOptionKey, $inmValue = false ) {
-		$this->updateSystemOption( $insOptionKey, $inmValue );
+	public function setOption( $sOptionKey, $mValue = false ) {
+		return $this->updateSystemOption( $sOptionKey, $mValue );
 	}
 
 	/**

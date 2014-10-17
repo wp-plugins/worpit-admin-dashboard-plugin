@@ -194,10 +194,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		 * a different variation of POST variables.
 		 */
 		add_action( 'init', array( $this, 'doAPI' ), 1 );
-		
-		self::Load_CustomOptionsData();
-		
-		new Worpit_Plugin_Custom_Options( self::$CustomOptions );
 	}
 
 	/**
@@ -249,7 +245,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	public static function Store_CustomOptionsData() {
 		return self::updateOption( self::$CustomOptionsDbName, self::$CustomOptions );
 	}
-	
+
 	/**
 	 * Give an associative array.
 	 * 	'key1' => 'value1'
@@ -260,13 +256,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	public static function Update_CustomOptions( $inaNewOptions ) {
 		self::Load_CustomOptionsData();
-		
+
 		foreach( $inaNewOptions as $sNewKey => $sNewValue ) {
 			self::$CustomOptions[$sNewKey] = $sNewValue;
 		}
 		return self::Store_CustomOptionsData();
 	}
-	
+
 	/**
 	 * @param string $insKey
 	 * @param boolean $infForceReload		(optional)
@@ -591,6 +587,21 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		$sInstalledVersion = Worpit_Plugin::getOption( 'installed_version' );
 		if ( empty( $sInstalledVersion ) ) {
 			$sInstalledVersion = '0.1';
+		}
+
+		if ( version_compare( $sInstalledVersion, '2.8.0', '<' ) ) {
+			self::Load_CustomOptionsData();
+			$oSecuritySystem = self::GetSecuritySystem();
+			if ( self::$CustomOptions['sec_hide_wp_version'] == 'Y' ) {
+				$oSecuritySystem->setOption( 'hide_wp_version', 'Y' );
+			}
+			if ( self::$CustomOptions['sec_hide_wlmanifest_link'] == 'Y' ) {
+				$oSecuritySystem->setOption( 'hide_wlmanifest_link', 'Y' );
+			}
+			if ( self::$CustomOptions['sec_hide_rsd_link'] == 'Y' ) {
+				$oSecuritySystem->setOption( 'hide_rsd_link', 'Y' );
+			}
+			self::Store_CustomOptionsData();
 		}
 
 		if ( version_compare( $sInstalledVersion, '2.7.5', '<' ) ) {
