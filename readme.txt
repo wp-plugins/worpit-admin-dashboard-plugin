@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, worpit, icontrolwp, automatic updates
 Requires at least: 3.2.0
 Tested up to: 4.0
-Stable tag: 2.8.0
+Stable tag: 2.8.1
 
 == Description ==
 
@@ -115,9 +115,14 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
-= 2.8.0 =
+= 2.8.1 =
 
-* ADDED:	Integrated App security options/settings into the plugin.
+* ADDED:	Option to set "DISALLOW_FILE_EDIT" from iControlWP App
+* ADDED:	Option to set "FORCE_SSL_ADMIN" from iControlWP App
+* ADDED:	Option to set [CloudFlare Flexible SSL](https://www.icontrolwp.com/2014/10/enabling-cloudflares-universal-flexible-ssl-wordpress-without-infinite-redirect-loops/) from within the iControlWP App
+* ADDED:	Option to set Hide WordPress Version (WP Generator Meta tag) from iControlWP App
+* ADDED:	Option to set Hide RSD Link from iControlWP App
+* ADDED:	Option to set Hide Windows Live link from iControlWP App
 * UPDATED:  White-listing IPs
 
 = 2.7.13 =

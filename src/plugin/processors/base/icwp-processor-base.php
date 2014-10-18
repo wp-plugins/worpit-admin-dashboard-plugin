@@ -16,6 +16,8 @@
  *
  */
 
+require_once(dirname(__FILE__) . '/icwp-processor-data.php');
+
 if ( !class_exists('ICWP_Processor_Base_CP') ):
 
 	class ICWP_Processor_Base_CP {

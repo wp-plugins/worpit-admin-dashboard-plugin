@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.8.0
+Version: 2.8.1
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -64,7 +64,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.8.0';
+	static public $VERSION = '2.8.1';
 
 	/**
 	 * @access static
@@ -194,6 +194,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		 * a different variation of POST variables.
 		 */
 		add_action( 'init', array( $this, 'doAPI' ), 1 );
+
+		// need to run this as early as possible
+		$this->runSecuritySystem();
 	}
 
 	/**
@@ -214,65 +217,8 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			//first time create of options
 			self::$CustomOptions = array();
 		}
-		
-		self::validateCustomOptions();
-		self::Store_CustomOptionsData();
-	}
-	
-	/**
-	 * Add new options here and they'll be added automatically in all future runs.
-	 */
-	protected static function validateCustomOptions() {
-		self::Load_CustomOptionsData();
-		$aDefaultOptions = array(
-			'sec_hide_wp_version'			=>	'N',
-			'sec_hide_wlmanifest_link'		=>	'N',
-			'sec_hide_rsd_link'				=>	'N',
-			'sec_set_random_script_version'	=>	'N',
-			'sec_random_script_version'		=>	'',
-		);
-		
-		foreach( $aDefaultOptions as $sKey => $sValue ) {
-			if ( !array_key_exists( $sKey, self::$CustomOptions ) ) {
-				self::$CustomOptions[$sKey] = $sValue;
-			}
-		}
-	}
-	
-	/**
-	 * @return boolean|void
-	 */
-	public static function Store_CustomOptionsData() {
-		return self::updateOption( self::$CustomOptionsDbName, self::$CustomOptions );
 	}
 
-	/**
-	 * Give an associative array.
-	 * 	'key1' => 'value1'
-	 * 	'key2' => 'value2'
-	 *
-	 * @param $inaNewOptions
-	 * @return string
-	 */
-	public static function Update_CustomOptions( $inaNewOptions ) {
-		self::Load_CustomOptionsData();
-
-		foreach( $inaNewOptions as $sNewKey => $sNewValue ) {
-			self::$CustomOptions[$sNewKey] = $sNewValue;
-		}
-		return self::Store_CustomOptionsData();
-	}
-
-	/**
-	 * @param string $insKey
-	 * @param boolean $infForceReload		(optional)
-	 * @return string
-	 */
-	static public function Get_CustomOption( $insKey, $infForceReload = false ) {
-		self::Load_CustomOptionsData( $infForceReload );
-		return self::$CustomOptions[$insKey];
-	}
-	
 	/**
 	 * If any of the conditions are met and our plugin executes either the transport or link
 	 * handlers, then all execution will end
@@ -601,7 +547,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			if ( self::$CustomOptions['sec_hide_rsd_link'] == 'Y' ) {
 				$oSecuritySystem->setOption( 'hide_rsd_link', 'Y' );
 			}
-			self::Store_CustomOptionsData();
 		}
 
 		if ( version_compare( $sInstalledVersion, '2.7.5', '<' ) ) {
@@ -736,7 +681,6 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 //			$this->setAuthorizedUser();
 		$this->doWpe();
 
-		$this->runSecuritySystem();
 		$this->runCompatibilitySystem();
 	}
 

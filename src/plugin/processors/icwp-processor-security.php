@@ -35,6 +35,7 @@ if ( !class_exists('ICWP_Processor_Security_CP') ):
 			if ( !$this->getCanRun() ) {
 				return;
 			}
+
 			if ( $this->getOptionIs( 'disallow_file_edit', 'Y' ) ) {
 				if ( !defined( 'DISALLOW_FILE_EDIT' ) ) {
 					define( 'DISALLOW_FILE_EDIT', true );
@@ -61,6 +62,22 @@ if ( !class_exists('ICWP_Processor_Security_CP') ):
 				remove_action( 'wp_head', 'rsd_link' );
 			}
 
+			if ( $this->getOptionIs( 'cloudflare_flexible_ssl', 'Y' ) ) {
+				$this->doCloudflareFlexibleSslCompatibility();
+			}
+		}
+
+		/**
+		 * Does nothing if the site already "knows" it's SSL.
+		 */
+		protected function doCloudflareFlexibleSslCompatibility() {
+			if ( is_ssl() ) {
+				return;
+			}
+			if ( ( isset( $_SERVER['HTTP_CF_VISITOR'] ) && strpos( $_SERVER['HTTP_CF_VISITOR'], 'https' ) !== false ) ||
+				 ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && strtolower( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) == 'https' ) ) {
+				$_SERVER['HTTPS'] = 'on';
+			}
 		}
 
 		/**
