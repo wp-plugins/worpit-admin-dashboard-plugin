@@ -27,12 +27,7 @@ class Worpit_Plugin_Base {
 	protected $m_aAllPluginOptions;
 	
 	public function __construct() {
-		add_action( 'init',				array( $this, 'onWpInit' ), 1 );
-		add_action( 'admin_init',		array( $this, 'onWpAdminInit' ) );
-		add_action( 'plugins_loaded',	array( $this, 'onWpPluginsLoaded' ), 1 );
-		add_action( 'wp_loaded',		array( $this, 'onWpLoaded' ), 1 );
-		add_action( 'shutdown',			array( $this, 'onWpShutdown' ), 1 );
-		
+
 		if ( is_admin() ) {
 			add_action( 'network_admin_notices', array( $this, 'onWpNetworkAdminNotices' ) );
 			add_action( 'admin_notices', array( $this, 'onWpAdminNotices' ) );
@@ -94,8 +89,6 @@ class Worpit_Plugin_Base {
 		return false;
 	}
 	
-	protected function handlePluginFormSubmit() {}
-
 	protected function flushW3TotalCache() {
 		if ( class_exists( 'W3_Plugin_TotalCacheAdmin' ) ) {
 			$oW3TotalCache =& w3_instance( 'W3_Plugin_TotalCacheAdmin' );
@@ -125,44 +118,6 @@ class Worpit_Plugin_Base {
 	
 		wp_register_style( 'worpit_bootstrap_wpadmin_css_fixes',  $this->getCssUrl( 'bootstrap-wpadmin-fixes.css' ), array( 'worpit_bootstrap_wpadmin_css' ), self::$VERSION );
 		wp_enqueue_style( 'worpit_bootstrap_wpadmin_css_fixes' );
-	}
-	
-	public function onWpInit() {/*
-		add_action( 'admin_menu',			array( &$this, 'onWpAdminMenu' ) );
-		if( self::$NetworkAdminOnly ) {
-			add_action(	'network_admin_menu', 	array( &$this, 'onWpNetworkAdminMenu' ) );
-		}
-		add_action( 'plugin_action_links',	array( &$this, 'onWpPluginActionLinks' ), 10, 4 );*/
-	}
-	
-	public function onWpAdminInit() {
-
-		//Do Plugin-Specific Admin Work
-		if ( $this->isSelfAdminPage() ) {
-			//Links up CSS styles for the plugin itself (set the admin bootstrap CSS as a dependency also)
-			$this->enqueueBootstrapAdminCss();
-		}
-	}
-	
-	public function onWpPluginsLoaded() {
-		if ( $this->isSelfAdminPage() ) {
-			$this->handlePluginFormSubmit();
-		}
-	}
-
-	public function onWpLoaded() { }
-
-	public function onWpShutdown() { }
-
-	public function onWpAdminMenu() {
-		$this->createMenu();
-	}
-	
-	public function onWpNetworkAdminMenu() {
-		$this->createMenu();
-	}
-	
-	protected function createMenu() {
 	}
 
 	protected function createPluginSubMenuItems(){

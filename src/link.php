@@ -1,6 +1,6 @@
 <?php
 
-require_once( dirname(__FILE__).'/src/loader.php' );
+require_once( dirname( __FILE__ ) . '/loader.php' );
 
 /**
  * Alot of this may seem overkill. But we don't want to link a site until we've verified all the data

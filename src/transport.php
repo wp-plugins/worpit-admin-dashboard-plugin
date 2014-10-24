@@ -1,6 +1,6 @@
 <?php
 
-require_once( dirname(__FILE__).'/src/loader.php' );
+require_once( dirname( __FILE__ ) . '/loader.php' );
 
 $oController = new Worpit_Controllers_Transport();
 if ( method_exists( $oController, $sMethod ) ) {
