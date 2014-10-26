@@ -89,6 +89,7 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 			add_action(	'network_admin_menu',		array( $this, 'onWpAdminMenu' ) );
 			add_action( 'init',			        	array( $this, 'onWpInit' ) );
 			add_filter( 'auto_update_plugin',		array( $this, 'onWpAutoUpdate' ), 10000, 2 );
+			add_filter( 'all_plugins',				array( $this, 'doPluginLabels' ) );
 			add_action( 'shutdown',					array( $this, 'onWpShutdown' ) );
 			$this->registerActivationHooks();
 		}
@@ -120,6 +121,8 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 * Hooked to 'plugins_loaded'
 	 */
 	public function onWpPluginsLoaded() {
+		add_filter( $this->doPluginPrefix( 'has_permission_to_view' ), array( $this, 'filter_hasPermissionToView' ) );
+		add_filter( $this->doPluginPrefix( 'has_permission_to_submit' ), array( $this, 'filter_hasPermissionToSubmit' ) );
 		if ( $this->getIsValidAdminArea() ) {
 			add_action( 'admin_notices',			array( $this, 'onWpAdminNotices' ) );
 			add_action( 'network_admin_notices',	array( $this, 'onWpAdminNotices' ) );
@@ -165,14 +168,26 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 
 		if ( $this->getPluginSpec_Menu( 'top_level' ) ) {
 
+			$aPluginLabels = $this->getPluginLabels();
+
+			$sMenuTitle = $this->getPluginSpec_Menu( 'title' );
+			if ( is_null( $sMenuTitle ) ) {
+				$sMenuTitle = $aPluginLabels['Name'];
+			}
+
+			$sIconUrl = $aPluginLabels['icon_url_16x16'];
+			if ( empty( $sIconUrl ) ) {
+				$sIconUrl = $this->getPluginUrl_Image( $this->getPluginSpec_Menu( 'icon_image' ) );
+			}
+
 			$sFullParentMenuId = $this->getPluginPrefix();
 			add_menu_page(
 				$this->getHumanName(),
-				$this->getAdminMenuTitle(),
+				$sMenuTitle,
 				$this->getBasePermissions(),
 				$sFullParentMenuId,
 				array( $this, $this->getPluginSpec_Menu( 'callback' ) ),
-				$this->getPluginUrl_Image( $this->getPluginSpec_Menu( 'icon_image' ) )
+				$sIconUrl
 			);
 
 			if ( $this->getPluginSpec_Menu( 'has_submenu' ) ) {
@@ -294,7 +309,7 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 			if ( isset( $aAdminCss['css'] ) && !empty( $aAdminCss['css'] ) && is_array( $aAdminCss['css'] ) ) {
 				foreach( $aAdminCss['css'] as $sCssAsset ) {
 					$sUnique = $this->doPluginPrefix( $sCssAsset );
-					wp_register_style( $sUnique, $this->getPluginUrl_Css( $sCssAsset.'.css' ), ( empty( $sDependent ) ? false : $sDependent ), $this->getVersion() );
+					wp_register_style( $sUnique, $this->getPluginUrl_Css( $sCssAsset.'.css' ), ( empty( $sDependent ) ? false : $sDependent ), $this->getVersion().rand() );
 					wp_enqueue_style( $sUnique );
 					$sDependent = $sUnique;
 				}
@@ -306,7 +321,7 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 			if ( isset( $aAdminCss['css'] ) && !empty( $aAdminCss['css'] ) && is_array( $aAdminCss['css'] ) ) {
 				foreach( $aAdminCss['css'] as $sCssAsset ) {
 					$sUnique = $this->doPluginPrefix( $sCssAsset );
-					wp_register_style( $sUnique, $this->getPluginUrl_Css( $sCssAsset.'.css' ), ( empty( $sDependent ) ? false : $sDependent ), $this->getVersion() );
+					wp_register_style( $sUnique, $this->getPluginUrl_Css( $sCssAsset.'.css' ), ( empty( $sDependent ) ? false : $sDependent ), $this->getVersion().rand() );
 					wp_enqueue_style( $sUnique );
 					$sDependent = $sUnique;
 				}
@@ -365,6 +380,35 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	}
 
 	/**
+	 * @param array $aPlugins
+	 *
+	 * @return array
+	 */
+	public function doPluginLabels( $aPlugins ) {
+		$aLabelData = $this->getPluginLabels();
+		if ( empty( $aLabelData ) ) {
+			return $aPlugins;
+		}
+
+		$sPluginFile = $this->getPluginBaseFile();
+		// For this plugin, overwrite any specified settings
+		if ( array_key_exists( $sPluginFile, $aPlugins ) ) {
+			foreach ( $aLabelData as $sLabelKey => $sLabel ) {
+				$aPlugins[$sPluginFile][$sLabelKey] = $sLabel;
+			}
+		}
+
+		return $aPlugins;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getPluginLabels() {
+		return apply_filters( $this->doPluginPrefix( 'plugin_labels' ), $this->getPluginSpec_Labels() );
+	}
+
+	/**
 	 * Hooked to 'shutdown'
 	 */
 	public function onWpShutdown() {
@@ -418,6 +462,23 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 			unset( $oPlugins->response[ $this->getPluginBaseFile() ] );
 		}
 		return $oPlugins;
+	}
+
+	/**
+	 * @param boolean $fHasPermission
+	 * @return boolean
+	 */
+	public function filter_hasPermissionToView( $fHasPermission = true ) {
+		return $this->filter_hasPermissionToSubmit( $fHasPermission );
+	}
+
+	/**
+	 * @param boolean $fHasPermission
+	 * @return boolean
+	 */
+	public function filter_hasPermissionToSubmit( $fHasPermission = true ) {
+		// first a basic admin check
+		return $fHasPermission && is_super_admin() && current_user_can( $this->getBasePermissions() );
 	}
 
 	/**
@@ -489,6 +550,17 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 
 	/**
 	 * @param string $sKey
+	 * @return array|string
+	 */
+	protected function getPluginSpec_Labels( $sKey = '' ) {
+		if ( empty( $sKey ) ) {
+			return isset( self::$aPluginSpec['labels'] ) ? self::$aPluginSpec['labels'] : array();
+		}
+		return isset( self::$aPluginSpec['labels'][$sKey] ) ? self::$aPluginSpec['labels'][$sKey] : null;
+	}
+
+	/**
+	 * @param string $sKey
 	 * @return mixed|null
 	 */
 	protected function getPluginSpec_Menu( $sKey ) {
@@ -509,13 +581,6 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 */
 	protected function getPluginSpec_Property( $sKey ) {
 		return isset( self::$aPluginSpec['properties'][$sKey] ) ? self::$aPluginSpec['properties'][$sKey] : null;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getAdminMenuTitle() {
-		return $this->getPluginSpec_Property( 'menu_title' );
 	}
 
 	/**
@@ -561,10 +626,13 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	}
 
 	/**
+	 * Default is to take the 'Name' from the labels section but can override with "human_name" from property section.
+	 *
 	 * @return string
 	 */
 	public function getHumanName() {
-		return $this->getPluginSpec_Property( 'human_name' );
+		$aLabels = $this->getPluginLabels();
+		return $aLabels['Name'];
 	}
 
 	/**

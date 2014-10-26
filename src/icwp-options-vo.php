@@ -96,6 +96,31 @@ class ICWP_APP_OptionsVO extends ICWP_APP_Foundation {
 	/**
 	 * @return array
 	 */
+	public function getHiddenOptions() {
+
+		$aRawData = $this->getRawData_FullFeatureConfig();
+		$aOptionsData = array();
+
+		foreach( $aRawData['sections'] as $nPosition => $aRawSection ) {
+
+			// if hidden isn't specified we skip
+			if ( !isset( $aRawSection['hidden'] ) || !$aRawSection['hidden'] ) {
+				continue;
+			}
+			foreach( $this->getRawData_AllOptions() as $aRawOption ) {
+
+				if ( $aRawOption['section'] != $aRawSection['slug'] ) {
+					continue;
+				}
+				$aOptionsData[ $aRawOption['key'] ] = $this->getOpt( $aRawOption['key'] );
+			}
+		}
+		return $aOptionsData;
+	}
+
+	/**
+	 * @return array
+	 */
 	public function getLegacyOptionsConfigData() {
 
 		$aRawData = $this->getRawData_FullFeatureConfig();

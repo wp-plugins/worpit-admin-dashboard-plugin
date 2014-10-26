@@ -32,14 +32,14 @@ $sRequestedPin = isset( $_GET['pin'] )? md5( trim( $_GET['pin'] ) ): '';
 $sRequestedAcc = isset( $_GET['accname'] )? trim( $_GET['accname'] ): '';
 
 if ( $sRequestedKey == trim( $sKey ) && !$fAssigned ) {
-	if ( !update_option( Worpit_Plugin::$VariablePrefix.'pin', $sRequestedPin ) ) {
-		worpitFatal( 10, 'UpdateOptionFailed:'.Worpit_Plugin::$VariablePrefix.'pin:'.$sRequestedPin );
+	if ( !ICWP_Plugin::updateOption( 'pin', $sRequestedPin ) ) {
+		worpitFatal( 10, 'UpdateOptionFailed:'.'pin:'.$sRequestedPin );
 	}
-	if ( !update_option( Worpit_Plugin::$VariablePrefix.'assigned', 'Y' ) ) {
-		worpitFatal( 10, 'UpdateOptionFailed:'.Worpit_Plugin::$VariablePrefix.'assigned:Y' );
+	if ( !ICWP_Plugin::updateOption( 'assigned', 'Y' ) ) {
+		worpitFatal( 10, 'UpdateOptionFailed:'.'assigned:Y' );
 	}
-	if ( !update_option( Worpit_Plugin::$VariablePrefix.'assigned_to', $sRequestedAcc ) ) {
-		worpitFatal( 10, 'UpdateOptionFailed:'.Worpit_Plugin::$VariablePrefix.'assigned_to:'.$sRequestedAcc );
+	if ( !ICWP_Plugin::updateOption( 'assigned_to', $sRequestedAcc ) ) {
+		worpitFatal( 10, 'UpdateOptionFailed:'.'assigned_to:'.$sRequestedAcc );
 	}
 	
 	/**
@@ -47,22 +47,22 @@ if ( $sRequestedKey == trim( $sKey ) && !$fAssigned ) {
 	 */
 	$sOption = worpitGetOption( 'key' );
 	if ( $sOption != $sRequestedKey ) {
-		worpitFatal( 11, 'GetOptionFailed:'.Worpit_Plugin::$VariablePrefix.'key:'.$sRequestedKey );
+		worpitFatal( 11, 'GetOptionFailed:'.'key:'.$sRequestedKey );
 	}
 	
 	$sOption = worpitGetOption( 'pin' );
 	if ( $sOption != $sRequestedPin ) {
-		worpitFatal( 11, 'GetOptionFailed:'.Worpit_Plugin::$VariablePrefix.'pin:'.$sRequestedPin );
+		worpitFatal( 11, 'GetOptionFailed:'.'pin:'.$sRequestedPin );
 	}
 	
-	$sOption = get_option( Worpit_Plugin::$VariablePrefix.'assigned' );
+	$sOption = ICWP_Plugin::getOption( 'assigned' );
 	if ( $sOption != 'Y' ) {
-		worpitFatal( 11, 'GetOptionFailed:'.Worpit_Plugin::$VariablePrefix.'assigned:Y' );
+		worpitFatal( 11, 'GetOptionFailed:'.'assigned:Y' );
 	}
 	
-	$sOption = get_option( Worpit_Plugin::$VariablePrefix.'assigned_to' );
+	$sOption = ICWP_Plugin::getOption( 'assigned_to' );
 	if ( $sOption != $sRequestedAcc ) {
-		worpitFatal( 11, 'GetOptionFailed:'.Worpit_Plugin::$VariablePrefix.'assigned_to:'.$sRequestedAcc );
+		worpitFatal( 11, 'GetOptionFailed:'.'assigned_to:'.$sRequestedAcc );
 	}
 	
 	die( '<worpitresponse>0</worpitresponse>' );

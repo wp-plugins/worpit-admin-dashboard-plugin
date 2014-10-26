@@ -155,41 +155,6 @@ class Worpit_Plugin_Base {
 	protected static function loadDataProcessor() {
 		require_once( dirname(__FILE__).'/processors/base/icwp-processor-data.php');
 	}
-
-	/**
-	 * Strength can be 1, 3, 7, 15
-	 *
-	 * @param integer $innLength
-	 * @param integer $innStrength
-	 * @param boolean $infIgnoreAmb
-	 * @return string
-	 */
-	static public function Generate( $innLength = 10, $innStrength = 7, $infIgnoreAmb = true ) {
-		$aChars = array( 'abcdefghijkmnopqrstuvwxyz' );
-	
-		if ( $innStrength & 2 ) {
-			$aChars[] = '023456789';
-		}
-	
-		if ( $innStrength & 4 ) {
-			$aChars[] = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-		}
-	
-		if ( $innStrength & 8 ) {
-			$aChars[] = '$%^&*#';
-		}
-	
-		if ( !$infIgnoreAmb ) {
-			$aChars[] = 'OOlI1';
-		}
-	
-		$sPassword = '';
-		$sCharset = implode( '', $aChars );
-		for ( $i = 0; $i < $innLength; $i++ ) {
-			$sPassword .= $sCharset[(rand() % strlen( $sCharset ))];
-		}
-		return $sPassword;
-	}
 	
 	/**
 	 * Provides the basic HTML template for printing a WordPress Admin Notices

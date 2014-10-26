@@ -64,15 +64,7 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 			if ( !is_object( $sTmpFile ) && is_file( $sTmpFile ) ) {
 				@icwpFsDeleteFile( $sTmpFile );
 			}
-
-			$sUrl = WORPIT_RETRIEVE_URL.$_GET['package_id'].'/'.worpitGetOption( 'key' ).'/'.worpitGetOption( 'pin' );
-			$sTmpFile = download_url( $sUrl );
-			if ( is_wp_error( $sTmpFile ) ) {
-				if ( !is_object( $sTmpFile ) && is_file( $sTmpFile ) ) {
-					@icwpFsDeleteFile( $sTmpFile );
-				}
-				return $this->fail( sprintf( 'The package could not be downloaded from "%s": %s', $sUrl, is_object( $sTmpFile )? $sTmpFile->get_error_message(): '#not-an-object#' ) );
-			}
+			return $this->fail( sprintf( 'The package could not be downloaded from "%s": %s', $sUrl, is_object( $sTmpFile )? $sTmpFile->get_error_message(): '#not-an-object#' ) );
 		}
 
 		$sNewFile = dirname( __FILE__ ).WORPIT_DS.basename( $sTmpFile );

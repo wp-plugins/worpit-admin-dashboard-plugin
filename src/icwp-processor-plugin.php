@@ -41,8 +41,8 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			 * Always perform the API check, as this is used for linking as well and requires
 			 * a different variation of POST variables.
 			 */
-			add_action( 'init', array( $this, 'onWpInit' ), 1 );
 			add_action( 'plugins_loaded', array( $this, 'onWpPluginsLoaded' ), 1 );
+			add_action( 'wp_loaded', array( $this, 'onWpInit' ), 1 );
 
 			$oDp = $this->loadDataProcessor();
 
@@ -69,7 +69,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		}
 
 		/**
-		 * @param $fOverride
 		 */
 		protected function doPluginStates() {
 			$oDp = $this->loadDataProcessor();
@@ -207,7 +206,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			$oWp = $this->loadWpFunctionsProcessor();
 			$sAckPluginNotice = $oWp->getUserMeta( $oCon->doPluginOptionPrefix( 'ack_plugin_notice' ) );
 
-			if ( Worpit_Plugin::IsLinked() || $sAckPluginNotice == 'Y' ) {
+			if ( ICWP_Plugin::IsLinked() || $sAckPluginNotice == 'Y' ) {
 				return;
 			}
 

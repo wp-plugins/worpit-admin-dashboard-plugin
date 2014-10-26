@@ -796,11 +796,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		/**
 		 */
 		public function displayFeatureConfigPage() {
-//		$aPluginSummaryData = apply_filters( $this->doPluginPrefix( 'get_feature_summary_data' ), array() );
-			$aData = array(
-				'aSummaryData'		=> isset( $aPluginSummaryData ) ? $aPluginSummaryData : array()
-			);
-			$this->display( $aData );
+			$this->display();
 		}
 
 		/**
@@ -824,8 +820,10 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 				'sFeatureSlug'		=> $this->doPluginPrefix( $this->getFeatureSlug() ),
 				'form_action'		=> 'admin.php?page='.$this->doPluginPrefix( $this->getFeatureSlug() ),
 				'nOptionsPerRow'	=> 1,
+				'aPluginLabels'		=> $this->getController()->getPluginLabels(),
 
 				'aAllOptions'		=> $this->getOptions(),
+				'aHiddenOptions'	=> $this->getOptionsVo()->getHiddenOptions(),
 				'all_options_input'	=> $this->collateAllFormInputsForAllOptions()
 			);
 		}
@@ -845,7 +843,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		protected function display( $aData = array(), $sView = '' ) {
 
 			// Get Base Data
-			$aData = array_merge( $this->getBaseDisplayData(), $aData );
+			$aData = apply_filters( $this->doPluginPrefix( $this->getFeatureSlug().'display_data' ), array_merge( $this->getBaseDisplayData(), $aData ) );
 			$fPermissionToView = apply_filters( $this->doPluginPrefix( 'has_permission_to_view' ), true );
 
 			if ( !$fPermissionToView ) {

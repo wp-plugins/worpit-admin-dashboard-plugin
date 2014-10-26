@@ -293,11 +293,11 @@ if ( !class_exists('ICWP_WpFunctions_V5') ):
 
 			$oDp = $this->loadDataProcessor();
 			// we prevent any repetitive redirect loops
-			if ( $oDp->FetchCookie( 'wpsf-isredirect' ) == 'yes' ) {
+			if ( $oDp->FetchCookie( 'icwp-isredirect' ) == 'yes' ) {
 				return;
 			}
 			else {
-				$oDp->setCookie( 'wpsf-isredirect', 'yes', 7 );
+				$oDp->setCookie( 'icwp-isredirect', 'yes', 7 );
 			}
 
 			wp_safe_redirect( $sUrl );

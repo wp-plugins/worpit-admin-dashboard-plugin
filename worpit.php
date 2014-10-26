@@ -36,7 +36,8 @@ require_once( dirname(__FILE__).ICWP_DS.'src'.ICWP_DS.'icwp-foundation.php' );
 class Worpit_Plugin extends ICWP_APP_Foundation {
 
 	/** OLD VARS */
-	static public $VariablePrefix		= 'worpit_admin_';
+	static protected $VariablePrefix		= 'worpit_admin_';
+	static public $VERSION;
 
 	/**
 	 * @var string
@@ -88,7 +89,7 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	/**
 	 * @var array
 	 */
-	protected $aLabelData;
+	protected $aPluginLabelData;
 
 	/**
 	 * @var ICWP_WhiteLabel
@@ -121,19 +122,23 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	protected static $oCompatibilitySystem = NULL;
 
 	/**
+	 * @var ICWP_APP_Plugin_Controller
+	 */
+	protected static $oPluginController;
+
+	/**
 	 * @param ICWP_APP_Plugin_Controller $oPluginController
 	 */
 	public function __construct( ICWP_APP_Plugin_Controller $oPluginController ) {
 
-		$this->oPluginController = $oPluginController;
+		self::$oPluginController = $oPluginController;
 		$this->getController()->loadAllFeatures();
-		add_filter( $this->getController()->doPluginPrefix( 'has_permission_to_view' ), array( $this, 'hasPermissionToView' ) );
-		add_filter( $this->getController()->doPluginPrefix( 'has_permission_to_submit' ), array( $this, 'hasPermissionToSubmit' ) );
 
 		add_action( 'admin_init', array( $this, 'onWpAdminInit' ) );
 
 		add_action( $this->getController()->doPluginPrefix( 'plugin_shutdown' ), array( $this, 'runStatsSystem' ) );
 		add_action( $this->getController()->doPluginPrefix( 'plugin_activate' ), array( $this, 'onPluginActivate' ) );
+		add_filter( $this->getController()->doPluginPrefix( 'plugin_labels' ), array( $this, 'doRelabelPlugin' ) );
 
 		add_action( 'wp_loaded', array( $this, 'onWpLoaded' ) );
 
@@ -144,16 +149,16 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 		$this->runSecuritySystem();
 	}
 
+	/**
+	 * @return ICWP_APP_Plugin_Controller
+	 */
+	public static function getController() {
+		return self::$oPluginController;
+	}
+
 	public function onWpAdminInit() {
 		$oCon = $this->getController();
 		if ( $oCon->getIsValidAdminArea() ) {
-			if ( is_admin() ) {
-				if ( $this->GetWhiteLabelSystem()->getIsSystemEnabled() ) {
-					//renames parts of the plugin for white label within the plugins listing.
-					add_filter( 'all_plugins', array( $this, 'relabel_icwp_plugin' ) );
-				}
-			}
-
 			if ( current_user_can( 'manage_options' ) && $this->getOption( 'do_activation_redirect', false ) ) {
 				$this->deleteOption( 'do_activation_redirect');
 				if ( $this->getOption( 'assigned', 'N' ) == 'N' ) {
@@ -180,30 +185,6 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 		}
 		// Allows for redirect to plugin page once the plugin is activated.
 		$this->addOption( 'do_activation_redirect', true );
-	}
-
-	/**
-	 * @return ICWP_APP_Plugin_Controller
-	 */
-	public function getController() {
-		return $this->oPluginController;
-	}
-
-	/**
-	 * @param boolean $fHasPermission
-	 * @return boolean
-	 */
-	public function hasPermissionToView( $fHasPermission = true ) {
-		return $this->hasPermissionToSubmit( $fHasPermission );
-	}
-
-	/**
-	 * @param boolean $fHasPermission
-	 * @return boolean
-	 */
-	public function hasPermissionToSubmit( $fHasPermission = true ) {
-		// first a basic admin check
-		return $fHasPermission && is_super_admin() && current_user_can( $this->getController()->getBasePermissions() );
 	}
 
 	/**
@@ -301,29 +282,12 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	 * @see Worpit_Plugin_Base::handlePluginFormSubmit()
 	 */
 	protected function handlePluginFormSubmit() {
-		if ( !current_user_can( 'manage_options' ) || !isset( $_POST['icwp_admin_form_submit'] ) ) {
-			return;
-		}
-
-		check_admin_referer( self::$ParentMenuId );
 
 		$oDp = $this->loadDataProcessor();
 		//Clicked the button to acknowledge the installation of the plugin
 		$nUserId = $oDp->FetchPost( 'icwp_user_id' );
 		if ( $nUserId && $oDp->FetchPost( 'icwp_ack_plugin_notice' ) ) {
 			update_user_meta( $nUserId, self::$VariablePrefix.'ack_plugin_notice', 'Y' );
-			header( "Location: admin.php?page=".self::$ParentMenuId );
-			return;
-		}
-
-		//Clicked the button to enable/disable hand-shaking
-		if ( $oDp->FetchPost( 'icwp_admin_form_submit_handshake' ) ) {
-			if ( $oDp->FetchPost( 'icwp_admin_handshake_enabled' ) ) {
-				$this->setHandshakeEnabled( true );
-			}
-			else {
-				$this->setHandshakeEnabled( false );
-			}
 			header( "Location: admin.php?page=".self::$ParentMenuId );
 			return;
 		}
@@ -345,87 +309,7 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 		}
 
 		//Clicked a button to debug, either gather, or send
-		if ( $oDp->FetchPost( 'icwp_admin_form_submit_debug' ) ) {
-			if ( $oDp->FetchPost( 'submit_gather' ) ) {
-				$sUniqueName = uniqid().'_'.time().'.txt';
-				$sTarget = dirname(__FILE__).'/'.$sUniqueName;
-
-				$fCanWrite = true;
-				if ( !file_put_contents( $sTarget, 'TEST' ) ) {
-					$fCanWrite = false;
-				}
-				else {
-					if ( !is_file( $sTarget ) ) {
-						$fCanWrite = false;
-					}
-				}
-
-				include_once( dirname(__FILE__).'/src/functions/filesystem.php' );
-
-				$aData = array(
-					'_SERVER'				=> $_SERVER,
-					'_ENV'					=> $_ENV,
-					'ini_get_all'			=> @ini_get_all(),
-					'extensions_loaded'		=> @get_loaded_extensions(),
-					'php_version'			=> @phpversion(),
-					'has_exec'				=> function_exists( 'exec' )? 1: 0,
-					'fileperms'				=> array(
-						array(
-							'target'	=> dirname(__FILE__).'/src/controllers/',
-							'perms'		=> fileperms( dirname(__FILE__).'/src/controllers/' ),
-							'is_dir'	=> is_dir( dirname(__FILE__).'/src/controllers/' )? 1: 0
-						),
-						array(
-							'target'	=> dirname(__FILE__).'/src/',
-							'perms'		=> fileperms( dirname(__FILE__).'/src/' ),
-							'is_dir'	=> is_dir( dirname(__FILE__).'/src/' )? 1: 0
-						),
-						array(
-							'target'	=> __FILE__,
-							'perms'		=> fileperms( __FILE__ ),
-							'is_dir'	=> is_dir( __FILE__ )? 1: 0
-						),
-						array(
-							'target'	=> dirname(__FILE__),
-							'perms'		=> fileperms( dirname(__FILE__) ),
-							'is_dir'	=> is_dir( dirname(__FILE__) )? 1: 0
-						),
-						array(
-							'target'	=> dirname(__FILE__).'/../',
-							'perms'		=> fileperms( dirname(__FILE__).'/../' ),
-							'is_dir'	=> is_dir( dirname(__FILE__).'/../' )? 1: 0
-						)
-					)
-				);
-
-				$aData['.htaccess'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, '.htaccess' );
-				$aData['error_log'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'error_log' );
-				$aData['php_error_log'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'php_error_log' );
-
-				if ( !$fCanWrite ) {
-					echo "<h4>Your system configuration does not allow writing to the filesystem.</h4>";
-					echo "<p>Please take a moment and send the contents of this page to support@icontrolwp.com</p>";
-					echo "<hr />";
-					var_dump( $aData );
-				}
-				else {
-					file_put_contents( $sTarget, print_r( $aData, true ) );
-					$this->updateOption( 'debug_file', $sUniqueName );
-				}
-			}
-			else if ( $oDp->FetchPost( 'submit_information' ) ) {
-				$sTarget = $this->getOption( 'debug_file' );
-				$sTargetAbs = dirname(__FILE__).'/'.$sTarget;
-				if ( !empty( $sTarget ) && is_file( $sTargetAbs ) ) {
-					if ( wp_mail( 'support@icontrolwp.com', 'Debug Configuration', 'See attachment', '', $sTargetAbs ) ) {
-						unlink( $sTargetAbs );
-						$this->deleteOption( 'debug_file' );
-					}
-				}
-			}
-			header( "Location: admin.php?page=".self::$ParentMenuId );
-			return;
-		}
+//		$this->doDebugDataGather();
 
 		$sPage = $this->fetchGet( 'page' );
 		if ( !empty($sPage) ) {
@@ -464,34 +348,55 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	}
 
 	/**
-	 * @param array $aPlugins
+	 * @param array $aPluginLabels
 	 * @return array
 	 */
-	public function relabel_icwp_plugin( $aPlugins ) {
-		$aLabelData = $this->getPluginLabelData();
-		if ( $aLabelData['service_name'] == $this->getController()->getHumanName() ) {
-			return $aPlugins;
-		}
+	public function doRelabelPlugin( $aPluginLabels ) {
 
-		$sPluginFile = $this->getController()->getRootFile();
-		if ( array_key_exists( $sPluginFile, $aPlugins ) ) {
-			$aPlugins[$sPluginFile]['Name'] = $aLabelData['service_name'];
-			$aPlugins[$sPluginFile]['Description'] = $aLabelData['tag_line'];
-			$aPlugins[$sPluginFile]['Title'] = $aLabelData['service_name'];
-			$aPlugins[$sPluginFile]['Author'] = $aLabelData['service_name'];
-			$aPlugins[$sPluginFile]['AuthorName'] = $aLabelData['service_name'];
-			$aPlugins[$sPluginFile]['PluginURI'] = $aLabelData['plugin_home_url'];
-			$aPlugins[$sPluginFile]['AuthorURI'] = $aLabelData['plugin_home_url'];
+		if ( empty( $this->aPluginLabelData ) ) {
+			$aImageUrls = array(
+				'icon_url_16x16' => $this->getController()->getPluginUrl_Image( 'icontrolwp_16x16.png' ),
+				'icon_url_32x32' => $this->getController()->getPluginUrl_Image( 'icontrolwp_32x32.png' )
+			);
+
+			$aPluginLabels = array_merge(
+				$aPluginLabels,
+				$aImageUrls,
+				$this->getPluginWhiteLabelData()
+			);
+			// these are the old white labelling keys which will be replaced upon final release of white labelling.
+			if ( !empty( $aPluginLabels['service_name'] ) ) {
+				$aPluginLabels['Name'] = $aPluginLabels['service_name'];
+				$aPluginLabels['Title'] = $aPluginLabels['service_name'];
+				$aPluginLabels['Author'] = $aPluginLabels['service_name'];
+				$aPluginLabels['AuthorName'] = $aPluginLabels['service_name'];
+			}
+			if ( !empty( $aPluginLabels['tag_line'] ) ) {
+				$aPluginLabels['Description'] = $aPluginLabels['tag_line'];
+			}
+			if ( !empty( $aPluginLabels['plugin_home_url'] ) ) {
+				$aPluginLabels['PluginURI'] = $aPluginLabels['plugin_home_url'];
+				$aPluginLabels['AuthorURI'] = $aPluginLabels['plugin_home_url'];
+			}
+			$this->aPluginLabelData = $aPluginLabels;
 		}
-		return $aPlugins;
+		return $this->aPluginLabelData;
 	}
 
 	/**
-	 * @see Worpit_Plugin_Base::onWpPluginsLoaded()
+	 * @return array
+	 */
+	protected function getPluginWhiteLabelData() {
+		$oSys = $this->GetWhiteLabelSystem();
+		if ( !$oSys->getIsSystemEnabled() ) {
+			return array();
+		}
+		return $oSys->getSystemOptions();
+	}
+
+	/**
 	 */
 	public function onWpPluginsLoaded() {
-		// If the plugin is being initialised from iControlWP Dashboard
-//			$this->setAuthorizedUser();
 		$this->runCompatibilitySystem();
 	}
 
@@ -505,83 +410,18 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	/**
 	 * @param bool $fSetEnabled
 	 */
-	protected function setHandshakeEnabled( $fSetEnabled = true ) {
+	public static function SetHandshakeEnabled( $fSetEnabled = true ) {
+
+		self::getController()->loadCorePluginFeatureHandler();
+
 		require_once( dirname(__FILE__).'/src/loader.php' );
 		$sCanHandshake = worpitCheckCanHandshake();
 		if ( $fSetEnabled && !$sCanHandshake ) {//only set enabled if it's possible
 			return;
 		}
-		$this->updateOption( 'can_handshake', $sCanHandshake ? 'Y' : 'N' );
-		$this->updateOption( 'handshake_enabled', $fSetEnabled ? 'Y' : 'N' );
+		self::updateOption( 'can_handshake', $sCanHandshake ? 'Y' : 'N' );
+		self::updateOption( 'handshake_enabled', $fSetEnabled ? 'Y' : 'N' );
 	}
-
-	/**
-	 * (non-PHPdoc)
-	 * @see Worpit_Plugin_Base::onDisplayMainMenu()
-	 */
-	public function onDisplayMainMenu() {
-		$sDebugFile = ICWP_Plugin::getOption( 'debug_file' );
-		$aData = array(
-			'plugin_url'		=> $this->getController()->getPluginUrl(),
-			'label_data'		=> $this->getPluginLabelData(),
-			'key'				=> $this->getOption( 'key' ),
-			'pin'				=> $this->getOption( 'pin' ),
-			'assigned'			=> $this->getOption( 'assigned' ),
-			'assigned_to'		=> $this->getOption( 'assigned_to' ),
-			'is_linked'			=> self::IsLinked(),
-
-			'can_handshake'		=> $this->getOption( 'can_handshake' ),
-			'handshake_enabled'	=> $this->getOption( 'handshake_enabled' ),
-			'debug_file_url'	=> empty( $sDebugFile )? false: $this->getController()->getPluginUrl().$sDebugFile,
-
-			'nonce_field'		=> self::$ParentMenuId,
-			'form_action'		=> 'admin.php?page='.self::$ParentMenuId,
-
-			'image_url'			=> $this->getImageUrl( '' ),
-
-			'options_ga'		=> $this->getGoogleAnalyticsSystem()->getSystemOptions(),
-			'options_au'		=> $this->getAutoUpdatesSystem()->getSystemOptions(),
-			'options_ss'		=> $this->getStatsSystem()->getSystemOptions()
-		);
-		$this->display( 'icwp_index', $aData );
-	}
-
-	/**
-	 * Override this method to handle all the admin notices
-	 *
-	 * (non-PHPdoc)
-	 * @see Worpit_Plugin_Base::onWpAdminNotices()
-	 */
-	public function onWpAdminNotices() {
-		//Do we have admin priviledges?
-		if ( !current_user_can( 'manage_options' ) ) {
-			return;
-		}
-	}
-
-	public function onWpNetworkAdminNotices() {
-
-		if ( !is_super_admin() || !is_network_admin() ) {
-			return;
-		}
-
-		// if the user is searching from WorpitApp.com
-		if ( isset( $_GET['worpitapp'] ) && $_GET['worpitapp'] == 'install' ) {
-			$sNotice = '
-				<form method="post" action="admin.php?page=worpit-admin">
-					<p>Looking for your '.self::ServiceName.' Authentication Key?
-					<input type="submit" value="Get your Authentication Key here" name="submit" class="button-primary">
-					</p>
-				</form>
-			';
-			$this->getAdminNotice( $sNotice, 'updated', true );
-		}
-	}
-
-	/**
-	 * @return void
-	 */
-	public function onWpEnqueueScripts() { }
 
 	/**
 	 * @return boolean
@@ -625,44 +465,21 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	}
 
 	/**
-	 *
+	 * @return array
 	 */
 	public function getPluginDefaultOptions() {
-		$nTime = $this->loadDataProcessor()->GetRequestTime();
+		$oDp = $this->loadDataProcessor();
 		return array(
-			'key'				=> self::Generate( 24, 7 ),
+			'key'				=> $this->loadDataProcessor()->GenerateRandomString( 24, 7 ),
 			'pin'				=> '',
 			'assigned'			=> 'N',
 			'assigned_to'		=> '',
 			'can_handshake'		=> 'N',
 			'handshake_enabled'	=> 'N',
-			'activated_at'		=> $nTime,
-			'installed_at'		=> $nTime,
+			'activated_at'		=> $oDp->GetRequestTime(),
+			'installed_at'		=> $oDp->GetRequestTime(),
 			'installed_version'	=> $this->getController()->getVersion()
 		);
-	}
-
-	/**
-	 * @return array|boolean
-	 */
-	public function getDefaultPluginLabelData() {
-		return array(
-			'service_name'		=> $this->getController()->getHumanName(),
-			'tag_line'			=> 'Take Control Of All WordPress Sites From A Single Dashboard',
-			'plugin_home_url'	=> 'http://icwp.io/home',
-			'icon_url_16x16'	=> $this->getController()->getPluginUrl_Image( 'icontrolwp_16x16.png' ),
-			'icon_url_32x32'	=> $this->getController()->getPluginUrl_Image( 'icontrolwp_32x32.png' )
-		);
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getPluginLabelData() {
-		if ( empty( $this->aLabelData ) ) {
-			$this->runWhiteLabelSystem();
-		}
-		return $this->aLabelData;
 	}
 
 	/**
@@ -670,6 +487,13 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	 */
 	public static function GetActivatedAt() {
 		return ICWP_Plugin::getOption( 'activated_at' );
+	}
+
+	/**
+	 * @return integer
+	 */
+	public static function GetVersion() {
+		return self::getController()->getVersion();
 	}
 
 	/**
@@ -686,15 +510,15 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	 * Runs the white label processes
 	 */
 	protected function runWhiteLabelSystem() {
-		$this->aLabelData = $this->getDefaultPluginLabelData();
-
-		$oWhiteLabelSystem = $this->getWhiteLabelSystem();
-		if ( $oWhiteLabelSystem->getIsSystemEnabled() ) {
-			$aWhiteLabelData = $oWhiteLabelSystem->getSystemOptions();
-			if ( !empty( $aWhiteLabelData ) ) {
-				$this->aLabelData = $aWhiteLabelData;
-			}
-		}
+//		$this->aLabelData = $this->getDefaultPluginLabelData();
+//
+//		$oWhiteLabelSystem = $this->getWhiteLabelSystem();
+//		if ( $oWhiteLabelSystem->getIsSystemEnabled() ) {
+//			$aWhiteLabelData = $oWhiteLabelSystem->getSystemOptions();
+//			if ( !empty( $aWhiteLabelData ) ) {
+//				$this->aLabelData = $aWhiteLabelData;
+//			}
+//		}
 	}
 
 	/**
@@ -792,37 +616,14 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	 */
 	protected function runCompatibilitySystem() {
 
-		$aLabelData = $this->getPluginLabelData();
+		$aLabelData = $this->getController()->getPluginLabels();
 
 		$oSys = $this->getCompatibilitySystem();
 		$oSys->setIsSystemEnabled( true );
 		$oSys->setOption( 'service_ip_addresses_ipv4', self::$ServiceIpAddressesIpv4 );
 		$oSys->setOption( 'service_ip_addresses_ipv6', self::$ServiceIpAddressesIpv6 );
-		$oSys->setOption( 'service_name', $aLabelData['service_name'] );
+		$oSys->setOption( 'service_name', $aLabelData['Name'] );
 		$oSys->run();
-	}
-
-	protected function createMenu() {
-
-		//if the site is a multisite and we're not on the network admin, get out.
-		if ( function_exists( 'is_multisite' ) ) {
-			if ( is_multisite() && !is_network_admin() && self::$NetworkAdminOnly ) {
-				return true;
-			}
-		}
-
-		$sFullParentMenuId = $this->getFullParentMenuId();
-		$aLabelData = $this->getPluginLabelData();
-		add_menu_page(
-			$aLabelData['service_name'], //self::$ParentTitle
-			$aLabelData['service_name'], //self::$ParentName
-			self::$ParentPermissions,
-			$sFullParentMenuId,
-			array( $this, 'onDisplayMainMenu' ),
-			$aLabelData['icon_url_16x16']
-		);
-
-		$this->fixSubmenu();
 	}
 
 	/**
@@ -832,6 +633,91 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	 */
 	static private function GetSrcDir_Systems( $sFile = '' ) {
 		return dirname(__FILE__).WORPIT_DS.'src'.WORPIT_DS.'plugin'.WORPIT_DS.$sFile;
+	}
+
+	private function doDebugDataGather() {
+//		if ( $oDp->FetchPost( 'icwp_admin_form_submit_debug' ) ) {
+//
+//			if ( $oDp->FetchPost( 'submit_gather' ) ) {
+//				$sUniqueName = uniqid().'_'.time().'.txt';
+//				$sTarget = dirname(__FILE__).'/'.$sUniqueName;
+//
+//				$fCanWrite = true;
+//				if ( !file_put_contents( $sTarget, 'TEST' ) ) {
+//					$fCanWrite = false;
+//				}
+//				else {
+//					if ( !is_file( $sTarget ) ) {
+//						$fCanWrite = false;
+//					}
+//				}
+//
+//				include_once( dirname(__FILE__).'/src/functions/filesystem.php' );
+//
+//				$aData = array(
+//					'_SERVER'				=> $_SERVER,
+//					'_ENV'					=> $_ENV,
+//					'ini_get_all'			=> @ini_get_all(),
+//					'extensions_loaded'		=> @get_loaded_extensions(),
+//					'php_version'			=> @phpversion(),
+//					'has_exec'				=> function_exists( 'exec' )? 1: 0,
+//					'fileperms'				=> array(
+//						array(
+//							'target'	=> dirname(__FILE__).'/src/controllers/',
+//							'perms'		=> fileperms( dirname(__FILE__).'/src/controllers/' ),
+//							'is_dir'	=> is_dir( dirname(__FILE__).'/src/controllers/' )? 1: 0
+//						),
+//						array(
+//							'target'	=> dirname(__FILE__).'/src/',
+//							'perms'		=> fileperms( dirname(__FILE__).'/src/' ),
+//							'is_dir'	=> is_dir( dirname(__FILE__).'/src/' )? 1: 0
+//						),
+//						array(
+//							'target'	=> __FILE__,
+//							'perms'		=> fileperms( __FILE__ ),
+//							'is_dir'	=> is_dir( __FILE__ )? 1: 0
+//						),
+//						array(
+//							'target'	=> dirname(__FILE__),
+//							'perms'		=> fileperms( dirname(__FILE__) ),
+//							'is_dir'	=> is_dir( dirname(__FILE__) )? 1: 0
+//						),
+//						array(
+//							'target'	=> dirname(__FILE__).'/../',
+//							'perms'		=> fileperms( dirname(__FILE__).'/../' ),
+//							'is_dir'	=> is_dir( dirname(__FILE__).'/../' )? 1: 0
+//						)
+//					)
+//				);
+//
+//				$aData['.htaccess'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, '.htaccess' );
+//				$aData['error_log'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'error_log' );
+//				$aData['php_error_log'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'php_error_log' );
+//
+//				if ( !$fCanWrite ) {
+//					echo "<h4>Your system configuration does not allow writing to the filesystem.</h4>";
+//					echo "<p>Please take a moment and send the contents of this page to support@icontrolwp.com</p>";
+//					echo "<hr />";
+//					var_dump( $aData );
+//				}
+//				else {
+//					file_put_contents( $sTarget, print_r( $aData, true ) );
+//					$this->updateOption( 'debug_file', $sUniqueName );
+//				}
+//			}
+//			else if ( $oDp->FetchPost( 'submit_information' ) ) {
+//				$sTarget = $this->getOption( 'debug_file' );
+//				$sTargetAbs = dirname(__FILE__).'/'.$sTarget;
+//				if ( !empty( $sTarget ) && is_file( $sTargetAbs ) ) {
+//					if ( wp_mail( 'support@icontrolwp.com', 'Debug Configuration', 'See attachment', '', $sTargetAbs ) ) {
+//						unlink( $sTargetAbs );
+//						$this->deleteOption( 'debug_file' );
+//					}
+//				}
+//			}
+//			header( "Location: admin.php?page=".self::$ParentMenuId );
+//			return;
+//		}
 	}
 }
 

@@ -92,24 +92,24 @@ function worpitFindWpLoad() {
 }
 
 /**
- * @param string $insName
+ * @param string $sName
  * @return string
  */
-function worpitGetOption( $insName ) {
-	return get_option( Worpit_Plugin::$VariablePrefix.$insName );
+function worpitGetOption( $sName ) {
+	return ICWP_Plugin::getOption( $sName );
 }
 
 
 /**
- * @param string $insName
- * @param mixed $inmValue
+ * @param string $sName
+ * @param mixed $mValue
  * @return string
  */
-function icwpUpdateOption( $insName, $inmValue ) {
-	if ( $inmValue == worpitGetOption($insName) ) {
+function icwpUpdateOption( $sName, $mValue ) {
+	if ( $mValue == worpitGetOption( $sName ) ) {
 		return true;
 	}
-	return update_option( Worpit_Plugin::$VariablePrefix.$insName, $inmValue );
+	return ICWP_Plugin::updateOption( $sName, $mValue );
 }
 
 /**
@@ -155,16 +155,10 @@ function worpitVerifyPackageRequest( $inaData ) {
 	$fRemoteRead = worpitRemoteReadBasic( $sUrl, $sContents );
 	
 	if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
-
-		$sUrl = sprintf( WORPIT_VERIFICATION_CHECK_URL.'%s/%s/%s', $inaData['verification_code'], $inaData['package_name'], $inaData['pin']	);
-		$fRemoteRead = worpitRemoteReadBasic( $sUrl, $sContents );
-
-		if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
-			$fCanHandshake = worpitCheckCanHandshake();
-			update_option( Worpit_Plugin::$VariablePrefix.'can_handshake', ($fCanHandshake? 'Y': 'N') );
-			update_option( Worpit_Plugin::$VariablePrefix.'handshake_enabled', ($fCanHandshake? 'Y': 'N') );
-			worpitFatal( 9996, 'VerifyCallFailed: '.$sUrl.' : '.$sContents );
-		}
+		$fCanHandshake = worpitCheckCanHandshake();
+		ICWP_Plugin::updateOption( 'can_handshake', ($fCanHandshake? 'Y': 'N') );
+		ICWP_Plugin::updateOption( 'handshake_enabled', ($fCanHandshake? 'Y': 'N') );
+		worpitFatal( 9996, 'VerifyCallFailed: '.$sUrl.' : '.$sContents );
 	}
 
 	$oJson = json_decode( trim( $sContents ) );
@@ -201,13 +195,13 @@ function worpitValidateSystem() {
  * This method is used by the verify package, therefore if the content is not json
  * parseable (i.e. HEADER = true), this will severely bust the verification process.
  *
- * @param string $insUrl
+ * @param string $sUrlToRead
  * @param string $outsResponse
  * @return boolean
  */
-function worpitRemoteReadBasic( $insUrl, &$outsResponse = '' ) {
-	$insUrl = trim( $insUrl );
-	$aUrlParts = parse_url( $insUrl );
+function worpitRemoteReadBasic( $sUrlToRead, &$outsResponse = '' ) {
+	$sUrlToRead = trim( $sUrlToRead );
+	$aUrlParts = parse_url( $sUrlToRead );
 	if ( !$aUrlParts ) {
 		return false;
 	}
@@ -220,7 +214,7 @@ function worpitRemoteReadBasic( $insUrl, &$outsResponse = '' ) {
 			'redirection'	=> $nTimeout,
 			'sslverify'		=> true //this is default, but just to make sure.
 		);
-		$oResponse = wp_remote_get( $insUrl, $aArgs );
+		$oResponse = wp_remote_get( $sUrlToRead, $aArgs );
 		if ( !is_wp_error($oResponse) && $oResponse['response']['code'] == 200 && isset( $oResponse['body'] ) ) {
 			$outsResponse = $oResponse['body'];
 			return true;
@@ -229,7 +223,7 @@ function worpitRemoteReadBasic( $insUrl, &$outsResponse = '' ) {
 
 	if ( function_exists( 'curl_version' ) ) {
 		$oCurl = curl_init();
-		curl_setopt( $oCurl, CURLOPT_URL,				$insUrl );
+		curl_setopt( $oCurl, CURLOPT_URL,				$sUrlToRead );
 		curl_setopt( $oCurl, CURLOPT_USERAGENT,			WORPIT_USER_AGENT );
 		curl_setopt( $oCurl, CURLOPT_RETURNTRANSFER,	1 );
 		@curl_setopt( $oCurl, CURLOPT_FOLLOWLOCATION,	true );
@@ -238,7 +232,7 @@ function worpitRemoteReadBasic( $insUrl, &$outsResponse = '' ) {
 		curl_setopt( $oCurl, CURLOPT_TIMEOUT,			$nTimeout );
 		curl_setopt( $oCurl, CURLOPT_HEADER,			false );
 
-		if ( preg_match( '/^https/i', $insUrl ) ) {
+		if ( preg_match( '/^https/i', $sUrlToRead ) ) {
 			curl_setopt( $oCurl, CURLOPT_SSL_VERIFYPEER,	false );
 			curl_setopt( $oCurl, CURLOPT_SSL_VERIFYHOST,	0 );
 		}
@@ -267,12 +261,12 @@ function worpitRemoteReadBasic( $insUrl, &$outsResponse = '' ) {
 			)
 		);
 		$oContext = stream_context_create( $aOptions );
-		$outsResponse = file_get_contents( $insUrl, false, $oContext );
+		$outsResponse = file_get_contents( $sUrlToRead, false, $oContext );
 
 		return ( $outsResponse !== false );
 	}
 	else {
-		list( $sDiscard, $sUrl ) = explode( '://', $insUrl, 2 );
+		list( $sDiscard, $sUrl ) = explode( '://', $sUrlToRead, 2 );
 		list( $sHost, $sUri ) = explode( '/', $sUrl, 2 );
 		
 		$outsResponse = worpitHttpRequest( 'GET', $sHost, 80, $sUri );
@@ -371,10 +365,7 @@ function worpitHttpRequest( $verb = 'GET', $ip, $port = 80, $uri = '/', $getdata
 function worpitCheckCanHandshake() {
 	$fRemoteRead = worpitRemoteReadBasic( ICWP_VERIFICATION_TEST_URL, $sContents );
 	if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
-		$fRemoteRead = worpitRemoteReadBasic( WORPIT_VERIFICATION_TEST_URL, $sContents );
-		if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
-			return false;
-		}
+		return false;
 	}
 
 	$oJson = json_decode( trim( $sContents ) );

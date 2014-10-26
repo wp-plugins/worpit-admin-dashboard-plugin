@@ -1,17 +1,33 @@
 <?php
 
+include_once( dirname(__FILE__).ICWP_DS.'widgets'.ICWP_DS.'icwp_widgets.php' );
+
+function printOptionsPageHeader( $sSection = '', $sPluginName = ''  ) {
+	$sLinkedIcwp = '<a href="http://icwp.io/3a" target="_blank">iControlWP</a>';
+	echo '<div class="page-header">';
+	echo '<h2><a id="pluginlogo_32" class="header-icon32" href="http://icwp.io/2k" target="_blank"></a>';
+	$sBaseTitle = sprintf( ( '%s (from %s)' ), $sPluginName, $sLinkedIcwp );
+	if ( !empty( $sSection ) ) {
+		echo sprintf( '%s :: %s', $sSection, $sBaseTitle );
+	}
+	else {
+		echo $sBaseTitle;
+	}
+	echo '</h2></div>';
+}
+
 function printAllPluginOptionsForm( $aAllPluginOptions, $sVarPrefix = '', $nOptionsPerRow = 1 ) {
-	
+
 	if ( empty($aAllPluginOptions) ) {
 		return;
 	}
 
-	$iRowWidth = 8; //8 spans.
-	$iOptionWidth = $iRowWidth / $nOptionsPerRow;
+	$nRowWidth = 8; //8 spans.
+	$iOptionWidth = $nRowWidth / $nOptionsPerRow;
 
 	//Take each Options Section in turn
 	foreach ( $aAllPluginOptions as $sOptionSection ) {
-		
+
 		$sRowId = str_replace( ' ', '', $sOptionSection['section_title'] );
 		//Print the Section Title
 		echo '
@@ -20,19 +36,19 @@ function printAllPluginOptionsForm( $aAllPluginOptions, $sVarPrefix = '', $nOpti
 						<fieldset>
 							<legend>'.$sOptionSection['section_title'].'</legend>
 		';
-		
+
 		$rowCount = 1;
 		$nOptionCount = 0;
 		//Print each option in the option section
 		foreach ( $sOptionSection['section_options'] as $aOption ) {
-			
+
 			$nOptionCount = $nOptionCount % $nOptionsPerRow;
 
 			if ( $nOptionCount == 0 ) {
 				echo '
 				<div class="row row_number_'.$rowCount.'">';
 			}
-			
+
 			echo getPluginOptionSpan( $aOption, $iOptionWidth, $sVarPrefix );
 
 			$nOptionCount++;
@@ -42,9 +58,9 @@ function printAllPluginOptionsForm( $aAllPluginOptions, $sVarPrefix = '', $nOpti
 				</div> <!-- / options row -->';
 				$rowCount++;
 			}
-	
+
 		}
-	
+
 		echo '
 					</fieldset>
 				</div>
@@ -65,19 +81,19 @@ function printAllPluginOptionsForm( $aAllPluginOptions, $sVarPrefix = '', $nOpti
 
 	}//foreach section
 
-}//printAllPluginOptionsForm
+}
 
 function getPluginOptionSpan( $inaOption, $iSpanSize, $sVarPrefix = '' ) {
-	
+
 	list( $sOptionKey, $sOptionSaved, $sOptionDefault, $mOptionType, $sOptionHumanName, $sOptionTitle, $sOptionHelpText ) = $inaOption;
-	
+
 	if ( $sOptionKey == 'spacer' ) {
 		$sHtml = '
 			<div class="span'.$iSpanSize.'">
 			</div>
 		';
 	} else {
-	
+
 		$sSpanId = 'span_'.$sVarPrefix.$sOptionKey;
 		$sHtml = '
 			<div class="span'.$iSpanSize.'" id="'.$sSpanId.'">
@@ -90,11 +106,11 @@ function getPluginOptionSpan( $inaOption, $iSpanSize, $sVarPrefix = '' ) {
 		$sAdditionalClass = '';
 		$sTextInput = '';
 		$sChecked = '';
-		
+
 		if ( $mOptionType === 'checkbox' ) {
-			
+
 			$sChecked = ( $sOptionSaved == 'Y' )? 'checked="checked"' : '';
-			
+
 			$sHtml .= '
 				<input '.$sChecked.'
 						type="checkbox"
@@ -103,7 +119,7 @@ function getPluginOptionSpan( $inaOption, $iSpanSize, $sVarPrefix = '' ) {
 						class="'.$sAdditionalClass.'"
 						id="'.$sVarPrefix.$sOptionKey.'" />
 						'.$sOptionTitle;
-			
+
 			$sOptionHelpText = '<p class="help-block">'.$sOptionHelpText.'</p>';
 
 		} else if ( $mOptionType === 'text' ) {
@@ -115,29 +131,29 @@ function getPluginOptionSpan( $inaOption, $iSpanSize, $sVarPrefix = '' ) {
 						value="'.$sTextInput.'"
 						placeholder="'.$sTextInput.'"
 						id="'.$sVarPrefix.$sOptionKey.'" />';
-			
+
 			$sOptionHelpText = '<p class="help-block">'.$sOptionHelpText.'</p>';
-			
+
 		} else if ( is_array($mOptionType) ) { //it's a select, or radio
-			
+
 			$sInputType = array_shift($mOptionType);
 
 			if ( $sInputType == 'select' ) {
 				$sHtml .= '<p>'.$sOptionTitle.'</p>
 				<select id="'.$sVarPrefix.$sOptionKey.'" name="'.$sVarPrefix.$sOptionKey.'">';
 			}
-			
+
 			foreach( $mOptionType as $aInput ) {
-				
+
 				$sHtml .= '
 					<option value="'.$aInput[0].'" id="'.$sVarPrefix.$sOptionKey.'_'.$aInput[0].'"' . (( $sOptionSaved == $aInput[0] )? ' selected="selected"' : '') .'>'. $aInput[1].'</option>';
 			}
-			
+
 			if ($sInputType == 'select') {
 				$sHtml .= '
 				</select>';
 			}
-			
+
 			$sOptionHelpText = '<p class="help-block">'.$sOptionHelpText.'</p>';
 
 		} else if ( strpos( $mOptionType, 'less_' ) === 0 ) {	//dealing with the LESS compiler options
@@ -145,22 +161,22 @@ function getPluginOptionSpan( $inaOption, $iSpanSize, $sVarPrefix = '' ) {
 			if ( empty($sOptionSaved) ) {
 				$sOptionSaved = $sOptionDefault;
 			}
-			
+
 			$sHtml .= '<input class="span2'.$sAdditionalClass.'"
 						type="text"
 						placeholder="'.esc_attr( $sOptionSaved ).'"
 						name="'.$sVarPrefix.$sOptionKey.'"
 						value="'.esc_attr( $sOptionSaved ).'"
 						id="'.$sVarPrefix.$sOptionKey.'" />';
-			
+
 			$sToggleTextInput = '';
-			
+
 			if ( $mOptionType === 'less_color' ) {
-				
+
 				if ( !getIsHexColour( $sOptionSaved ) ) {
 					$sChecked = ' checked';
 				}
-				
+
 				$sToggleTextInput= '
 							<span class="toggle_checkbox">
 							  <label>
@@ -170,31 +186,41 @@ function getPluginOptionSpan( $inaOption, $iSpanSize, $sVarPrefix = '' ) {
 									style="vertical-align: -2px;" /> edit as text
 							  </label>
 							</span>';
-				
+
 			} else if ( $mOptionType === 'less_size' || $mOptionType === 'less_font' ) {
 			}
-			
+
 			$sHelpSection = '
 					<div class="help_section">
 						<span class="label label-less-name">@'.str_replace( HLT_BootstrapLess::$LESS_PREFIX, '', $sOptionKey ).'</span>
 						'.$sToggleTextInput.'
 						<span class="label label-less-name">'.$sOptionDefault.'</span>
 					</div>';
-			
+
 		} else {
 			echo 'we should never reach this point';
 		}
-		
+
 		$sHtml .= '
 						</label>
 						'.$sOptionHelpText.'
 					  </div>
 					</div><!-- controls -->'
-					.$sHelpSection.'
+				  .$sHelpSection.'
 				</div><!-- control-group -->
 			</div>
 		';
 	}
-	
+
 	return $sHtml;
 }
+?>
+
+<div class="wrap">
+	<div class="bootstrap-wpadmin <?php echo isset($icwp_sFeatureSlug) ? $icwp_sFeatureSlug : ''; ?>">
+		<div class="row">
+			<div class="span12">
+				<?php include_once( 'icwp-app-state_summary.php' ); ?>
+			</div>
+		</div>
+<?php echo printOptionsPageHeader( $icwp_sFeatureName, $icwp_sPluginName );

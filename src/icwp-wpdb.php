@@ -15,12 +15,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-if ( !class_exists('ICWP_WpDb_V1') ):
+if ( !class_exists('ICWP_APP_WpDb_V1') ):
 
-	class ICWP_WpDb_V1 {
+	class ICWP_APP_WpDb_V1 {
 
 		/**
-		 * @var ICWP_WpDb_V1
+		 * @var ICWP_APP_WpDb_V1
 		 */
 		protected static $oInstance = NULL;
 
@@ -111,15 +111,17 @@ if ( !class_exists('ICWP_WpDb_V1') ):
 		}
 
 		/**
-		 * @param string $sTable
+		 * @param string $sTableName
+		 * @param string $sArrayMapCallBack
 		 *
 		 * @return array
 		 */
-		public function getColumnsForTable( $sTable ) {
+		public function getColumnsForTable( $sTableName, $sArrayMapCallBack = '' ) {
 			$oDb = $this->loadWpdb();
-			$aColumns = array();
-			foreach( $oDb->get_col( "DESC " . $sTable, 0 ) as $sColumnName ) {
-				$aColumns[] = $sColumnName;
+			$aColumns = $oDb->get_col( "DESCRIBE " . $sTableName, 0 );
+
+			if ( !empty( $sArrayMapCallBack ) && function_exists( $sArrayMapCallBack ) ) {
+				return array_map( $sArrayMapCallBack, $aColumns );
 			}
 			return $aColumns;
 		}
@@ -226,7 +228,7 @@ endif;
 
 if ( !class_exists('ICWP_APP_WpDb') ):
 
-	class ICWP_APP_WpDb extends ICWP_WpDb_V1 {
+	class ICWP_APP_WpDb extends ICWP_APP_WpDb_V1 {
 		/**
 		 * @return ICWP_APP_WpDb
 		 */

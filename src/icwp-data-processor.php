@@ -403,25 +403,36 @@ if ( !class_exists('ICWP_APP_DataProcessor_V4') ):
 		}
 
 		/**
+		 * Strength can be 1, 3, 7, 15
+		 *
 		 * @param integer $nLength
-		 * @param boolean $fBeginLetter
+		 * @param integer $nStrength
+		 * @param boolean $fIgnoreAmb
 		 * @return string
 		 */
-		static public function GenerateRandomString( $nLength = 10, $fBeginLetter = false ) {
+		static public function GenerateRandomString( $nLength = 10, $nStrength = 7, $fIgnoreAmb = true ) {
 			$aChars = array( 'abcdefghijkmnopqrstuvwxyz' );
-			$aChars[] = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 
+			if ( $nStrength & 2 ) {
+				$aChars[] = '023456789';
+			}
+
+			if ( $nStrength & 4 ) {
+				$aChars[] = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+			}
+
+			if ( $nStrength & 8 ) {
+				$aChars[] = '$%^&*#';
+			}
+
+			if ( !$fIgnoreAmb ) {
+				$aChars[] = 'OOlI1';
+			}
+
+			$sPassword = '';
 			$sCharset = implode( '', $aChars );
-			if ( $fBeginLetter ) {
-				$sPassword = $sCharset[ ( rand() % strlen( $sCharset ) ) ];
-			}
-			else {
-				$sPassword = '';
-			}
-			$sCharset .= '023456789';
-
-			for ( $i = $fBeginLetter? 1 : 0; $i < $nLength; $i++ ) {
-				$sPassword .= $sCharset[ ( rand() % strlen( $sCharset ) ) ];
+			for ( $i = 0; $i < $nLength; $i++ ) {
+				$sPassword .= $sCharset[(rand() % strlen( $sCharset ))];
 			}
 			return $sPassword;
 		}

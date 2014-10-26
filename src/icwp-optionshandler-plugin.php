@@ -28,9 +28,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 
 		public function __construct( $oPluginController, $aFeatureProperties = array() ) {
 			parent::__construct( $oPluginController, $aFeatureProperties );
-
-			add_action( 'deactivate_plugin', array( $this, 'onWpHookDeactivatePlugin' ), 1, 1 );
-			add_filter( $this->doPluginPrefix( 'report_email_address' ), array( $this, 'getPluginReportEmail' ) );
+//			add_filter( $this->doPluginPrefix( $this->getFeatureSlug().'display_data' ), array( $this, 'getDisplayData' ) );
 		}
 
 		/**
@@ -60,6 +58,20 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		}
 
 		public function doExtraSubmitProcessing() {
+
+			$oDp = $this->loadDataProcessor();
+			//Clicked the button to enable/disable hand-shaking
+			if ( $oDp->FetchPost( 'icwp_admin_form_submit_handshake' ) ) {
+				if ( $oDp->FetchPost( 'icwp_admin_handshake_enabled' ) ) {
+					ICWP_Plugin::SetHandshakeEnabled( true );
+				}
+				else {
+					ICWP_Plugin::SetHandshakeEnabled( false );
+				}
+				header( "Location: admin.php?page=".self::$ParentMenuId );
+				return;
+			}
+
 			$this->doAddAdminFeedback( sprintf( _wpsf__( '%s Plugin options updated successfully.' ), $this->getController()->getHumanName() ) );
 		}
 
@@ -98,44 +110,6 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		}
 
 		/**
-		 */
-		public function displayFeatureConfigPage( ) {
-			$aPluginSummaryData = apply_filters( $this->doPluginPrefix( 'get_feature_summary_data' ), array() );
-			$aData = array(
-				'aSummaryData'		=> $aPluginSummaryData
-			);
-			$this->display( $aData );
-		}
-
-		/**
-		 * Hooked to 'deactivate_plugin' and can be used to interrupt the deactivation of this plugin.
-		 *
-		 * @param string $sPlugin
-		 */
-		public function onWpHookDeactivatePlugin( $sPlugin ) {
-			if ( strpos( $this->getController()->getRootFile(), $sPlugin ) !== false ) {
-				if ( !apply_filters( $this->doPluginPrefix( 'has_permission_to_submit' ), true ) ) {
-					wp_die(
-						_wpsf__( 'Sorry, you do not have permission to disable this plugin.')
-						. _wpsf__( 'You need to authenticate first.' )
-					);
-				}
-			}
-		}
-
-		/**
-		 * @param $sEmail
-		 * @return string
-		 */
-		public function getPluginReportEmail( $sEmail ) {
-			$sReportEmail = $this->getOpt( 'block_send_email_address' );
-			if ( !empty( $sReportEmail ) && is_email( $sReportEmail ) ) {
-				$sEmail = $sReportEmail;
-			}
-			return $sEmail;
-		}
-
-		/**
 		 * @param array $aOptionsParams
 		 * @return array
 		 * @throws Exception
@@ -165,25 +139,6 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 
 			$sKey = $aOptionsParams['key'];
 			switch( $sKey ) {
-
-				case 'block_send_email_address' :
-					$sName = _wpsf__( 'Report Email' );
-					$sSummary = _wpsf__( 'Where to send email reports' );
-					$sDescription = sprintf( _wpsf__( 'If this is empty, it will default to the blog admin email address: %s' ), '<br /><strong>'.get_bloginfo('admin_email').'</strong>' );
-					break;
-
-				case 'enable_upgrade_admin_notice' :
-					$sName = _wpsf__( 'Plugin Notices' );
-					$sSummary = _wpsf__( 'Display Notices For Updates' );
-					$sDescription = _wpsf__( 'Disable this option to hide certain plugin admin notices about available updates and post-update notices' );
-					break;
-
-				case 'delete_on_deactivate' :
-					$sName = _wpsf__( 'Delete Plugin Settings' );
-					$sSummary = _wpsf__( 'Delete All Plugin Settings Upon Plugin Deactivation' );
-					$sDescription = _wpsf__( 'Careful: Removes all plugin options when you deactivate the plugin' );
-					break;
-
 				default:
 					throw new Exception( sprintf( 'An option has been defined but without strings assigned to it. Option key: "%s".', $sKey ) );
 			}
@@ -198,6 +153,18 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		 * This is the point where you would want to do any options verification
 		 */
 		protected function doPrePluginOptionsSave() {
+
+			$aOldOptions = array(
+				'key',
+				'pin',
+				'assigned',
+				'assigned_to',
+				'can_handshake',
+				'handshake_enabled'
+			);
+			foreach( $aOldOptions as $sOption ) {
+				$this->setOpt( $sOption, ICWP_Plugin::getOption( $sOption ) );
+			}
 
 			$nInstalledAt = $this->getOpt( 'installation_time' );
 			if ( empty($nInstalledAt) || $nInstalledAt <= 0 ) {

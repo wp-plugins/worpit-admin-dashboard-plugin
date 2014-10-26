@@ -54,14 +54,14 @@ class ICWP_AutoUpdates extends ICWP_System_Base {
 	 *
 	 */
 	public function convertFromOldSystem() {
-		$aOld = Worpit_Plugin::getOption('auto_update_plugins');
+		$aOld = ICWP_Plugin::getOption( 'auto_update_plugins' );
 		$aAutoUpdateItems = $this->getOption( 'auto_update_plugins', array() );
 		if ( !empty( $aOld ) ) {
 			$this->loadSystemOptions();
 			$aAutoUpdateItems = array_unique( array_merge( $aOld, $aAutoUpdateItems ) );
 			$this->setOption( 'auto_update_plugins', $aAutoUpdateItems );
 			$this->setIsSystemEnabled(true);
-			Worpit_Plugin::deleteOption('auto_update_plugins');
+			ICWP_Plugin::deleteOption('auto_update_plugins');
 		}
 		if ( !empty($aAutoUpdateItems) ) {
 			$this->setIsSystemEnabled(true);
@@ -93,9 +93,9 @@ class ICWP_AutoUpdates extends ICWP_System_Base {
 	public function getAutoUpdates( $insContext = 'plugins' ) {
 		$aAutoUpdateItems = $this->getOption( 'auto_update_'.$insContext, array() );
 
-		$aOld = Worpit_Plugin::getOption('auto_update_plugins');
+		$aOld = ICWP_Plugin::getOption('auto_update_plugins');
 		if ( $insContext == 'plugins' && !empty( $aOld ) ) {
-			Worpit_Plugin::deleteOption('auto_update_plugins');
+			ICWP_Plugin::deleteOption('auto_update_plugins');
 			$aAutoUpdateItems = array_unique( array_merge( $aOld, $aAutoUpdateItems ) );
 			$this->setOption( 'auto_update_plugins', $aAutoUpdateItems );
 		}
