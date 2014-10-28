@@ -572,6 +572,19 @@ if ( !class_exists('ICWP_APP_DataProcessor_V4') ):
 		}
 
 		/**
+		 * @param $sData
+		 *
+		 * @return mixed
+		 */
+		public function doJsonDecode( $sData ) {
+			if ( !class_exists( 'JSON' )  ) {
+				require_once( 'lib/json/JSON.php' );
+			}
+			$oJson = new JSON();
+			return @$oJson->unserialize( $sData );
+		}
+
+		/**
 		 * @param $sKey
 		 * @param $mValue
 		 * @param int $nExpireLength

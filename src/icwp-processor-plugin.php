@@ -42,10 +42,17 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			 * a different variation of POST variables.
 			 */
 			add_action( 'plugins_loaded', array( $this, 'onWpPluginsLoaded' ), 1 );
-			add_action( 'wp_loaded', array( $this, 'onWpInit' ), 1 );
+			add_action( 'init', array( $this, 'onWpInit' ), 1 );
+			add_action( 'wp_loaded', array( $this, 'onWpLoaded' ), 1 );
+			add_filter( $this->getController()->doPluginPrefix( 'verify_site_can_handshake' ), array( $this, 'doVerifyCanHandshake' ) );
+			add_filter( $this->getController()->doPluginPrefix( 'verify_is_icwp_authenticated' ), array( $this, 'getIcwpAuthenticated' ) );
+
+			if ( true ) {
+
+				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+			}
 
 			$oDp = $this->loadDataProcessor();
-
 			if ( ( $oDp->FetchRequest( 'getworpitpluginurl' ) == 1 ) ) {
 				$this->returnIcwpPluginUrl();
 			}
@@ -61,42 +68,76 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 
 		public function onWpPluginsLoaded() {
 			$this->doWpEngine();
-			$this->doPluginStates();
 		}
 
 		public function onWpInit() {
 			$this->doAPI();
 		}
 
-		/**
-		 */
-		protected function doPluginStates() {
-			$oDp = $this->loadDataProcessor();
-			$oWp = $this->loadWpFunctionsProcessor();
-
-			if ( $oDp->FetchGet( 'geticwpstate' ) ) {
-				$aStates = array(
-					'can_handshake'			=> $this->getOption( 'can_handshake' ),
-					'handshake_enabled'		=> $this->getOption( 'handshake_enabled' ),
-					'plugin_url'			=> $this->getController()->getPluginUrl()
-				);
-				$sResponse = '<icwpresponse>'.serialize( $aStates ).'</icwpresponse>';
-				die( $sResponse );
-			}
-			if ( $oDp->FetchGet( 'seticwpstate' ) && ICWP_Plugin::GetIsVisitorIcwp()  ) {
-				//TODO: FIX
-				if ( $oDp->FetchGet( 'handshake_enabled' ) && $this->getOption( 'handshake_enabled' ) != 'Y' ) {
-					$this->setHandshakeEnabled( true );
-				}
-			}
+		public function onWpLoaded() {
 		}
 
 		/**
+		 * @param boolean $fIsIcwp
+		 *
+		 * @return boolean
 		 */
-		protected function doSetPluginStates() {
+		public function getIcwpAuthenticated( $fIsIcwp ) {
 
-			if ( !empty( $_GET['seticwpstate'] ) && self::GetIsVisitorIcwp() ) {
+			if ( !$fIsIcwp ) {
+				return false;
 			}
+
+			// We shouldn't be recognised as authenticated unless we're at least linked
+			if ( !$this->getFeatureOptions()->getIsSiteLinked() ) {
+				return false;
+			}
+
+			$oDp = $this->loadDataProcessor();
+
+			// Otherwise we use the old-style Key + PIN Auth sent in the POST
+			$sAuthKey = $this->getOption( 'key' );
+			$sPostKey = $oDp->FetchPost( 'key' );
+			$sPostPin = $oDp->FetchPost( 'pin' );
+			if ( empty( $sPostKey ) || empty( $sPostPin ) ) {
+				return false;
+			}
+
+			if ( $sAuthKey != trim( $sPostKey ) ) {
+				return false;
+			}
+
+			$sPin = $this->getOption( 'pin' );
+			if ( $sPin !== md5( trim( $sPostPin ) ) ) {
+				return false;
+			}
+
+			return true;
+		}
+
+		/**
+		 * @param boolean $fCanHandshake
+		 *
+		 * @return boolean
+		 */
+		public function doVerifyCanHandshake( $fCanHandshake ) {
+
+			$nTimeout = 20;
+			$sHandshakeVerifyUrl = $this->getFeatureOptions()->getOpt( 'handshake_verify_url' );
+			$aArgs = array(
+				'timeout'		=> $nTimeout,
+				'redirection'	=> $nTimeout,
+				'sslverify'		=> true //this is default, but just to make sure.
+			);
+			$oFs = $this->loadFileSystemProcessor();
+			$sResponse = $oFs->getUrlContent( $sHandshakeVerifyUrl, $aArgs );
+
+			if ( !$sResponse ) {
+				return false;
+			}
+			$oJson = $this->loadDataProcessor()->doJsonDecode( trim( $sResponse ) );
+
+			return ( isset( $oJson->success ) && $oJson->success === true );
 		}
 
 		/**
@@ -122,8 +163,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		 *
 		 */
 		protected function doWpEngine() {
-			if ( @getenv( 'IS_WPE' ) == '1' && class_exists( 'WpeCommon', false ) ) {
-				$this->setAuthorizedUser();
+			if ( @getenv( 'IS_WPE' ) == '1' && class_exists( 'WpeCommon', false ) && $this->setAuthorizedUser() ) {
 				$oWpEngineCommon = WpeCommon::instance();
 				$oWpEngineCommon->set_wpe_auth_cookie();
 			}
@@ -134,8 +174,8 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		 */
 		protected function setAuthorizedUser() {
 			// moved this to here to ensure it can't get called from elsewhere
-			if ( !ICWP_Plugin::GetIcwpAuthenticated( true ) ) {
-				return;
+			if ( !apply_filters( $this->getController()->doPluginPrefix( 'verify_is_icwp_authenticated' ), true ) ) {
+				return false;
 			}
 
 			$oDp = $this->loadDataProcessor();
@@ -156,6 +196,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			}
 
 			$oWp->setUserLoggedIn( empty( $sWpUser ) ? 'admin' : $sWpUser );
+			return true;
 		}
 
 		/**

@@ -28,6 +28,43 @@ class ICWP_WhiteLabel extends ICWP_System_Base {
 		$this->sOptionsKey = 'whitelabel_system_options';
 		parent::__construct();
 	}
+
+	public function run() {
+
+		if ( !$this->getIsSystemEnabled() ) {
+			return true;
+		}
+		add_filter( $this->getController()->doPluginPrefix( 'plugin_labels' ), array( $this, 'doRelabelPlugin' ) );
+	}
+
+	/**
+	 * @param array $aPluginLabels
+	 *
+	 * @return array
+	 */
+	public function doRelabelPlugin( $aPluginLabels ) {
+
+		$aPluginLabels = array_merge(
+			$aPluginLabels,
+			$this->getSystemOptions()
+		);
+
+		// these are the old white labelling keys which will be replaced upon final release of white labelling.
+		if ( !empty( $aPluginLabels['service_name'] ) ) {
+			$aPluginLabels['Name'] = $aPluginLabels['service_name'];
+			$aPluginLabels['Title'] = $aPluginLabels['service_name'];
+			$aPluginLabels['Author'] = $aPluginLabels['service_name'];
+			$aPluginLabels['AuthorName'] = $aPluginLabels['service_name'];
+		}
+		if ( !empty( $aPluginLabels['tag_line'] ) ) {
+			$aPluginLabels['Description'] = $aPluginLabels['tag_line'];
+		}
+		if ( !empty( $aPluginLabels['plugin_home_url'] ) ) {
+			$aPluginLabels['PluginURI'] = $aPluginLabels['plugin_home_url'];
+			$aPluginLabels['AuthorURI'] = $aPluginLabels['plugin_home_url'];
+		}
+		return $aPluginLabels;
+	}
 }
 
 return new ICWP_WhiteLabel();

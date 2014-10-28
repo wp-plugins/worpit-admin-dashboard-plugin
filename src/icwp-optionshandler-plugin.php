@@ -57,22 +57,92 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 			$this->setOpt( 'feedback_admin_notice', $aFeedback );
 		}
 
-		public function doExtraSubmitProcessing() {
+		/***
+		 * @return bool
+		 */
+		public function getIsSiteLinked() {
+			return ( $this->getOptIs( 'assigned', 'Y' ) && !$this->getOptIs( 'assigned_to', '' ) );
+		}
 
+
+		public function doExtraSubmitProcessing() {
 			$oDp = $this->loadDataProcessor();
-			//Clicked the button to enable/disable hand-shaking
-			if ( $oDp->FetchPost( 'icwp_admin_form_submit_handshake' ) ) {
-				if ( $oDp->FetchPost( 'icwp_admin_handshake_enabled' ) ) {
-					ICWP_Plugin::SetHandshakeEnabled( true );
+
+			if ( $oDp->FetchPost( $this->getController()->doPluginOptionPrefix( 'reset_plugin' ) ) ) {
+				$sTo = $this->getOpt( 'assigned_to' );
+				$sKey = $this->getOpt( 'key' );
+				$sPin = $this->getOpt( 'pin' );
+
+				if ( !empty( $sTo ) && !empty( $sKey ) && !empty( $sPin ) ) {
+					$aParts = array( urlencode( $sTo ), $sKey, $sPin );
+					$this->loadFileSystemProcessor()->getUrl( $this->getOpt( 'reset_site_url' ) . implode( '/', $aParts ) );
 				}
-				else {
-					ICWP_Plugin::SetHandshakeEnabled( false );
-				}
-				header( "Location: admin.php?page=".self::$ParentMenuId );
+				$this->setOpt( 'assigned_to', '' );
+				$this->setOpt( 'assigned', 'N' );
+				$this->setOpt( 'key', '' );
+				$this->setOpt( 'pin', '' );
 				return;
 			}
 
-			$this->doAddAdminFeedback( sprintf( _wpsf__( '%s Plugin options updated successfully.' ), $this->getController()->getHumanName() ) );
+			//Clicked the button to remotely add site$this->getController()->doPluginOptionPrefix( 'reset_plugin' )
+			if ( $oDp->FetchPost( $this->getController()->doPluginOptionPrefix( 'remotely_add_site_submit' ) ) ) {
+				$sAuthKey = $oDp->FetchPost( 'account_auth_key' );
+				$sEmailAddress = $oDp->FetchPost( 'account_email_address' );
+				if ( $sAuthKey && $sEmailAddress ) {
+
+					$sAuthKey = trim( $sAuthKey );
+					$sEmailAddress = trim( $sEmailAddress );
+
+					$oResponse = $this->doRemoteAddSiteLink( $sAuthKey, $sEmailAddress );
+					if ( $oResponse ) {
+						$this->doAddAdminFeedback( sprintf( ( '%s Plugin options updated successfully.' ), $this->getController()->getHumanName() ) );
+					}
+				}
+				$this->doAddAdminFeedback( sprintf( ( '%s Site NOT added.' ), $this->getController()->getHumanName() ) );
+				return;
+			}
+
+			//Clicked the button to enable/disable hand-shaking
+			if ( $oDp->FetchPost( $this->getController()->doPluginOptionPrefix( 'handshake_enable' ) ) ) {
+				if ( apply_filters( $this->getController()->doPluginPrefix( 'verify_site_can_handshake' ), false ) ) {
+					$this->setOpt( 'handshake_enabled', 'Y' );
+				}
+			}
+			else {
+				$this->setOpt( 'handshake_enabled', 'N' );
+			}
+			$this->doAddAdminFeedback( sprintf( ( '%s Plugin options updated successfully.' ), $this->getController()->getHumanName() ) );
+		}
+
+		/**
+		 * This function always returns false, however the return is never actually used just yet.
+		 *
+		 * @param string $sAuthKey
+		 * @param string $sEmailAddress
+		 *
+		 * @return boolean
+		 */
+		public function doRemoteAddSiteLink( $sAuthKey, $sEmailAddress ) {
+			if ( $this->getIsSiteLinked() ) {
+				return false;
+			}
+
+			if ( strlen( $sAuthKey ) == 32 && is_email( $sEmailAddress ) ) {
+
+				//looks good. Now attempt remote link.
+				$aPostVars = array(
+					'wordpress_url'				=> home_url(),
+					'plugin_url'				=> $this->getController()->getPluginUrl(),
+					'account_email_address'		=> $sEmailAddress,
+					'account_auth_key'			=> $sAuthKey,
+					'plugin_key'				=> $this->getOpt( 'key' )
+				);
+				$aArgs = array(
+					'body'	=> $aPostVars
+				);
+				return $this->loadFileSystemProcessor()->postUrl( $this->getOpt( 'remote_add_site_url' ), $aArgs );
+			}
+			return false;
 		}
 
 		/**
@@ -154,17 +224,23 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		 */
 		protected function doPrePluginOptionsSave() {
 
-			$aOldOptions = array(
-				'key',
-				'pin',
-				'assigned',
-				'assigned_to',
-				'can_handshake',
-				'handshake_enabled'
-			);
-			foreach( $aOldOptions as $sOption ) {
-				$this->setOpt( $sOption, ICWP_Plugin::getOption( $sOption ) );
+			$oDp = $this->loadDataProcessor();
+
+			$sAuthKey = $this->getOpt( 'key' );
+			if ( empty( $sAuthKey ) || strlen( $sAuthKey ) != 24 ) {
+				$this->setOpt( 'key', $oDp->GenerateRandomString( 24, 7 ) );
 			}
+
+			$nActivatedAt = $this->getOpt( 'activated_at' );
+			if ( empty( $nActivatedAt ) ) {
+				$this->setOpt( 'activated_at', $oDp->GetRequestTime() );
+			}
+			$nInstalledAt = $this->getOpt( 'installed_at' );
+			if ( empty( $nInstalledAt ) ) {
+				$this->setOpt( 'installed_at', $oDp->GetRequestTime() );
+			}
+
+			$this->setOpt( 'installed_version', $this->getController()->getVersion() );
 
 			$nInstalledAt = $this->getOpt( 'installation_time' );
 			if ( empty($nInstalledAt) || $nInstalledAt <= 0 ) {
@@ -175,8 +251,18 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		protected function updateHandler() {
 			parent::updateHandler();
 
-			if ( $this->getVersion() == '0.0' ) {
-				return;
+			if ( $this->getVersion() == '2.8.2' ) {
+				$aOldOptions = array(
+					'key',
+					'pin',
+					'assigned',
+					'assigned_to',
+					'can_handshake',
+					'handshake_enabled'
+				);
+				foreach( $aOldOptions as $sOption ) {
+					$this->setOpt( $sOption, ICWP_Plugin::getOption( $sOption ) );
+				}
 			}
 		}
 	}

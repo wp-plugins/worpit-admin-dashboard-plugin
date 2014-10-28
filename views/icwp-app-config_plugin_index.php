@@ -14,6 +14,31 @@ $sUrlServiceHomeFeatures = 'http://icwp.io/features';
 
 $fWhitelabelled = ($sServiceName != 'iControlWP');
 ?>
+
+	<script type="text/javascript">
+		jQuery( document ).ready(
+			function () {
+				jQuery( 'input.confirm-plugin-reset' ).on( 'click',
+					function() {
+						var $oThis = jQuery( this );
+						if ( $oThis.is( ':checked' ) ) {
+							jQuery( 'button[name=submit_reset]' ).removeAttr( 'disabled' );
+						}
+						else {
+							jQuery( 'button[name=submit_reset]' ).attr( 'disabled', 'disabled' );
+						}
+					}
+				);
+			}
+		);
+		function icwp_formAddSiteSubmit() {
+			var $elemSubmit = jQuery( "button[name=icwp_add_remotely_submit]" );
+			$elemSubmit.html( "Please wait, attempting to add site - please do not reload this page." );
+			$elemSubmit.attr( "disabled", "disabled" );
+
+			var form = jQuery( "#icwpform-remote-add-site" ).submit();
+		}
+	</script>
 	<style>
 		#pluginlogo_32 {
 			background: url( "<?php echo $icwp_aPluginLabels['icon_url_32x32']; ?>" ) no-repeat 0px 3px transparent;
@@ -43,25 +68,26 @@ $fWhitelabelled = ($sServiceName != 'iControlWP');
 			</div>
 		</div>
 	</div>
-<?php if ( !$fIsLinked ) : ?>
+<?php if ( true || !$fIsLinked ) : ?>
 	<div class="row">
 		<div class="span12">
 			<div class="well">
 				<h3>Remotely add site to <?php echo $sServiceName; ?> account</h3>
 				<p>You may add your site to your <?php echo $sServiceName; ?> from here, or from within your <?php echo $sServiceName; ?> Dashboard. Both methods are supported and secure.</p>
 				<p>Note: If this doesn't work, your web host probably has restrictions on outgoing web connections. Please try adding this site from you <?php echo $sServiceName; ?> dashboard.</p>
-				<form action="<?php echo $icwp_form_action; ?>" method="POST" name="icwpform-remote-add-site" id="form-remote-add-site" class="">
+				<form method="POST" name="icwpform-remote-add-site" id="form-remote-add-site" class="">
 					<?php wp_nonce_field( $icwp_nonce_field ); ?>
-					<input type="hidden" name="icwp_admin_form_submit" value="1" />
-					<input type="hidden" name="icwp_admin_form_submit_add_remotely" value="1" />
+					<input type="hidden" name="<?php echo $icwp_var_prefix; ?>plugin_form_submit" value="Y" />
 					<fieldset>
 						<legend style="margin-bottom: 8px;">Remote Add Site</legend>
-						<label for="_account_auth_key"><?php echo $sServiceName; ?> Unique Account Authentication Key:</label>
-						<input name="account_auth_key" type="text" class="span6" id="_account_auth_key" />
-						<label for="_account_email_address"><?php echo $sServiceName; ?> Account Email Address:</label>
-						<input name="account_email_address" type="text" class="span6" id="_account_email_address"/>
+						<label for="_account_auth_key"><?php echo $sServiceName; ?> Unique Account Authentication Key:
+							<input name="account_auth_key" type="text" class="span6" id="_account_auth_key" />
+						</label>
+						<label for="_account_email_address"><?php echo $sServiceName; ?> Account Email Address:
+							<input name="account_email_address" type="text" class="span6" id="_account_email_address"/>
+						</label>
 					</fieldset>
-					<button class="btn" name="icwp_add_remotely_submit" type="submit" onclick="icwp_formAddSiteSubmit()" >Add Site</button>
+					<button class="btn" name="<?php echo $icwp_var_prefix; ?>remotely_add_site_submit" value="Y" type="submit" onclick="icwp_formAddSiteSubmit()" >Add Site</button>
 				</form>
 			</div>
 		</div>
@@ -80,18 +106,17 @@ $fWhitelabelled = ($sServiceName != 'iControlWP');
 					<div class="<?php echo ( !$fCanHandshake )? 'cant-handshake' : ''; ?>">
 						<form action="<?php echo $fCanHandshake? $icwp_form_action : ''; ?>" method="POST" name="form-hand-shaking" id="form-hand-shaking">
 							<?php wp_nonce_field( $icwp_nonce_field ); ?>
-							<input type="hidden" name="icwp_admin_form_submit" value="1" />
-							<input type="hidden" name="icwp_admin_form_submit_handshake" value="1" />
+							<input type="hidden" name="<?php echo $icwp_var_prefix; ?>plugin_form_submit" value="Y" />
 							<label>
-								<input
-									type="checkbox"
-									name="icwp_admin_handshake_enabled"
-									value="Y"
-									class=""
-									id="icwp_admin_handshake_enabled"
+								<input type="checkbox"
+									   name="<?php echo $icwp_var_prefix; ?>handshake_enable"
+									   value="Y"
+									   class=""
+									   id="<?php echo $icwp_var_prefix; ?>handshake_enable"
 									<?php echo $fHandshakeEnabled ? 'checked="checked"' : ''; ?>
 									<?php echo !$fCanHandshake ? 'disabled="disabled"' : ''; ?>
-									/> If this box is checked, plugin handshaking will be enabled. If you have problems syncing with <?php echo $sServiceName; ?>, disable this option.
+									/>
+									If this box is checked, plugin handshaking will be enabled. If you have problems syncing with <?php echo $sServiceName; ?>, disable this option.
 							</label>
 							<button class="btn btn-warning" name="submit" type="submit" <?php echo !$fCanHandshake ? 'disabled="disabled"' : ''; ?>>Change Option</button>
 						</form>
@@ -112,10 +137,14 @@ $fWhitelabelled = ($sServiceName != 'iControlWP');
 					<div>
 						<form action="<?php echo $icwp_form_action; ?>" method="POST" name="form-reset-auth" id="form-reset-auth">
 							<?php wp_nonce_field( $icwp_nonce_field ); ?>
-							<input type="hidden" name="icwp_admin_form_submit" value="1" />
-							<input type="hidden" name="icwp_admin_form_submit_resetplugin" value="1" />
+							<input type="hidden" name="<?php echo $icwp_var_prefix; ?>plugin_form_submit" value="Y" />
 							<label>
-								<input class="confirm-plugin-reset" type="checkbox" value="Y" style="margin-right:10px;" />I'm sure I want to reset the <?php echo $sServiceName; ?> plugin.
+								<input type="checkbox"
+									   name="<?php echo $icwp_var_prefix; ?>reset_plugin"
+									   class="confirm-plugin-reset"
+									   value="Y"
+									   style="margin-right:10px;"
+									/>I'm sure I want to reset the <?php echo $sServiceName; ?> plugin.
 							</label>
 							<button class="btn btn-danger" disabled="disabled" name="submit_reset" type="submit">Reset Plugin</button>
 						</form>

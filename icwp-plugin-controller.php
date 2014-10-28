@@ -87,9 +87,9 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 			add_filter( 'plugin_action_links',		array( $this, 'onWpPluginActionLinks' ), 10, 4 );
 			add_action( 'admin_menu',				array( $this, 'onWpAdminMenu' ) );
 			add_action(	'network_admin_menu',		array( $this, 'onWpAdminMenu' ) );
+			add_action( 'wp_loaded',			    array( $this, 'onWpLoaded' ) );
 			add_action( 'init',			        	array( $this, 'onWpInit' ) );
 			add_filter( 'auto_update_plugin',		array( $this, 'onWpAutoUpdate' ), 10000, 2 );
-			add_filter( 'all_plugins',				array( $this, 'doPluginLabels' ) );
 			add_action( 'shutdown',					array( $this, 'onWpShutdown' ) );
 			$this->registerActivationHooks();
 		}
@@ -126,11 +126,11 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 		if ( $this->getIsValidAdminArea() ) {
 			add_action( 'admin_notices',			array( $this, 'onWpAdminNotices' ) );
 			add_action( 'network_admin_notices',	array( $this, 'onWpAdminNotices' ) );
-			add_filter( 'all_plugins', array( $this, 'filter_hidePluginFromTableList' ) );
+			add_filter( 'all_plugins', 				array( $this, 'filter_hidePluginFromTableList' ) );
+			add_filter( 'all_plugins',				array( $this, 'doPluginLabels' ) );
 			add_filter( 'site_transient_update_plugins', array( $this, 'filter_hidePluginUpdatesFromUI' ) );
 			add_action( 'in_plugin_update_message-'.$this->getPluginBaseFile(), array( $this, 'onWpPluginUpdateMessage' ) );
 		}
-		$this->doPluginFormSubmit();
 		$this->doLoadTextDomain();
 	}
 
@@ -140,6 +140,12 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	public function onWpAdminInit() {
 		add_action( 'admin_enqueue_scripts', 	array( $this, 'onWpEnqueueAdminCss' ), 99 );
 		add_action( 'admin_enqueue_scripts', 	array( $this, 'onWpEnqueueAdminJs' ), 99 );
+	}
+
+	/**
+	 */
+	public function onWpLoaded() {
+		$this->doPluginFormSubmit();
 	}
 
 	/**

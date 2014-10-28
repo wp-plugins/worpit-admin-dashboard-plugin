@@ -36,6 +36,8 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 			return;
 		}
 
+		add_filter( $this->getController()->doPluginPrefix( 'verify_is_icwp_authenticated' ), array( $this, 'getIsRequestIcwpIp' ) );
+
 		// always do whitelists when the admin side is loaded - no need on the frontend
 		if ( is_admin() ) {
 			$this->setupWhitelists();
@@ -46,6 +48,21 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 			$this->unhookMaintenanceModePlugins();
 			$this->unhookSecurityPlugins();
 		}
+	}
+
+	/**
+	 * @param bool $fIsIcwp
+	 *
+	 * @return bool
+	 */
+	public function getIsRequestIcwpIp( $fIsIcwp ) {
+		if ( !$fIsIcwp ) {
+			return false;
+		}
+
+		$sIp = $this->getVisitorIpAddress( false );
+		return ( in_array( $sIp, $this->getOption( 'service_ip_addresses_ipv4', array() ) )
+				 || in_array( $sIp, $this->getOption( 'service_ip_addresses_ipv6', array() ) ) );
 	}
 
 	/**

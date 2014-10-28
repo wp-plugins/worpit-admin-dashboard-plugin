@@ -131,12 +131,9 @@ if ( !class_exists('ICWP_APP_WpFilesystem') ):
 			return $this->sWpConfigPath;
 		}
 
-		/**
-		 * @param string $sUrl
-		 * @return bool
-		 */
-		public function getUrl( $sUrl ) {
-			$mResult = wp_remote_get( $sUrl );
+		public function requestUrl( $sUrl, $aRequestArgs = array() ) {
+
+			$mResult = wp_remote_request( $sUrl, $aRequestArgs );
 			if ( is_wp_error( $mResult ) ) {
 				return false;
 			}
@@ -148,14 +145,38 @@ if ( !class_exists('ICWP_APP_WpFilesystem') ):
 
 		/**
 		 * @param string $sUrl
+		 * @param array $aRequestArgs
+		 *
+		 * @return bool
+		 */
+		public function getUrl( $sUrl, $aRequestArgs = array() ) {
+			$aRequestArgs['method'] = 'GET';
+			return $this->requestUrl( $sUrl, $aRequestArgs );
+		}
+
+		/**
+		 * @param string $sUrl
+		 * @param array $aRequestArgs
+		 *
 		 * @return bool|string
 		 */
-		public function getUrlContent( $sUrl ) {
-			$aResponse = $this->getUrl( $sUrl );
+		public function getUrlContent( $sUrl, $aRequestArgs = array() ) {
+			$aResponse = $this->getUrl( $sUrl, $aRequestArgs );
 			if ( !$aResponse || !isset( $aResponse['body'] ) ) {
 				return false;
 			}
 			return $aResponse['body'];
+		}
+
+		/**
+		 * @param string $sUrl
+		 * @param array $aRequestArgs
+		 *
+		 * @return bool
+		 */
+		public function postUrl( $sUrl, $aRequestArgs = array() ) {
+			$aRequestArgs['method'] = 'POST';
+			return $this->requestUrl( $sUrl, $aRequestArgs );
 		}
 
 		public function getCanWpRemoteGet() {

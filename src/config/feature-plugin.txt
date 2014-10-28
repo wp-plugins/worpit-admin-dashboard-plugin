@@ -40,6 +40,18 @@ options:
     section: 'section_non_ui'
     default: 'N'
   -
+    key: 'handshake_verify_url'
+    section: 'section_non_ui'
+    value: 'https://app.icontrolwp.com/system/verification/test/'
+  -
+    key: 'remote_add_site_url'
+    section: 'section_non_ui'
+    value: 'https://app.icontrolwp.com/system/remote/add_site'
+  -
+    key: 'reset_site_url'
+    section: 'section_non_ui'
+    value: 'https://app.icontrolwp.com/system/verification/reset/'
+  -
     key: 'installation_time'
     section: 'section_non_ui'
   -

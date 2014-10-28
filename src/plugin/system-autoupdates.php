@@ -37,35 +37,17 @@ class ICWP_AutoUpdates extends ICWP_System_Base {
 	/**
 	 * Does all the setup of the individual processors
 	 *
-	 * @param bool $infForce
+	 * @param bool $fForce
 	 * @return bool
 	 */
-	public function run( $infForce = false ) {
+	public function run( $fForce = false ) {
 		if ( !$this->getIsSystemEnabled() ) {
 			return false;
 		}
 		$oProcessor = $this->getAutoUpdatesProcessor();
-		$oProcessor->setForceRunAutoUpdates( $infForce );
+		$oProcessor->setForceRunAutoUpdates( $fForce );
 		$oProcessor->run();
 		return true;
-	}
-
-	/**
-	 *
-	 */
-	public function convertFromOldSystem() {
-		$aOld = ICWP_Plugin::getOption( 'auto_update_plugins' );
-		$aAutoUpdateItems = $this->getOption( 'auto_update_plugins', array() );
-		if ( !empty( $aOld ) ) {
-			$this->loadSystemOptions();
-			$aAutoUpdateItems = array_unique( array_merge( $aOld, $aAutoUpdateItems ) );
-			$this->setOption( 'auto_update_plugins', $aAutoUpdateItems );
-			$this->setIsSystemEnabled(true);
-			ICWP_Plugin::deleteOption('auto_update_plugins');
-		}
-		if ( !empty($aAutoUpdateItems) ) {
-			$this->setIsSystemEnabled(true);
-		}
 	}
 
 	/**
@@ -87,19 +69,11 @@ class ICWP_AutoUpdates extends ICWP_System_Base {
 	}
 
 	/**
-	 * @param string $insContext
+	 * @param string $sContext
 	 * @return array
 	 */
-	public function getAutoUpdates( $insContext = 'plugins' ) {
-		$aAutoUpdateItems = $this->getOption( 'auto_update_'.$insContext, array() );
-
-		$aOld = ICWP_Plugin::getOption('auto_update_plugins');
-		if ( $insContext == 'plugins' && !empty( $aOld ) ) {
-			ICWP_Plugin::deleteOption('auto_update_plugins');
-			$aAutoUpdateItems = array_unique( array_merge( $aOld, $aAutoUpdateItems ) );
-			$this->setOption( 'auto_update_plugins', $aAutoUpdateItems );
-		}
-		return $aAutoUpdateItems;
+	public function getAutoUpdates( $sContext = 'plugins' ) {
+		return $this->getOption( 'auto_update_'.$sContext, array() );
 	}
 
 	/**
