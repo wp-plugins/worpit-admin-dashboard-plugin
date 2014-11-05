@@ -47,6 +47,36 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Autoupdates_V3') ):
 			return is_array( $aUpdates ) ? $aUpdates : array();
 		}
 
+		/**
+		 * @param array $aUpdateItems
+		 * @param string $sContext
+		 *
+		 * @return array
+		 */
+		public function setAutoUpdates( $aUpdateItems, $sContext = 'plugins' ) {
+			if ( is_array( $aUpdateItems ) ) {
+				$this->setOpt( 'auto_update_'.$sContext, $aUpdateItems );
+			}
+		}
+
+		/**
+		 * @param string $sSlug
+		 * @param bool $fSetOn
+		 * @param string $sContext
+		 */
+		public function setAutoUpdate( $sSlug, $fSetOn = false, $sContext = 'plugins' ) {
+			$aAutoUpdateItems = $this->getAutoUpdates( $sContext );
+
+			$nInArray = array_search( $sSlug, $aAutoUpdateItems );
+			if ( $fSetOn && $nInArray === false ) {
+				$aAutoUpdateItems[] = $sSlug;
+			}
+			else if ( !$fSetOn && $nInArray !== false ) {
+				unset( $aAutoUpdateItems[$nInArray] );
+			}
+			$this->setAutoUpdates( $aAutoUpdateItems, $sContext );
+		}
+
 		public function doPrePluginOptionsSave() {
 
 			// Migrate from old system

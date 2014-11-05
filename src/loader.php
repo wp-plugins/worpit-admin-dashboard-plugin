@@ -54,7 +54,6 @@ require_once( dirname(__FILE__).'/functions/filesystem.php' );
 require_once( dirname(__FILE__).'/controllers/base.php' );
 require_once( dirname(__FILE__).'/controllers/transport.php' );
 require_once( dirname(__FILE__).'/helper/wordpress.php' );
-require_once( dirname(__FILE__).'/plugin/base.php' );
 
 /**
  * We want full error reporting and handling so that eventually we can help people fix their blogs and also

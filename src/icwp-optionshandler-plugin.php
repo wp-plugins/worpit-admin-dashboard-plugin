@@ -28,7 +28,6 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 
 		public function __construct( $oPluginController, $aFeatureProperties = array() ) {
 			parent::__construct( $oPluginController, $aFeatureProperties );
-//			add_filter( $this->doPluginPrefix( $this->getFeatureSlug().'display_data' ), array( $this, 'getDisplayData' ) );
 		}
 
 		/**
@@ -165,58 +164,11 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		}
 
 		/**
-		 * @return mixed
-		 */
-		public function getIsMainFeatureEnabled() {
-			return true;
-		}
-
-		/**
 		 * @param array $aSummaryData
 		 * @return array
 		 */
 		public function filter_getFeatureSummaryData( $aSummaryData ) {
 			return $aSummaryData;
-		}
-
-		/**
-		 * @param array $aOptionsParams
-		 * @return array
-		 * @throws Exception
-		 */
-		protected function loadStrings_SectionTitles( $aOptionsParams ) {
-
-			$sSectionSlug = $aOptionsParams['section_slug'];
-			switch( $aOptionsParams['section_slug'] ) {
-
-				case 'section_general_plugin_options' :
-					$sTitle = _wpsf__( 'General Plugin Options' );
-					break;
-
-				default:
-					throw new Exception( sprintf( 'A section slug was defined but with no associated strings. Slug: "%s".', $sSectionSlug ) );
-			}
-			$aOptionsParams['section_title'] = $sTitle;
-			return $aOptionsParams;
-		}
-
-		/**
-		 * @param array $aOptionsParams
-		 * @return array
-		 * @throws Exception
-		 */
-		protected function loadStrings_Options( $aOptionsParams ) {
-
-			$sKey = $aOptionsParams['key'];
-			switch( $sKey ) {
-				default:
-					throw new Exception( sprintf( 'An option has been defined but without strings assigned to it. Option key: "%s".', $sKey ) );
-			}
-
-			$aOptionsParams['name'] = $sName;
-			$aOptionsParams['summary'] = $sSummary;
-			$aOptionsParams['description'] = $sDescription;
-			return $aOptionsParams;
 		}
 
 		/**
