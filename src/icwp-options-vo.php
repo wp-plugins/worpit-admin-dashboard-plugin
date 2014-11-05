@@ -252,6 +252,18 @@ class ICWP_APP_OptionsVO extends ICWP_APP_Foundation {
 	/**
 	 * @return array
 	 */
+	public function getStoredOptions() {
+		try {
+			return $this->loadOptionsValuesFromStorage();
+		}
+		catch ( Exception $oE ) {
+			return array();
+		}
+	}
+
+	/**
+	 * @return array
+	 */
 	public function getRawData_FullFeatureConfig() {
 		if ( empty( $this->aRawOptionsConfigData ) ) {
 			$this->aRawOptionsConfigData = $this->readYamlConfiguration( $this->sOptionsName );

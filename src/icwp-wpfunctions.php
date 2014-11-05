@@ -313,6 +313,23 @@ if ( !class_exists('ICWP_WpFunctions_V5') ):
 		}
 
 		/**
+		 * @return WP_Post
+		 */
+		public function getCurrentPost() {
+			global $post;
+			return $post;
+		}
+
+		/**
+		 * @return int
+		 */
+		public function getCurrentPostId() {
+			/** @var WP_Post $oPost */
+			$oPost = $this->getCurrentPost();
+			return empty( $oPost->ID ) ? -1 : $oPost->ID;
+		}
+
+		/**
 		 * @return string
 		 */
 		public function getUrl_CurrentAdminPage() {
@@ -508,6 +525,14 @@ if ( !class_exists('ICWP_WpFunctions_V5') ):
 				}
 			}
 			return null;
+		}
+
+		/**
+		 * @return integer
+		 */
+		public function getCurrentUserLevel() {
+			$oUser = $this->getCurrentWpUser();
+			return ( is_object($oUser) && ($oUser instanceof WP_User) )? $oUser->get( 'user_level' ) : -1;
 		}
 
 		/**

@@ -4,6 +4,7 @@ properties:
   name: 'Dashboard'
   show_feature_menu_item: true
   storage_key: 'plugin' # should correspond exactly to that in the plugin.yaml
+  auto_enabled: true
 # Options Sections
 sections:
   -
@@ -60,3 +61,26 @@ options:
   -
     key: 'update_success_tracker'
     section: 'section_non_ui'
+  -
+    key: 'active_plugin_features'
+    section: 'section_non_ui'
+    value:
+      -
+        slug: 'security'
+        storage_key: 'security'
+        load_priority: 0
+      -
+        slug: 'compatibility'
+        storage_key: 'compatibility'
+      -
+        slug: 'google_analytics'
+        storage_key: 'google_analytics'
+      -
+        slug: 'autoupdates'
+        storage_key: 'autoupdates'
+      -
+        slug: 'statistics'
+        storage_key: 'statistics'
+      -
+        slug: 'whitelabel'
+        storage_key: 'whitelabel'

@@ -163,12 +163,14 @@ if ( !class_exists('ICWP_APP_WpDb_V1') ):
 		}
 
 		/**
-		 * @param $nFormat
-		 * @return array|boolean
+		 * @param string $sTable
+		 * @param string $nFormat
+		 *
+		 * @return mixed
 		 */
-		public function selectAll( $nFormat = ARRAY_A ) {
+		public function selectAllFromTable( $sTable, $nFormat = ARRAY_A ) {
 			$oDb = $this->loadWpdb();
-			$sQuery = sprintf( "SELECT * FROM `%s` WHERE `deleted_at` = '0'", $this->getTableName() );
+			$sQuery = sprintf( "SELECT * FROM `%s` WHERE `deleted_at` = '0'", $sTable );
 			return $oDb->get_results( $sQuery, $nFormat );
 		}
 

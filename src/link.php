@@ -31,10 +31,6 @@ $sRequestedKey = isset( $_GET['key'] )? trim( $_GET['key'] ): '';
 $sRequestedPin = isset( $_GET['pin'] )? md5( trim( $_GET['pin'] ) ): '';
 $sRequestedAcc = isset( $_GET['accname'] )? trim( $_GET['accname'] ): '';
 
-var_dump($sRequestedKey);
-var_dump($sRequestedPin);
-var_dump($sRequestedAcc);
-var_dump($sKey);
 if ( $sRequestedKey == trim( $sKey ) && !$fAssigned ) {
 	if ( !ICWP_Plugin::updateOption( 'pin', $sRequestedPin ) ) {
 		worpitFatal( 10, 'UpdateOptionFailed:'.'pin:'.$sRequestedPin );

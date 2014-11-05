@@ -44,11 +44,12 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			add_action( 'plugins_loaded', array( $this, 'onWpPluginsLoaded' ), 1 );
 			add_action( 'init', array( $this, 'onWpInit' ), 1 );
 			add_action( 'wp_loaded', array( $this, 'onWpLoaded' ), 1 );
-			add_filter( $this->getController()->doPluginPrefix( 'verify_site_can_handshake' ), array( $this, 'doVerifyCanHandshake' ) );
-			add_filter( $this->getController()->doPluginPrefix( 'verify_is_icwp_authenticated' ), array( $this, 'getIcwpAuthenticated' ) );
+			$oCon = $this->getController();
+			add_filter( $oCon->doPluginPrefix( 'verify_site_can_handshake' ), array( $this, 'doVerifyCanHandshake' ) );
+			add_filter( $oCon->doPluginPrefix( 'verify_is_icwp_authenticated' ), array( $this, 'getIcwpAuthenticated' ) );
+			add_filter( $oCon->doPluginPrefix( 'is_linked' ), array( $this->getFeatureOptions(), 'getIsSiteLinked' ) );
 
 			if ( true ) {
-
 				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 			}
 
@@ -57,7 +58,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 				$this->returnIcwpPluginUrl();
 			}
 
-			if ( $this->getController()->getIsValidAdminArea() ) {
+			if ( $oCon->getIsValidAdminArea() ) {
 				$oFO = $this->getFeatureOptions();
 				add_filter( $oFO->doPluginPrefix( 'admin_notices' ), array( $this, 'adminNoticeFeedback' ) );
 				add_filter( $oFO->doPluginPrefix( 'admin_notices' ), array( $this, 'adminNoticeAddSite' ) );
@@ -71,10 +72,10 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		}
 
 		public function onWpInit() {
-			$this->doAPI();
 		}
 
 		public function onWpLoaded() {
+			$this->doAPI();
 		}
 
 		/**
@@ -247,7 +248,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			$oWp = $this->loadWpFunctionsProcessor();
 			$sAckPluginNotice = $oWp->getUserMeta( $oCon->doPluginOptionPrefix( 'ack_plugin_notice' ) );
 
-			if ( ICWP_Plugin::IsLinked() || $sAckPluginNotice == 'Y' ) {
+			if ( apply_filters( $oCon->doPluginPrefix( 'is_linked' ), false ) ) {
 				return;
 			}
 

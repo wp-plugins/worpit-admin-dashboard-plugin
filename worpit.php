@@ -39,66 +39,9 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	static protected $VariablePrefix		= 'worpit_admin_';
 
 	/**
-	 * @access static
-	 * @var array
-	 */
-	static private $ServiceIpAddressesIpv4 = array(
-		'valid' => array(
-			'198.61.176.9', //wd01
-			'23.253.56.59', //app01
-			'23.253.62.185', //app01
-			'23.253.32.180' //wd02
-		),
-		'old' => array(
-			'198.61.173.69'
-		)
-	);
-
-	/**
-	 * @access static
-	 * @var array
-	 */
-	static private $ServiceIpAddressesIpv6 = array(
-		'valid' => array(
-			'2001:4801:7817:0072:ca75:cc9b:ff10:4699', //wd01
-			'2001:4801:7817:72:ca75:cc9b:ff10:4699', //wd01
-			'2001:4801:7824:0101:ca75:cc9b:ff10:a7b2', //app01
-			'2001:4801:7824:101:ca75:cc9b:ff10:a7b2', //app01
-			'2001:4801:7822:0103:be76:4eff:fe10:89a9', //wd02
-			'2001:4801:7822:103:be76:4eff:fe10:89a9' //wd02
-		),
-		'old' => array()
-	);
-
-	/**
 	 * @var ICWP_WhiteLabel
 	 */
 	protected static $oWhiteLabelSystem = NULL;
-
-	/**
-	 * @var ICWP_Stats
-	 */
-	protected static $oStatsSystem = NULL;
-
-	/**
-	 * @var ICWP_GoogleAnalytics
-	 */
-	protected static $oGoogleAnalyticsSystem = NULL;
-
-	/**
-	 * @var ICWP_AutoUpdates
-	 */
-	protected static $oAutoUpdatesSystem = NULL;
-
-	/**
-	 * @var ICWP_Security
-	 */
-	protected static $oSecuritySystem = NULL;
-
-	/**
-	 * @var ICWP_Compatibility
-	 */
-	protected static $oCompatibilitySystem = NULL;
 
 	/**
 	 * @var ICWP_APP_Plugin_Controller
@@ -112,16 +55,7 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 
 		self::$oPluginController = $oPluginController;
 		$this->getController()->loadAllFeatures();
-
-		add_action( $this->getController()->doPluginPrefix( 'plugin_shutdown' ), array( $this, 'runStatsSystem' ) );
-		add_action( $this->getController()->doPluginPrefix( 'plugin_activate' ), array( $this, 'onPluginActivate' ) );
 		add_filter( $this->getController()->doPluginPrefix( 'plugin_labels' ), array( $this, 'doRelabelPlugin' ) );
-
-		add_action( 'wp_loaded', array( $this, 'onWpLoaded' ) );
-
-		// need to run this as early as possible
-		$this->runSecuritySystem();
-		$this->runWhiteLabelSystem();
 	}
 
 	/**
@@ -132,13 +66,6 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	}
 
 	/**
-	 */
-	public function onWpLoaded() {
-		$this->runGoogleAnalyticsSystem();
-		$this->runAutoUpdatesSystem();
-	}
-
-	/**
 	 * @param string $sKey
 	 * @param mixed $mDefault
 	 *
@@ -146,7 +73,6 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	 */
 	static public function getOption( $sKey, $mDefault = false ) {
 		return self::getController()->loadCorePluginFeatureHandler()->getOpt( $sKey, $mDefault );
-//		return self::loadWpFunctionsProcessor()->getOption( self::$VariablePrefix.$sKey, $mDefault );
 	}
 
 	/**
@@ -160,7 +86,6 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 		$oCorePluginFeature->setOpt( $sKey, $mValue );
 		$oCorePluginFeature->savePluginOptions();
 		return true;
-//		return self::loadWpFunctionsProcessor()->updateOption( self::$VariablePrefix.$sKey, $mValue );
 	}
 
 	/**
@@ -179,12 +104,6 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 			$aPluginLabels,
 			$aImageUrls
 		);
-	}
-
-	/**
-	 */
-	public function onWpPluginsLoaded() {
-		$this->runCompatibilitySystem();
 	}
 
 	/**
@@ -216,128 +135,38 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	}
 
 	/**
-	 * @return ICWP_WhiteLabel
+	 * @return ICWP_APP_FeatureHandler_WhiteLabel
 	 */
 	public static function GetWhiteLabelSystem() {
-		if ( is_null( self::$oWhiteLabelSystem ) ) {
-			self::$oWhiteLabelSystem = include_once( self::GetSrcDir_Systems( 'system-white-label.php' ) );
-		}
-		return self::$oWhiteLabelSystem;
+		return self::getController()->loadFeatureHandler( array( 'slug' => 'whitelabel' ) );
 	}
 
 	/**
-	 * Runs the white label processes
-	 */
-	protected function runWhiteLabelSystem() {
-		$oSystem = $this->GetWhiteLabelSystem();
-		if ( $oSystem->getIsSystemEnabled() ) {
-			$oSystem->run();
-		}
-	}
-
-	/**
-	 * @return ICWP_Stats
+	 * @return ICWP_APP_FeatureHandler_Statistics
 	 */
 	public static function GetStatsSystem() {
-		if ( is_null( self::$oStatsSystem ) ) {
-			self::$oStatsSystem = include_once( self::GetSrcDir_Systems( 'system-stats.php' ) );
-		}
-		return self::$oStatsSystem;
+		return self::getController()->loadFeatureHandler( array( 'slug' => 'statistics' ) );
 	}
 
 	/**
-	 * Runs the statistic processes (hooked to 'shutdown')
-	 */
-	public function runStatsSystem() {
-		$oStatsSystem = $this->getStatsSystem();
-		if ( $oStatsSystem->getIsSystemEnabled() ) {
-			$oStatsSystem->run();
-		}
-	}
-
-	/**
-	 * @return ICWP_GoogleAnalytics
+	 * @return ICWP_APP_FeatureHandler_GoogleAnalytics
 	 */
 	public static function GetGoogleAnalyticsSystem() {
-		if ( is_null( self::$oGoogleAnalyticsSystem ) ) {
-			self::$oGoogleAnalyticsSystem = include_once( self::GetSrcDir_Systems( 'system-google-analytics.php' ) );
-		}
-		return self::$oGoogleAnalyticsSystem;
+		return self::getController()->loadFeatureHandler( array( 'slug' => 'google_analytics' ) );
 	}
 
 	/**
-	 * Runs the statistic processes (hooked to 'wp_loaded')
-	 */
-	protected function runGoogleAnalyticsSystem() {
-		$oGoogleAnalyticsSystem = $this->getGoogleAnalyticsSystem();
-		if ( $oGoogleAnalyticsSystem->getIsSystemEnabled() ) {
-			$oGoogleAnalyticsSystem->run();
-		}
-	}
-
-	/**
-	 * @return ICWP_AutoUpdates
+	 * @return ICWP_APP_FeatureHandler_AutoUpdates
 	 */
 	public static function GetAutoUpdatesSystem() {
-		if ( is_null( self::$oAutoUpdatesSystem ) ) {
-			self::$oAutoUpdatesSystem = include_once( self::GetSrcDir_Systems( 'system-autoupdates.php' ) );
-		}
-		return self::$oAutoUpdatesSystem;
-	}
-
-	/**
-	 * Runs the statistic processes (hooked to 'wp_loaded')
-	 */
-	protected function runAutoUpdatesSystem() {
-		$oAutoUpdatesSystem = $this->getAutoUpdatesSystem();
-		if ( $oAutoUpdatesSystem->getIsSystemEnabled() ) {
-			$oAutoUpdatesSystem->run();
-		}
+		return self::getController()->loadFeatureHandler( array( 'slug' => 'autoupdates' ) );
 	}
 
 	/**
 	 * @return ICWP_Security
 	 */
 	public static function GetSecuritySystem() {
-		if ( is_null( self::$oSecuritySystem ) ) {
-			self::$oSecuritySystem = include_once( self::GetSrcDir_Systems( 'system-security.php' ) );
-		}
-		return self::$oSecuritySystem;
-	}
-
-	/**
-	 * Runs the statistic processes (hooked to 'plugins_loaded')
-	 */
-	protected function runSecuritySystem() {
-		$oSecuritySystem = $this->getSecuritySystem();
-		if ( $oSecuritySystem->getIsSystemEnabled() ) {
-			$oSecuritySystem->run();
-		}
-	}
-
-	/**
-	 * @return ICWP_Compatibility
-	 */
-	public static function GetCompatibilitySystem() {
-		if ( is_null( self::$oCompatibilitySystem ) ) {
-			self::$oCompatibilitySystem = include_once( self::GetSrcDir_Systems( 'system-compatibility.php' ) );
-		}
-		return self::$oCompatibilitySystem;
-	}
-
-	/**
-	 * Runs the plugin compatibility processes (hooked to 'plugins_loaded')
-	 */
-	protected function runCompatibilitySystem() {
-
-		$sName = $this->getController()->getHumanName();
-
-		$oSys = $this->getCompatibilitySystem();
-		$oSys->setIsSystemEnabled( true );
-		$oSys->setOption( 'service_ip_addresses_ipv4', self::$ServiceIpAddressesIpv4 );
-		$oSys->setOption( 'service_ip_addresses_ipv6', self::$ServiceIpAddressesIpv6 );
-		$oSys->setOption( 'service_name', $sName );
-		$oSys->run();
+		return self::getController()->loadFeatureHandler( array( 'slug' => 'security' ) );
 	}
 
 	/**
@@ -349,90 +178,6 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 		return dirname(__FILE__).WORPIT_DS.'src'.WORPIT_DS.'plugin'.WORPIT_DS.$sFile;
 	}
 
-	private function doDebugDataGather() {
-//		if ( $oDp->FetchPost( 'icwp_admin_form_submit_debug' ) ) {
-//
-//			if ( $oDp->FetchPost( 'submit_gather' ) ) {
-//				$sUniqueName = uniqid().'_'.time().'.txt';
-//				$sTarget = dirname(__FILE__).'/'.$sUniqueName;
-//
-//				$fCanWrite = true;
-//				if ( !file_put_contents( $sTarget, 'TEST' ) ) {
-//					$fCanWrite = false;
-//				}
-//				else {
-//					if ( !is_file( $sTarget ) ) {
-//						$fCanWrite = false;
-//					}
-//				}
-//
-//				include_once( dirname(__FILE__).'/src/functions/filesystem.php' );
-//
-//				$aData = array(
-//					'_SERVER'				=> $_SERVER,
-//					'_ENV'					=> $_ENV,
-//					'ini_get_all'			=> @ini_get_all(),
-//					'extensions_loaded'		=> @get_loaded_extensions(),
-//					'php_version'			=> @phpversion(),
-//					'has_exec'				=> function_exists( 'exec' )? 1: 0,
-//					'fileperms'				=> array(
-//						array(
-//							'target'	=> dirname(__FILE__).'/src/controllers/',
-//							'perms'		=> fileperms( dirname(__FILE__).'/src/controllers/' ),
-//							'is_dir'	=> is_dir( dirname(__FILE__).'/src/controllers/' )? 1: 0
-//						),
-//						array(
-//							'target'	=> dirname(__FILE__).'/src/',
-//							'perms'		=> fileperms( dirname(__FILE__).'/src/' ),
-//							'is_dir'	=> is_dir( dirname(__FILE__).'/src/' )? 1: 0
-//						),
-//						array(
-//							'target'	=> __FILE__,
-//							'perms'		=> fileperms( __FILE__ ),
-//							'is_dir'	=> is_dir( __FILE__ )? 1: 0
-//						),
-//						array(
-//							'target'	=> dirname(__FILE__),
-//							'perms'		=> fileperms( dirname(__FILE__) ),
-//							'is_dir'	=> is_dir( dirname(__FILE__) )? 1: 0
-//						),
-//						array(
-//							'target'	=> dirname(__FILE__).'/../',
-//							'perms'		=> fileperms( dirname(__FILE__).'/../' ),
-//							'is_dir'	=> is_dir( dirname(__FILE__).'/../' )? 1: 0
-//						)
-//					)
-//				);
-//
-//				$aData['.htaccess'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, '.htaccess' );
-//				$aData['error_log'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'error_log' );
-//				$aData['php_error_log'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'php_error_log' );
-//
-//				if ( !$fCanWrite ) {
-//					echo "<h4>Your system configuration does not allow writing to the filesystem.</h4>";
-//					echo "<p>Please take a moment and send the contents of this page to support@icontrolwp.com</p>";
-//					echo "<hr />";
-//					var_dump( $aData );
-//				}
-//				else {
-//					file_put_contents( $sTarget, print_r( $aData, true ) );
-//					$this->updateOption( 'debug_file', $sUniqueName );
-//				}
-//			}
-//			else if ( $oDp->FetchPost( 'submit_information' ) ) {
-//				$sTarget = $this->getOption( 'debug_file' );
-//				$sTargetAbs = dirname(__FILE__).'/'.$sTarget;
-//				if ( !empty( $sTarget ) && is_file( $sTargetAbs ) ) {
-//					if ( wp_mail( 'support@icontrolwp.com', 'Debug Configuration', 'See attachment', '', $sTargetAbs ) ) {
-//						unlink( $sTargetAbs );
-//						$this->deleteOption( 'debug_file' );
-//					}
-//				}
-//			}
-//			header( "Location: admin.php?page=".self::$ParentMenuId );
-//			return;
-//		}
-	}
 }
 
 if ( !class_exists('ICWP_Plugin') ) {

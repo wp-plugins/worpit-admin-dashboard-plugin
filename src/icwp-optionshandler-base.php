@@ -207,10 +207,12 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		}
 
 		/**
-		 * @param $fEnable
+		 * @param bool $fEnable
+		 *
+		 * @return bool
 		 */
 		public function setIsMainFeatureEnabled( $fEnable ) {
-			$this->setOpt( 'enable_'.$this->getFeatureSlug(), $fEnable ? 'Y' : 'N' );
+			return $this->setOpt( 'enable_'.$this->getFeatureSlug(), $fEnable ? 'Y' : 'N' );
 		}
 
 		/**
@@ -220,6 +222,9 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 			$fOverride = $this->getIfOverride();
 			if ( $fOverride ) {
 				return !$fOverride;
+			}
+			if ( $this->getOptionsVo()->getFeatureProperty( 'auto_enabled' ) === true ) {
+				return true;
 			}
 			return $this->getOptIs( 'enable_'.$this->getFeatureSlug(), 'Y' ) || $this->getOptIs( 'enable_'.$this->getFeatureSlug(), true, true ) ;
 		}
@@ -419,6 +424,15 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		}
 
 		/**
+		 * @param array $aOptions
+		 */
+		public function setOptions( $aOptions ) {
+			foreach( $aOptions as $sKey => $mValue ){
+				$this->setOpt( $sKey, $mValue );
+			}
+		}
+
+		/**
 		 * Saves the options to the WordPress Options store.
 		 *
 		 * It will also update the stored plugin options version.
@@ -588,7 +602,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		 */
 		protected function collateAllFormInputsForAllOptions() {
 
-			$aOptions = $this->getOptions();
+			$aOptions = $this->buildOptions();
 
 			$aToJoin = array();
 			foreach ( $aOptions as $aOptionsSection ) {
@@ -637,7 +651,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 			if ( empty( $sAllOptions ) ) {
 				return true;
 			}
-			$this->updatePluginOptionsFromSubmit( $sAllOptions ); //it also saves
+			return $this->updatePluginOptionsFromSubmit( $sAllOptions ); //it also saves
 		}
 
 		protected function doExtraSubmitProcessing() { }
@@ -822,7 +836,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 				'nOptionsPerRow'	=> 1,
 				'aPluginLabels'		=> $this->getController()->getPluginLabels(),
 
-				'aAllOptions'		=> $this->getOptions(),
+				'aAllOptions'		=> $this->buildOptions(),
 				'aHiddenOptions'	=> $this->getOptionsVo()->getHiddenOptions(),
 				'all_options_input'	=> $this->collateAllFormInputsForAllOptions()
 			);
