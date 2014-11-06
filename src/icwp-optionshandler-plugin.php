@@ -244,7 +244,9 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		protected function updateHandler() {
 			parent::updateHandler();
 
-			if ( $this->getVersion() == '2.8.2' ) {
+			//migrate from old
+			$oWp = $this->loadWpFunctionsProcessor();
+			if ( !$this->getIsSiteLinked() ) {
 				$aOldOptions = array(
 					'key',
 					'pin',
@@ -254,7 +256,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 					'handshake_enabled'
 				);
 				foreach( $aOldOptions as $sOption ) {
-					$this->setOpt( $sOption, ICWP_Plugin::getOption( $sOption ) );
+					$this->setOpt( $sOption, $oWp->getOption( 'worpit_admin_'.$sOption ) );
 				}
 			}
 		}

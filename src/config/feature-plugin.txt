@@ -39,7 +39,6 @@ options:
   -
     key: 'handshake_enabled'
     section: 'section_non_ui'
-    default: 'N'
   -
     key: 'handshake_verify_url'
     section: 'section_non_ui'
