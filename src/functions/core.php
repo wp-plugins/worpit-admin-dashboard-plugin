@@ -155,7 +155,7 @@ function worpitVerifyPackageRequest( $inaData ) {
 	$fRemoteRead = worpitRemoteReadBasic( $sUrl, $sContents );
 	
 	if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
-		ICWP_Plugin::VerifyCanHandshake();
+		ICWP_Plugin::VerifyHandshaking();
 		worpitFatal( 9996, 'VerifyCallFailed: '.$sUrl.' : '.$sContents );
 	}
 

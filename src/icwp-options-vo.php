@@ -43,6 +43,7 @@ class ICWP_APP_OptionsVO extends ICWP_APP_Foundation {
 	 */
 	public function doOptionsSave() {
 		$this->cleanOptions();
+		$this->verifyImmutableOptions();
 		if ( !$this->getNeedSave() ) {
 			return true;
 		}
@@ -376,6 +377,17 @@ class ICWP_APP_OptionsVO extends ICWP_APP_Foundation {
 			if ( !$this->getIsValidOptionKey( $sKey ) ) {
 				$this->setNeedSave( true );
 				unset( $this->aOptionsValues[$sKey] );
+			}
+		}
+	}
+
+	private function verifyImmutableOptions() {
+		$aRawOptions = $this->getRawData_AllOptions();
+		foreach( $aRawOptions as $aRawOption ) {
+			if ( isset( $aRawOption['immutable'] ) && $aRawOption['immutable'] === true ) {
+				if ( ! $this->getOptIs( $aRawOption['key'], $aRawOption['value'] ) ) {
+					$this->setOpt( $aRawOption[ 'key' ], $aRawOption[ 'value' ] );
+				}
 			}
 		}
 	}

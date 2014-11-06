@@ -44,14 +44,17 @@ options:
     key: 'handshake_verify_url'
     section: 'section_non_ui'
     value: 'https://app.icontrolwp.com/system/verification/test/'
+    immutable: true
   -
     key: 'remote_add_site_url'
     section: 'section_non_ui'
     value: 'https://app.icontrolwp.com/system/remote/add_site'
+    immutable: true
   -
     key: 'reset_site_url'
     section: 'section_non_ui'
     value: 'https://app.icontrolwp.com/system/verification/reset/'
+    immutable: true
   -
     key: 'installation_time'
     section: 'section_non_ui'
