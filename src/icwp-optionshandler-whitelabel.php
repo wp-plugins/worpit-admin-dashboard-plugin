@@ -59,6 +59,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Whitelabel_V1') ):
 				if ( isset( $aOldOptions['icon_url_32x32'] ) ) {
 					$this->setOpt( 'icon_url_32x32', $aOldOptions['icon_url_32x32']  );
 				}
+				$this->loadWpFunctionsProcessor()->deleteOption( 'icwp_whitelabel_system_options' );
 			}
 		}
 	}

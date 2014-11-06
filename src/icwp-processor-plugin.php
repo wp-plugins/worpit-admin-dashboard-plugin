@@ -42,12 +42,10 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			 * a different variation of POST variables.
 			 */
 			add_action( 'plugins_loaded', array( $this, 'onWpPluginsLoaded' ), 1 );
-			add_action( 'init', array( $this, 'onWpInit' ), 1 );
-			add_action( 'wp_loaded', array( $this, 'onWpLoaded' ), 1 );
+			add_action( $this->getApiHook(), array( $this, 'doAPI' ), 1 );
 			$oCon = $this->getController();
 			add_filter( $oCon->doPluginPrefix( 'verify_site_can_handshake' ), array( $this, 'doVerifyCanHandshake' ) );
 			add_filter( $oCon->doPluginPrefix( 'verify_is_icwp_authenticated' ), array( $this, 'getIcwpAuthenticated' ) );
-			add_filter( $oCon->doPluginPrefix( 'is_linked' ), array( $this->getFeatureOptions(), 'getIsSiteLinked' ) );
 
 			if ( true ) {
 				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -71,11 +69,12 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			$this->doWpEngine();
 		}
 
-		public function onWpInit() {
-		}
-
-		public function onWpLoaded() {
-			$this->doAPI();
+		/**
+		 * @return string
+		 */
+		protected function getApiHook() {
+			$sLoginToken = $this->loadWpFunctionsProcessor()->getTransient( 'worpit_login_token' );
+			return empty( $sLoginToken ) ? 'wp_loaded' : 'init';
 		}
 
 		/**
@@ -147,7 +146,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		 * @uses die
 		 * @return void
 		 */
-		protected function doAPI() {
+		public function doAPI() {
 			if ( isset( $_GET['worpit_link'] ) && !empty( $_GET['worpit_link'] ) ) {
 				define( 'WORPIT_DIRECT_API', 1 );
 				include_once( dirname(__FILE__).'/link.php' );
@@ -248,7 +247,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			$oWp = $this->loadWpFunctionsProcessor();
 			$sAckPluginNotice = $oWp->getUserMeta( $oCon->doPluginOptionPrefix( 'ack_plugin_notice' ) );
 
-			if ( apply_filters( $oCon->doPluginPrefix( 'is_linked' ), false ) ) {
+			if ( $this->getFeatureOptions()->getIsSiteLinked() ) {
 				return;
 			}
 

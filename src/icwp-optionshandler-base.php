@@ -427,7 +427,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		 * @param array $aOptions
 		 */
 		public function setOptions( $aOptions ) {
-			foreach( $aOptions as $sKey => $mValue ){
+			foreach( $aOptions as $sKey => $mValue ) {
 				$this->setOpt( $sKey, $mValue );
 			}
 		}

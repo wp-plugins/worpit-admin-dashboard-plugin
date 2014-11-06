@@ -147,7 +147,7 @@ function worpitAuthenticate( $inaData ) {
  * @return boolean
  */
 function worpitVerifyPackageRequest( $inaData ) {
-	if ( worpitGetOption( 'can_handshake' ) != 'Y' || worpitGetOption( 'handshake_enabled' ) != 'Y' ) {
+	if ( !ICWP_Plugin::GetIsHandshakeEnabled() ) {
 		return true;
 	}
 	
@@ -155,9 +155,7 @@ function worpitVerifyPackageRequest( $inaData ) {
 	$fRemoteRead = worpitRemoteReadBasic( $sUrl, $sContents );
 	
 	if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
-		$fCanHandshake = worpitCheckCanHandshake();
-		ICWP_Plugin::updateOption( 'can_handshake', ($fCanHandshake? 'Y': 'N') );
-		ICWP_Plugin::updateOption( 'handshake_enabled', ($fCanHandshake? 'Y': 'N') );
+		ICWP_Plugin::VerifyCanHandshake();
 		worpitFatal( 9996, 'VerifyCallFailed: '.$sUrl.' : '.$sContents );
 	}
 

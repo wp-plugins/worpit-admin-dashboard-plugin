@@ -185,7 +185,6 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 			//header( "Location: $location", true, $status);
 			die( 'WorpitError: Invalid request' );
 		}
-		
 		$oWpHelper = new Worpit_Helper_WordPress();
 		$sCurrentToken = $oWpHelper->getTransient( 'worpit_login_token' );
 		if ( empty( $sCurrentToken ) || strlen( $sCurrentToken ) != 32 ) {
@@ -219,7 +218,7 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 				$oUser = get_user_by( 'login', $_GET['username'] );
 			}
 		}
-		
+
 		wp_set_current_user( $oUser->ID );
 		
 		// TODO: Handle multisite

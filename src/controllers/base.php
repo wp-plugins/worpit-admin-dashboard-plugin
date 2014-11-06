@@ -111,7 +111,7 @@ class Worpit_Controllers_Base {
 		$sSiteDir = preg_replace( '|https?://[^/]+|i', '', trim( get_option( 'siteurl' ), '/' ) . '/' );
 
 		$aPackageConstants = array(
-			'variable_prefix'		=> Worpit_Plugin::$VariablePrefix,
+//			'variable_prefix'		=> Worpit_Plugin::$VariablePrefix,
 
 			'home'					=> get_option( 'home' ),
 			'siteurl'				=> get_option( 'siteurl' ),

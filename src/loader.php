@@ -87,7 +87,7 @@ if ( !defined( 'WORPIT_DIRECT_API' ) ) {
 	 * Ensure that Worpit Plugin is accessible right after the WP system has been initiated.
 	 * When going through the WP frontend, this will always be defined by this point.
 	 */
-	if ( !class_exists( 'Worpit_Plugin' ) ) {
+	if ( !class_exists( 'ICWP_Plugin' ) ) {
 		worpitFatal( 1, 'PluginInactive' );
 	}
 	

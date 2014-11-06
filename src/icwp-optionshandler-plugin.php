@@ -56,6 +56,52 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 			$this->setOpt( 'feedback_admin_notice', $aFeedback );
 		}
 
+		/**
+		 * @return bool
+		 */
+		public function getIsHandshakeEnabled() {
+			if ( $this->getOptIs( 'is_testing', 'Y' ) ) {
+				return false;
+			}
+			return ( $this->getCanHandshake() && $this->getOptIs( 'handshake_enabled', 'Y' ) );
+		}
+
+		/**
+		 * Also verifies whether handshaking is possible and returns the final setting.
+		 *
+		 * @param bool $fSetOn
+		 *
+		 * @return bool
+		 */
+		public function setIsHandshakeEnabled( $fSetOn = false ) {
+			if ( $fSetOn && $this->setCanHandshake() ) {
+				$this->setOpt( 'handshake_enabled', 'Y' );
+			}
+			else {
+				$this->setOpt( 'handshake_enabled', 'N' );
+			}
+			return $this->getIsHandshakeEnabled();
+		}
+
+		/**
+		 * @param bool $fDoVerify
+		 *
+		 * @return bool
+		 */
+		public function getCanHandshake( $fDoVerify = false ) {
+			if ( $fDoVerify && apply_filters( $this->getController()->doPluginPrefix( 'verify_site_can_handshake' ), false ) ) {
+				$this->setOpt( 'can_handshake', 'Y' );
+			}
+			return $this->getOptIs( 'can_handshake', 'Y' );
+		}
+
+		/**
+		 * @return bool
+		 */
+		public function setCanHandshake() {
+			return $this->getCanHandshake( true );
+		}
+
 		/***
 		 * @return bool
 		 */
@@ -102,13 +148,8 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 			}
 
 			//Clicked the button to enable/disable hand-shaking
-			if ( $oDp->FetchPost( $this->getController()->doPluginOptionPrefix( 'handshake_enable' ) ) ) {
-				if ( apply_filters( $this->getController()->doPluginPrefix( 'verify_site_can_handshake' ), false ) ) {
-					$this->setOpt( 'handshake_enabled', 'Y' );
-				}
-			}
-			else {
-				$this->setOpt( 'handshake_enabled', 'N' );
+			if ( $oDp->FetchPost( $this->getController()->doPluginOptionPrefix( 'do_set_handshake' ) ) ) {
+				$this->setIsHandshakeEnabled( $oDp->FetchPost( $this->getController()->doPluginOptionPrefix( 'handshake_enable' ) ) == 'Y' );
 			}
 			$this->doAddAdminFeedback( sprintf( ( '%s Plugin options updated successfully.' ), $this->getController()->getHumanName() ) );
 		}

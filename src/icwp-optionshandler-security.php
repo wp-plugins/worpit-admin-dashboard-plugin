@@ -56,7 +56,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Security_V1') ):
 				foreach( $aSettings as $sOption ) {
 					$this->setOpt( $sOption, isset( $aOldOptions[$sOption] ) ? $aOldOptions[$sOption]  : 'N' );
 				}
-//				$this->loadWpFunctionsProcessor()->deleteOption( 'icwp_autoupdates_system_options' );
+				$this->loadWpFunctionsProcessor()->deleteOption( 'icwp_security_system_options#' );
 			}
 		}
 	}

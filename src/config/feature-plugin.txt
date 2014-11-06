@@ -56,6 +56,10 @@ options:
     key: 'installation_time'
     section: 'section_non_ui'
   -
+    key: 'is_testing'
+    section: 'section_non_ui'
+    default: 'N'
+  -
     key: 'feedback_admin_notice'
     section: 'section_non_ui'
   -

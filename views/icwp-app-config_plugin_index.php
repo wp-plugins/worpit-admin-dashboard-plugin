@@ -107,6 +107,7 @@ $fWhitelabelled = ($sServiceName != 'iControlWP');
 						<form action="<?php echo $fCanHandshake? $icwp_form_action : ''; ?>" method="POST" name="form-hand-shaking" id="form-hand-shaking">
 							<?php wp_nonce_field( $icwp_nonce_field ); ?>
 							<input type="hidden" name="<?php echo $icwp_var_prefix; ?>plugin_form_submit" value="Y" />
+							<input type="hidden" name="<?php echo $icwp_var_prefix; ?>do_set_handshake" value="1" />
 							<label>
 								<input type="checkbox"
 									   name="<?php echo $icwp_var_prefix; ?>handshake_enable"

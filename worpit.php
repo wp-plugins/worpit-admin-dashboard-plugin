@@ -110,14 +110,28 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	 * @return bool
 	 */
 	public static function GetIsHandshakeEnabled() {
-		apply_filters( self::getController()->doPluginPrefix( 'can_handshake' ), false );
+		return self::getController()->loadCorePluginFeatureHandler()->getIsHandshakeEnabled();
+	}
+
+	/**
+	 * @return bool
+	 */
+	public static function VerifyHandshaking() {
+		return self::getController()->loadCorePluginFeatureHandler()->setIsHandshakeEnabled();
+	}
+
+	/**
+	 * @return bool
+	 */
+	public static function GetHandshakingEnabled() {
+		return self::getController()->loadCorePluginFeatureHandler()->getIsHandshakeEnabled();
 	}
 
 	/**
 	 * @return boolean
 	 */
 	static public function IsLinked() {
-		apply_filters( self::getController()->doPluginPrefix( 'is_linked' ), false );
+		return self::getController()->loadCorePluginFeatureHandler()->getIsSiteLinked();
 	}
 
 	/**
@@ -163,7 +177,7 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	}
 
 	/**
-	 * @return ICWP_Security
+	 * @return ICWP_APP_FeatureHandler_Security
 	 */
 	public static function GetSecuritySystem() {
 		return self::getController()->loadFeatureHandler( array( 'slug' => 'security' ) );

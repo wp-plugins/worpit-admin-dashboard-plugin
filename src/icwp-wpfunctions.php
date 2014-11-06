@@ -219,7 +219,7 @@ if ( !class_exists('ICWP_WpFunctions_V5') ):
 		 * @param string $sKey
 		 * @return object
 		 */
-		protected function getTransient( $sKey ) {
+		public function getTransient( $sKey ) {
 
 			// TODO: Handle multisite
 
