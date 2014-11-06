@@ -68,7 +68,7 @@ $fWhitelabelled = ($sServiceName != 'iControlWP');
 			</div>
 		</div>
 	</div>
-<?php if ( true || !$fIsLinked ) : ?>
+<?php if ( !$fIsLinked ) : ?>
 	<div class="row">
 		<div class="span12">
 			<div class="well">
@@ -93,40 +93,6 @@ $fWhitelabelled = ($sServiceName != 'iControlWP');
 		</div>
 	</div>
 <?php endif; ?>
-
-	<div class="row">
-		<div class="span12">
-			<div class="well">
-
-				<div class="enable-handshake-authentication">
-					<h3>Allow Secure Plugin Hand-Shaking</h3>
-					<p>Normally, this option is not turned on because some websites do not support it.</p>
-					<p>If you do turn it on, it will greatly increase your security - the plugin will "phone home" to the <?php echo $sServiceName; ?> Dashboard with every connection to ensure the request originated from <?php echo $sServiceName; ?>.</p>
-					<p><strong>Warning:</strong> Do not enable this option until you have synchronized your site with your <?php echo $sServiceName; ?> account.</p>
-					<div class="<?php echo ( !$fCanHandshake )? 'cant-handshake' : ''; ?>">
-						<form action="<?php echo $fCanHandshake? $icwp_form_action : ''; ?>" method="POST" name="form-hand-shaking" id="form-hand-shaking">
-							<?php wp_nonce_field( $icwp_nonce_field ); ?>
-							<input type="hidden" name="<?php echo $icwp_var_prefix; ?>plugin_form_submit" value="Y" />
-							<input type="hidden" name="<?php echo $icwp_var_prefix; ?>do_set_handshake" value="1" />
-							<label>
-								<input type="checkbox"
-									   name="<?php echo $icwp_var_prefix; ?>handshake_enable"
-									   value="Y"
-									   class=""
-									   id="<?php echo $icwp_var_prefix; ?>handshake_enable"
-									<?php echo $fHandshakeEnabled ? 'checked="checked"' : ''; ?>
-									<?php echo !$fCanHandshake ? 'disabled="disabled"' : ''; ?>
-									/>
-									If this box is checked, plugin handshaking will be enabled. If you have problems syncing with <?php echo $sServiceName; ?>, disable this option.
-							</label>
-							<button class="btn btn-warning" name="submit" type="submit" <?php echo !$fCanHandshake ? 'disabled="disabled"' : ''; ?>>Change Option</button>
-						</form>
-					</div>
-				</div>
-
-			</div>
-		</div>
-	</div>
 
 	<div class="row">
 		<div class="span12">
@@ -156,7 +122,7 @@ $fWhitelabelled = ($sServiceName != 'iControlWP');
 		</div>
 	</div>
 
-<?php if ( true ) : ?>
+<?php if ( false ) : ?>
 	<div class="row">
 		<div class="span6">
 			<div class="well">

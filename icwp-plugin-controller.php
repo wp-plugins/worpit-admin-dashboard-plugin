@@ -559,9 +559,19 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 * @return array|string
 	 */
 	protected function getPluginSpec_Labels( $sKey = '' ) {
-		if ( empty( $sKey ) ) {
-			return isset( self::$aPluginSpec['labels'] ) ? self::$aPluginSpec['labels'] : array();
+		$aLabels = isset( self::$aPluginSpec['labels'] ) ? self::$aPluginSpec[ 'labels' ] : array();
+		//Prep the icon urls
+		if ( !empty( $aLabels['icon_url_16x16'] ) ) {
+			$aLabels['icon_url_16x16'] = $this->getPluginUrl_Image( $aLabels['icon_url_16x16'] );
 		}
+		if ( !empty( $aLabels['icon_url_32x32'] ) ) {
+			$aLabels['icon_url_32x32'] = $this->getPluginUrl_Image( $aLabels['icon_url_32x32'] );
+		}
+
+		if ( empty( $sKey ) ) {
+			return $aLabels;
+		}
+
 		return isset( self::$aPluginSpec['labels'][$sKey] ) ? self::$aPluginSpec['labels'][$sKey] : null;
 	}
 

@@ -34,6 +34,13 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		}
 
 		/**
+		 * @return ICWP_APP_FeatureHandler_Plugin
+		 */
+		protected function getFeatureOptions() {
+			return $this->oFeatureOptions;
+		}
+
+		/**
 		 */
 		public function run() {
 

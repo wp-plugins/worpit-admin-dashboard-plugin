@@ -32,16 +32,12 @@ if ( !defined( 'WORPIT_DS' ) ) {
 	define( 'WORPIT_DS', DIRECTORY_SEPARATOR );
 }
 
+if ( class_exists( 'Worpit_Plugin', false ) ) {
+	return;
+}
+
 require_once( dirname(__FILE__).ICWP_DS.'src'.ICWP_DS.'icwp-foundation.php' );
 class Worpit_Plugin extends ICWP_APP_Foundation {
-
-	/** OLD VARS */
-	static protected $VariablePrefix		= 'worpit_admin_';
-
-	/**
-	 * @var ICWP_WhiteLabel
-	 */
-	protected static $oWhiteLabelSystem = NULL;
 
 	/**
 	 * @var ICWP_APP_Plugin_Controller
@@ -52,10 +48,8 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	 * @param ICWP_APP_Plugin_Controller $oPluginController
 	 */
 	public function __construct( ICWP_APP_Plugin_Controller $oPluginController ) {
-
 		self::$oPluginController = $oPluginController;
 		$this->getController()->loadAllFeatures();
-		add_filter( $this->getController()->doPluginPrefix( 'plugin_labels' ), array( $this, 'doRelabelPlugin' ) );
 	}
 
 	/**
@@ -63,6 +57,13 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	 */
 	public static function getController() {
 		return self::$oPluginController;
+	}
+
+	/**
+	 * @return stdClass
+	 */
+	public static function DoLink() {
+		return self::getController()->loadCorePluginFeatureHandler()->doLink();
 	}
 
 	/**
@@ -86,24 +87,6 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 		$oCorePluginFeature->setOpt( $sKey, $mValue );
 		$oCorePluginFeature->savePluginOptions();
 		return true;
-	}
-
-	/**
-	 * @param array $aPluginLabels
-	 *
-	 * @return array
-	 */
-	public function doRelabelPlugin( $aPluginLabels ) {
-
-		$aImageUrls = array(
-			'icon_url_16x16' => $this->getController()->getPluginUrl_Image( 'icontrolwp_16x16.png' ),
-			'icon_url_32x32' => $this->getController()->getPluginUrl_Image( 'icontrolwp_32x32.png' )
-		);
-
-		return array_merge(
-			$aPluginLabels,
-			$aImageUrls
-		);
 	}
 
 	/**
@@ -132,13 +115,6 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	 */
 	static public function IsLinked() {
 		return self::getController()->loadCorePluginFeatureHandler()->getIsSiteLinked();
-	}
-
-	/**
-	 * @return integer
-	 */
-	public static function GetActivatedAt() {
-		return ICWP_Plugin::getOption( 'activated_at' );
 	}
 
 	/**
@@ -182,16 +158,6 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	public static function GetSecuritySystem() {
 		return self::getController()->loadFeatureHandler( array( 'slug' => 'security' ) );
 	}
-
-	/**
-	 * @param string $sFile
-	 *
-	 * @return string
-	 */
-	static private function GetSrcDir_Systems( $sFile = '' ) {
-		return dirname(__FILE__).WORPIT_DS.'src'.WORPIT_DS.'plugin'.WORPIT_DS.$sFile;
-	}
-
 }
 
 if ( !class_exists('ICWP_Plugin') ) {

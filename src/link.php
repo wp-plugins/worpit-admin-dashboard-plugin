@@ -31,6 +31,15 @@ $sRequestedKey = isset( $_GET['key'] )? trim( $_GET['key'] ): '';
 $sRequestedPin = isset( $_GET['pin'] )? md5( trim( $_GET['pin'] ) ): '';
 $sRequestedAcc = isset( $_GET['accname'] )? trim( $_GET['accname'] ): '';
 
+$oLinkResponse = ICWP_Plugin::DoLink();
+
+if ( $oLinkResponse->success ) {
+	die( '<worpitresponse>0</worpitresponse>' );
+}
+else {
+	worpitFatal( $oLinkResponse->code, $oLinkResponse->message );
+}
+
 if ( $sRequestedKey == trim( $sKey ) && !$fAssigned ) {
 	if ( !ICWP_Plugin::updateOption( 'pin', $sRequestedPin ) ) {
 		worpitFatal( 10, 'UpdateOptionFailed:'.'pin:'.$sRequestedPin );
@@ -64,7 +73,7 @@ if ( $sRequestedKey == trim( $sKey ) && !$fAssigned ) {
 	if ( $sOption != $sRequestedAcc ) {
 		worpitFatal( 11, 'GetOptionFailed:'.'assigned_to:'.$sRequestedAcc );
 	}
-	
+
 	die( '<worpitresponse>0</worpitresponse>' );
 }
 else if ( $fAssigned ) {
