@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.8.1
+Version: 2.8.2
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */
@@ -44,7 +44,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @var string
 	 */
 	const DashboardUrlBase = 'https://app.icontrolwp.com/';
-	
+
 	/**
 	 * @var string
 	 */
@@ -64,7 +64,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 * @access static
 	 * @var string
 	 */
-	static public $VERSION = '2.8.1';
+	static public $VERSION = '2.8.2';
 
 	/**
 	 * @access static
@@ -180,7 +180,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 		// Used for autoupdates
 		$this->m_sPluginFile	= plugin_basename( __FILE__ );
-		
+
 		if ( is_admin() ) {
 			/**
 			 * Registers activate and deactivation hooks
@@ -208,7 +208,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		if ( isset( self::$CustomOptions ) && !$infForceReload ) {
 			return true; //no need to reload the data if we have it already.
 		}
-		
+
 		$oOptionVal = self::getOption( self::$CustomOptionsDbName );
 		if ( $oOptionVal !== false ) { //these options have been set before
 			self::$CustomOptions = $oOptionVal;
@@ -227,17 +227,25 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	public function doAPI() {
 		if ( isset( $_GET['worpit_link'] ) && !empty( $_GET['worpit_link'] ) ) {
+			$this->fixJetpack();
 			define( 'WORPIT_DIRECT_API', 1 );
 			include_once( dirname(__FILE__).'/link.php' );
 			die();
 		}
 		else if ( isset( $_GET['worpit_api'] ) && !empty( $_GET['worpit_api'] ) ) {
+			$this->fixJetpack();
 			define( 'WORPIT_DIRECT_API', 1 );
 			include_once( dirname(__FILE__).'/transport.php' );
 			die();
 		}
 	}
-	
+
+	private function fixJetpack() {
+		// fix for jetpack fatal errors
+		remove_all_filters('wp_print_styles');
+		remove_all_filters('wp_print_footer_scripts');
+	}
+
 	/**
 	 * @uses die
 	 * @return void
@@ -323,7 +331,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	public function goBackHome() {
 		wp_redirect( get_bloginfo('url') );
 	}
-	
+
 	/**
 	 * @return void
 	 */
@@ -336,7 +344,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		$nId = 1;
 		if ( isset( $_POST['wpadmin_user'] ) ) {
 			$oUser = function_exists( 'get_user_by' )? get_user_by( 'login', $_POST['wpadmin_user'] ): get_userdatabylogin( $_POST['wpadmin_user'] );
-			
+
 			if ( $oUser ) {
 				$nId = $oUser->ID;
 			}
@@ -351,7 +359,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 				}
 			}
 		}
-		
+
 		/**
 		 * We couldn't find a user at all, so we make a last attempt at just using ID 1
 		 */
@@ -379,9 +387,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		if ( !current_user_can( 'manage_options' ) || !isset( $_POST['icwp_admin_form_submit'] ) ) {
 			return;
 		}
-		
+
 		check_admin_referer( self::$ParentMenuId );
-		
+
 		//Clicked the button to acknowledge the installation of the plugin
 		$nUserId = $this->fetchPost( 'icwp_user_id' );
 		if ( $nUserId && $this->fetchPost( 'icwp_ack_plugin_notice' ) ) {
@@ -389,7 +397,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			header( "Location: admin.php?page=".self::$ParentMenuId );
 			return;
 		}
-		
+
 		//Clicked the button to enable/disable hand-shaking
 		if ( $this->fetchPost( 'icwp_admin_form_submit_handshake' ) ) {
 			if ( $this->fetchPost( 'icwp_admin_handshake_enabled' ) ) {
@@ -401,7 +409,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			header( "Location: admin.php?page=".self::$ParentMenuId );
 			return;
 		}
-		
+
 		//Clicked the button to remotely add site
 		if ( $this->fetchPost( 'icwp_admin_form_submit_add_remotely' ) ) {
 			$sAuthKey = $this->fetchPost( 'account_auth_key' );
@@ -417,13 +425,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			wp_redirect( admin_url('admin.php?page='.self::$ParentMenuId ) );
 			return;
 		}
-		
+
 		//Clicked a button to debug, either gather, or send
 		if ( isset( $_POST['icwp_admin_form_submit_debug'] ) ) {
 			if ( isset( $_POST['submit_gather'] ) ) {
 				$sUniqueName = uniqid().'_'.time().'.txt';
 				$sTarget = dirname(__FILE__).'/'.$sUniqueName;
-				
+
 				$fCanWrite = true;
 				if ( !file_put_contents( $sTarget, 'TEST' ) ) {
 					$fCanWrite = false;
@@ -433,9 +441,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 						$fCanWrite = false;
 					}
 				}
-				
+
 				include_once( dirname(__FILE__).'/src/functions/filesystem.php' );
-				
+
 				$aData = array(
 					'_SERVER'				=> $_SERVER,
 					'_ENV'					=> $_ENV,
@@ -471,11 +479,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 						)
 					)
 				);
-				
+
 				$aData['.htaccess'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, '.htaccess' );
 				$aData['error_log'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'error_log' );
 				$aData['php_error_log'] = worpitBackwardsRecursiveFileSearch( dirname(__FILE__).'/src/controllers', 7, 'php_error_log' );
-				
+
 				if ( !$fCanWrite ) {
 					echo "<h4>Your system configuration does not allow writing to the filesystem.</h4>";
 					echo "<p>Please take a moment and send the contents of this page to support@icontrolwp.com</p>";
@@ -520,11 +528,11 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 							self::updateOption( $sKey, $mValue );
 						}
 					}
-				break;
+					break;
 			}
 		}
 	}
-	
+
 	/**
 	 * (non-PHPdoc)
 	 * @see Worpit_Plugin_Base::handlePluginUpgrade()
@@ -559,7 +567,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		}
 		Worpit_Plugin::updateOption( 'installed_version', self::$VERSION );
 	}
-	
+
 	/**
 	 * (non-PHPdoc)
 	 * @see Worpit_Plugin_Base::onWpInit()
@@ -653,7 +661,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			wp_register_style( 'worpit-admin', $this->getCssUrl( 'icontrolwp-admin.css' ) );
 			wp_enqueue_style( 'worpit-admin' );
 		}
-		
+
 		if ( current_user_can( 'manage_options' ) && self::getOption('do_activation_redirect', false) ) {
 			self::deleteOption( 'do_activation_redirect');
 			if ( self::getOption( 'assigned', 'N' ) == 'N' ) {
@@ -661,7 +669,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			}
 		}
 	}
-	
+
 	/**
 	 * @see Worpit_Plugin_Base::onWpPluginsLoaded()
 	 */
@@ -711,7 +719,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 
 		if ( !empty( $_GET['seticwpstate'] ) && self::GetIsVisitorIcwp() ) {
 			if ( isset( $_GET['handshake_enabled'] )
-				&& self::getOption('handshake_enabled') != 'Y'
+			     && self::getOption('handshake_enabled') != 'Y'
 			) {
 				$this->setHandshakeEnabled( true );
 			}
@@ -745,7 +753,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	 */
 	public function onWpAdminMenu() {
 		parent::onWpAdminMenu();
-		
+
 		//add_submenu_page( self::ParentMenuId, $this->getSubmenuPageTitle( 'Bootstrap CSS' ), 'Bootstrap CSS', self::ParentPermissions, $this->getSubmenuId( 'bootstrap-css' ), array( &$this, 'onDisplayPlugin' ) );
 		//$this->fixSubmenu();
 	}
@@ -760,7 +768,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			//$this->getSubmenuPageTitle( 'View Settings' ) => array( 'View Settings', $this->getSubmenuId('view-settings'), 'onDisplayViewSettings' )
 		);
 	}
-	
+
 	/**
 	 * (non-PHPdoc)
 	 * @see Worpit_Plugin_Base::onDisplayMainMenu()
@@ -779,10 +787,10 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			'can_handshake'		=> self::getOption( 'can_handshake' ),
 			'handshake_enabled'	=> self::getOption( 'handshake_enabled' ),
 			'debug_file_url'	=> empty( $sDebugFile )? false: self::$PluginUrl.$sDebugFile,
-			
+
 			'nonce_field'		=> self::$ParentMenuId,
 			'form_action'		=> 'admin.php?page='.self::$ParentMenuId,
-				
+
 			'image_url'			=> $this->getImageUrl( '' ),
 
 			'options_ga'		=> $this->getGoogleAnalyticsSystem()->getSystemOptions(),
@@ -791,7 +799,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		);
 		$this->display( 'icwp_index', $aData );
 	}
-	
+
 	/**
 	 * Override this method to handle all the admin notices
 	 *
@@ -804,9 +812,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			return;
 		}
 	}
-	
+
 	public function onWpNetworkAdminNotices() {
-		
+
 		if ( !is_super_admin() || !is_network_admin() ) {
 			return;
 		}
@@ -830,7 +838,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			';
 			$this->getAdminNotice( $sNotice, 'error', true );
 		}
-		
+
 		// if the user is searching from WorpitApp.com
 		if ( isset( $_GET['worpitapp'] ) && $_GET['worpitapp'] == 'install' ) {
 			$sNotice = '
@@ -852,7 +860,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 			echo '<!-- Worpit Plugin: '.plugins_url( '/', __FILE__ ) .' -->';
 		}
 	}
-	
+
 	/**
 	 * @return void
 	 */
@@ -864,7 +872,7 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 	static public function IsLinked() {
 		return ( self::getOption( 'assigned' ) == 'Y' && self::getOption( 'assigned_to' ) != '' );
 	}
-	
+
 	/**
 	 * This function always returns false, however the return is never actually used just yet.
 	 *
@@ -876,9 +884,9 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 		if ( self::IsLinked() ) {
 			return false;
 		}
-		
- 		if ( strlen( $sAuthKey ) == 32 && is_email( $sEmailAddress ) ) {
-				
+
+		if ( strlen( $sAuthKey ) == 32 && is_email( $sEmailAddress ) ) {
+
 			//looks good. Now attempt remote link.
 			$aPostVars = array(
 				'wordpress_url'				=> home_url(),
@@ -1136,13 +1144,13 @@ class Worpit_Plugin extends Worpit_Plugin_Base {
 }
 
 class Worpit_Install {
-	
+
 	/**
 	 */
 	public function __construct() {
 		register_activation_hook( __FILE__, array( $this, 'onWpActivatePlugin' ) );
 	}
-	
+
 	/**
 	 * @return void
 	 */
@@ -1159,20 +1167,20 @@ class Worpit_Install {
 		// Allows for redirect to plugin page once the plugin is activated.
 		Worpit_Plugin::addOption( 'do_activation_redirect', true );
 	}
-	
+
 	protected function executeSql() { }
 }
 
 class Worpit_Uninstall {
-	
+
 	// TODO: when uninstalling, maybe have a iControlWP save settings offsite-like setting
-	
+
 	/**
 	 */
 	public function __construct() {
 		register_deactivation_hook( __FILE__, array( $this, 'onWpDeactivatePlugin' ) );
 	}
-	
+
 	/**
 	 * @return void
 	 */
