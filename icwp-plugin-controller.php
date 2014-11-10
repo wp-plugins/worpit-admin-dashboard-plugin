@@ -178,10 +178,10 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 
 			$sMenuTitle = $this->getPluginSpec_Menu( 'title' );
 			if ( is_null( $sMenuTitle ) ) {
-				$sMenuTitle = $aPluginLabels['Name'];
+				$sMenuTitle = $this->getHumanName();
 			}
 
-			$sIconUrl = $aPluginLabels['icon_url_16x16'];
+			$sIconUrl = isset( $aPluginLabels['icon_url_16x16'] ) ? $aPluginLabels['icon_url_16x16'] : '';
 			if ( empty( $sIconUrl ) ) {
 				$sIconUrl = $this->getPluginUrl_Image( $this->getPluginSpec_Menu( 'icon_image' ) );
 			}
@@ -315,7 +315,7 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 			if ( isset( $aAdminCss['css'] ) && !empty( $aAdminCss['css'] ) && is_array( $aAdminCss['css'] ) ) {
 				foreach( $aAdminCss['css'] as $sCssAsset ) {
 					$sUnique = $this->doPluginPrefix( $sCssAsset );
-					wp_register_style( $sUnique, $this->getPluginUrl_Css( $sCssAsset.'.css' ), ( empty( $sDependent ) ? false : $sDependent ), $this->getVersion().rand() );
+					wp_register_style( $sUnique, $this->getPluginUrl_Css( $sCssAsset.'.css' ), ( empty( $sDependent ) ? false : $sDependent ), $this->getVersion() );
 					wp_enqueue_style( $sUnique );
 					$sDependent = $sUnique;
 				}
@@ -327,7 +327,7 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 			if ( isset( $aAdminCss['css'] ) && !empty( $aAdminCss['css'] ) && is_array( $aAdminCss['css'] ) ) {
 				foreach( $aAdminCss['css'] as $sCssAsset ) {
 					$sUnique = $this->doPluginPrefix( $sCssAsset );
-					wp_register_style( $sUnique, $this->getPluginUrl_Css( $sCssAsset.'.css' ), ( empty( $sDependent ) ? false : $sDependent ), $this->getVersion().rand() );
+					wp_register_style( $sUnique, $this->getPluginUrl_Css( $sCssAsset.'.css' ), ( empty( $sDependent ) ? false : $sDependent ), $this->getVersion() );
 					wp_enqueue_style( $sUnique );
 					$sDependent = $sUnique;
 				}
@@ -511,8 +511,8 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 		if ( $this->getIsPage_PluginAdmin() ) {
 			$oWp = $this->loadWpFunctionsProcessor();
 			$oWp->doRedirect( $oWp->getUrl_CurrentAdminPage() );
-			return true;
 		}
+		return true;
 	}
 
 	/**
@@ -648,7 +648,7 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 */
 	public function getHumanName() {
 		$aLabels = $this->getPluginLabels();
-		return $aLabels['Name'];
+		return empty( $aLabels['Name'] ) ? $this->getPluginSpec_Property( 'human_name' ) : $aLabels['Name'] ;
 	}
 
 	/**

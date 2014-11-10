@@ -662,7 +662,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		 */
 		public function updatePluginOptionsFromSubmit( $sAllOptionsInput ) {
 			if ( empty( $sAllOptionsInput ) ) {
-				return;
+				return true;
 			}
 			$oDp = $this->loadDataProcessor();
 
@@ -805,6 +805,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 			if ( $nNewAddedCount > 0 ) {
 				$this->setOpt( $sExistingListKey, $aNewList );
 			}
+			return true;
 		}
 
 		/**
@@ -825,16 +826,17 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		 * @return array
 		 */
 		protected function getBaseDisplayData() {
+			$oCon = $this->getController();
 			return array(
-				'var_prefix'		=> $this->getController()->getOptionStoragePrefix(),
-				'sPluginName'		=> $this->getController()->getHumanName(),
+				'var_prefix'		=> $oCon->getOptionStoragePrefix(),
+				'sPluginName'		=> $oCon->getHumanName(),
 				'sFeatureName'		=> $this->getMainFeatureName(),
 				'fShowAds'			=> $this->getIsShowMarketing(),
-				'nonce_field'		=> $this->getController()->getPluginPrefix(),
+				'nonce_field'		=> $oCon->getPluginPrefix(),
 				'sFeatureSlug'		=> $this->doPluginPrefix( $this->getFeatureSlug() ),
 				'form_action'		=> 'admin.php?page='.$this->doPluginPrefix( $this->getFeatureSlug() ),
 				'nOptionsPerRow'	=> 1,
-				'aPluginLabels'		=> $this->getController()->getPluginLabels(),
+				'aPluginLabels'		=> $oCon->getPluginLabels(),
 
 				'aAllOptions'		=> $this->buildOptions(),
 				'aHiddenOptions'	=> $this->getOptionsVo()->getHiddenOptions(),

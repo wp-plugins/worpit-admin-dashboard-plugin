@@ -143,15 +143,15 @@ function worpitAuthenticate( $inaData ) {
 }
 
 /**
- * @param array $inaData
+ * @param array $aData
  * @return boolean
  */
-function worpitVerifyPackageRequest( $inaData ) {
+function worpitVerifyPackageRequest( $aData ) {
 	if ( !ICWP_Plugin::GetIsHandshakeEnabled() ) {
 		return true;
 	}
 	
-	$sUrl = sprintf( ICWP_VERIFICATION_CHECK_URL.'%s/%s/%s', $inaData['verification_code'], $inaData['package_name'], $inaData['pin']	);
+	$sUrl = sprintf( ICWP_VERIFICATION_CHECK_URL.'%s/%s/%s', $aData['verification_code'], $aData['package_name'], $aData['pin']	);
 	$fRemoteRead = worpitRemoteReadBasic( $sUrl, $sContents );
 	
 	if ( !$fRemoteRead || empty( $sContents ) || $sContents === false ) {
