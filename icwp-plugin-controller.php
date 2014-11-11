@@ -181,10 +181,8 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 				$sMenuTitle = $this->getHumanName();
 			}
 
-			$sIconUrl = isset( $aPluginLabels['icon_url_16x16'] ) ? $aPluginLabels['icon_url_16x16'] : '';
-			if ( empty( $sIconUrl ) ) {
-				$sIconUrl = $this->getPluginUrl_Image( $this->getPluginSpec_Menu( 'icon_image' ) );
-			}
+			$sMenuIcon = $this->getPluginSpec_Menu( 'icon_image' );
+			$sIconUrl = empty( $sMenuIcon ) ? $aPluginLabels['icon_url_16x16'] : $this->getPluginUrl_Image( $sMenuIcon );
 
 			$sFullParentMenuId = $this->getPluginPrefix();
 			add_menu_page(

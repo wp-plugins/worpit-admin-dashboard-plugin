@@ -32,19 +32,25 @@ if ( !class_exists('ICWP_APP_Processor_GoogleAnalytics_V1') ):
 		 */
 		public function doPrintGoogleAnalytics() {
 
-			if ( strlen( $this->getOption( 'tracking_id' ) ) <= 0 ) {
+			if ( $this->getIfIgnoreUser() || strlen( $this->getOption( 'tracking_id' ) ) <= 0 ) {
 				return;
 			}
+			echo ( $this->getIsOption( 'enable_universal_analytics', 'Y' ) ? $this->getAnalyticsCode_Universal() : $this->getAnalyticsCode() );
+		}
 
+		/**
+		 * @return bool
+		 */
+		protected function getIfIgnoreUser() {
+			$fIgnoreLoggedInUser = $this->getIsOption( 'ignore_logged_in_user', 'Y' );
 			$nCurrentUserLevel = $this->loadWpFunctionsProcessor()->getCurrentUserLevel();
-			if ( $this->getIsOption( 'ignore_logged_in_user', 'Y' )
-				 && ( $nCurrentUserLevel >= 0 ) //is logged-in
-				 && ( $nCurrentUserLevel < $this->getOption( 'ignore_from_user_level', 11 ) ) )
-			{
-				return;
+			if ( $fIgnoreLoggedInUser && $nCurrentUserLevel >= 0 ) { // logged in
+				$nIgnoreFromUserLevel = $this->getOption( 'ignore_from_user_level', 11 );
+				if ( $nCurrentUserLevel >= $nIgnoreFromUserLevel ) {
+					return true;
+				}
 			}
-
-			echo $this->getAnalyticsCode();
+			return false;
 		}
 
 		/**
@@ -65,6 +71,26 @@ if ( !class_exists('ICWP_APP_Processor_GoogleAnalytics_V1') ):
 						var s=document.getElementsByTagName('script')[0];
 						s.parentNode.insertBefore(ga,s);
 					})();
+				 //]]></script>
+			";
+			return sprintf( $sRaw, $this->getOption( 'tracking_id' ) );
+		}
+
+		/**
+		 * @return string
+		 */
+		public function getAnalyticsCode_Universal() {
+			$sRaw = "
+				<!-- Google Analytics Tracking by iControlWP -->
+				<script type=\"text/javascript\">//<![CDATA[
+				  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+				  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+				  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+				  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+				  ga('create', '%s', 'auto');
+				  ga('require', 'displayfeatures');
+				  ga('send', 'pageview');
 				 //]]></script>
 			";
 			return sprintf( $sRaw, $this->getOption( 'tracking_id' ) );

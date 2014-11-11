@@ -21,6 +21,10 @@ options:
     section: 'section_non_ui'
     default: 'N'
   -
+    key: 'enable_universal_analytics'
+    section: 'section_non_ui'
+    default: 'N'
+  -
     key: 'tracking_id'
     section: 'section_non_ui'
     default: ''
