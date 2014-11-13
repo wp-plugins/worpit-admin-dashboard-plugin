@@ -71,7 +71,7 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 	 * to the whitelists of certain plugins that might otherwise block us.
 	 */
 	public function setupWhitelists() {
-		$this->addToWordfence();
+//		$this->addToWordfence();
 		$this->addToBadBehaviour();
 		$this->addToWordpressFirewall2();
 //		$this->addToIThemesSecurity();
@@ -86,15 +86,19 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 		}
 
 		$fAdded = false;
-		$aServiceIps = $this->getOption( 'service_ip_addresses_ipv4' );
+		$aServiceIps = $this->getValidWhitelistIps( 'ipv4' );
+
 		$sWfIpWhitelist = wfConfig::get( 'whitelisted' );
-		if ( empty($sWfIpWhitelist) ) {
+		if ( empty( $sWfIpWhitelist ) ) {
 			$aWfIps = $aServiceIps;
 			$fAdded = true;
 		}
 		else {
-			$aWfIps = explode(',', $sWfIpWhitelist);
+			$aWfIps = explode( ',', $sWfIpWhitelist );
 			foreach( $aServiceIps as $sServiceIp ) {
+				if ( !is_string( $sServiceIp ) ) {
+					continue;
+				}
 				if ( !in_array( $sServiceIp, $aWfIps ) ) {
 					$aWfIps[] = $sServiceIp;
 					$fAdded = true;
@@ -355,6 +359,19 @@ class ICWP_Processor_Compatibility_CP extends ICWP_Processor_Base_CP {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * @param string $sIps
+	 *
+	 * @return array
+	 */
+	protected function getValidWhitelistIps( $sIps = 'ipv4' ) {
+		$aLists = $this->getOption( 'service_ip_addresses_'.$sIps, array() );
+		if ( isset( $aLists['valid'] ) && is_array( $aLists['valid'] ) ) {
+			return $aLists['valid'];
+		}
+		return array();
 	}
 }
 
