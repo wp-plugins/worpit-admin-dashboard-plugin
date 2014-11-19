@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, worpit, icontrolwp, automatic updates
 Requires at least: 3.2.0
 Tested up to: 4.0
-Stable tag: 2.8.3
+Stable tag: 2.8.4
 
 == Description ==
 
@@ -114,6 +114,15 @@ No. WorpDrive is available for a small monthly fee.
 4. Get a view of all your plugins and how each one is distributed across each site.
 
 == Changelog ==
+
+= 2.8.4 =
+*Released: 19th November 2014*
+
+* IMPROVED: Compatibility with WordPress Simple Firewall user sessions and the Login-As feature.
+
+= 2.8.3 =
+
+* FIX:	    Temporarily disable automatic whitelist for wordfence.
 
 = 2.8.2 =
 
