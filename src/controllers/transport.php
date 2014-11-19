@@ -227,17 +227,19 @@ class Worpit_Controllers_Transport extends Worpit_Controllers_Base {
 				$oUser = get_user_by( 'login', $_GET['username'] );
 			}
 		}
-		
-		wp_set_current_user( $oUser->ID );
-		
+
 		// TODO: Handle multisite
 		if ( !defined( 'COOKIEHASH' ) ) {
 			wp_cookie_constants();
 		}
-		wp_set_auth_cookie( $oUser->ID );
-		
+
 		$oWpHelper->deleteTransient( 'worpit_login_token' );
-		
+
+		wp_clear_auth_cookie();
+		wp_set_current_user ( $oUser->ID, $oUser->get( 'user_login' ) );
+		wp_set_auth_cookie  ( $oUser->ID, true );
+		do_action( 'wp_login', $oUser->get( 'user_login' ), $oUser );
+
 		$sRedirectPath = '';
 		if ( isset( $_GET['redirect'] ) ) {
 			$sRedirectPath = $_GET['redirect'];

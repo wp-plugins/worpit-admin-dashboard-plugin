@@ -37,7 +37,8 @@ class Worpit_Controllers_Base {
 			'data'				=> $insBase64Data,
 			'base64response'	=> 1
 		);
-		
+
+		$this->sendHeaders();
 		echo '<worpitresponse>'.serialize( $aResponse ).'</worpitresponse>';
 		echo "\n";
 		echo '<worpitoutput>'.$this->writeOutputLog().'</worpitoutput>';
@@ -58,12 +59,18 @@ class Worpit_Controllers_Base {
 			'errno'				=> $innErrno,
 			'base64response'	=> 1
 		);
-		
+
+		$this->sendHeaders();
 		echo '<worpitresponse>'.serialize( $aResponse ).'</worpitresponse>';
 		echo "\n";
 		echo '<worpitoutput>'.$this->writeOutputLog().'</worpitoutput>';
 		
 		exit( $innErrno );
+	}
+
+	protected function sendHeaders() {
+		header( "Content-type: application/octet-stream" );
+		header( "Content-Transfer-Encoding: binary");
 	}
 	
 	/**
