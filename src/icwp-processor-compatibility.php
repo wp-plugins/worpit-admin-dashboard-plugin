@@ -73,32 +73,20 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 		}
 
 		protected function addToWordfence() {
-			$fInstalled = ( class_exists( 'wfConfig', false ) && method_exists( 'wfConfig', 'get' ) && method_exists( 'wfConfig', 'set' ) );
-			if ( !$fInstalled ) {
+
+			if ( !class_exists('wordfence') || !method_exists( 'wordfence', 'whitelistIP' ) ) {
 				return;
 			}
 
-			$fAdded = false;
-			$aServiceIps = $this->getOption( 'service_ip_addresses_ipv4' );
-			$sWfIpWhitelist = wfConfig::get( 'whitelisted' );
-			if ( empty($sWfIpWhitelist) ) {
-				$aWfIps = $aServiceIps;
-				$fAdded = true;
-			}
-			else {
-				$aWfIps = explode(',', $sWfIpWhitelist);
+			$aServiceIps = $this->getValidWhitelistIps();
+			try {
 				foreach( $aServiceIps as $sServiceIp ) {
-					if ( !in_array( $sServiceIp, $aWfIps ) ) {
-						$aWfIps[] = $sServiceIp;
-						$fAdded = true;
+					if ( !empty( $sServiceIp ) && is_string( $sServiceIp ) ) {
+						wordfence::whitelistIP( $sServiceIp );
 					}
 				}
 			}
-
-			if ( $fAdded ) {
-				$sWfIpWhitelist = implode(',', $aWfIps);
-				wfConfig::set( 'whitelisted', $sWfIpWhitelist );
-			}
+			catch( Exception $oE ) { }
 		}
 
 		protected function addToBadBehaviour() {
@@ -196,10 +184,7 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 		 */
 		public function addToSimpleFirewallWhitelist( $aWhitelistIps ) {
 			$sServiceName = $this->getOption( 'service_name', 'iControlWP' );
-			$aIpLists = array(
-				$this->getOption( 'service_ip_addresses_ipv4', array() ),
-				$this->getOption( 'service_ip_addresses_ipv6', array() )
-			);
+			$aIpLists = array_merge( $this->getValidWhitelistIps( 'ipv4' ), $this->getValidWhitelistIps( 'ipv6' ) );
 
 			foreach( $aIpLists as $aServiceIps ) {
 
@@ -331,6 +316,18 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 			}
 		}
 
+		/**
+		 * @param string $sIps
+		 *
+		 * @return array
+		 */
+		protected function getValidWhitelistIps( $sIps = 'ipv4' ) {
+			$aLists = $this->getOption( 'service_ip_addresses_'.$sIps, array() );
+			if ( isset( $aLists['valid'] ) && is_array( $aLists['valid'] ) ) {
+				return $aLists['valid'];
+			}
+			return array();
+		}
 	}
 
 endif;

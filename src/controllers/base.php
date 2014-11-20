@@ -25,19 +25,20 @@ class Worpit_Controllers_Base {
 	}
 
 	/**
-	 * @param string $insBase64Data
-	 * @param string $insMessage
+	 * @param string $sBase64Data
+	 * @param string $sMessage
 	 *
 	 * @uses exit
 	 */
-	protected function success( $insBase64Data = '', $insMessage = '' ) {
+	protected function success( $sBase64Data = '', $sMessage = '' ) {
 		$aResponse = array(
 			'success'			=> true,
-			'message'			=> $insMessage,
-			'data'				=> $insBase64Data,
+			'message'			=> $sMessage,
+			'data'				=> $sBase64Data,
 			'base64response'	=> 1
 		);
-		
+
+		$this->sendHeaders();
 		echo '<worpitresponse>'.serialize( $aResponse ).'</worpitresponse>';
 		echo "\n";
 		echo '<worpitoutput>'.$this->writeOutputLog().'</worpitoutput>';
@@ -46,24 +47,30 @@ class Worpit_Controllers_Base {
 	}
 	
 	/**
-	 * @param string $insMessage
-	 * @param integer $innErrno
+	 * @param string $sMessage
+	 * @param integer $nErrno
 	 *
 	 * @uses exit
 	 */
-	protected function fail( $insMessage, $innErrno = -1 ) {
+	protected function fail( $sMessage, $nErrno = -1 ) {
 		$aResponse = array(
 			'success'			=> false,
-			'error'				=> $insMessage,
-			'errno'				=> $innErrno,
+			'error'				=> $sMessage,
+			'errno'				=> $nErrno,
 			'base64response'	=> 1
 		);
-		
+
+		$this->sendHeaders();
 		echo '<worpitresponse>'.serialize( $aResponse ).'</worpitresponse>';
 		echo "\n";
 		echo '<worpitoutput>'.$this->writeOutputLog().'</worpitoutput>';
 		
-		exit( $innErrno );
+		exit( $nErrno );
+	}
+
+	protected function sendHeaders() {
+		header( "Content-type: application/octet-stream" );
+		header( "Content-Transfer-Encoding: binary");
 	}
 	
 	/**

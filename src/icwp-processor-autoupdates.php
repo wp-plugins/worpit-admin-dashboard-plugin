@@ -88,6 +88,10 @@ if ( !class_exists('ICWP_APP_AutoupdatesProcessor_V6') ):
 
 		/**
 		 * Will force-run the WordPress automatic updates process and then redirect to the updates screen.
+		 *
+		 * @param bool $sRedirect
+		 *
+		 * @return bool
 		 */
 		public function force_run_autoupdates( $sRedirect = false ) {
 			$lock_name = 'auto_updater.lock'; //ref: /wp-admin/includes/class-wp-upgrader.php
