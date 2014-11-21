@@ -42,64 +42,6 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		}
 
 		/**
-		 * @return stdClass
-		 */
-		public function doLink() {
-
-			$oResponse = new stdClass();
-			$oResponse->success = false;
-
-			if ( $this->getIsSiteLinked() ) {
-				$oResponse->message = 'AlreadyAssigned:'.$this->getOpt( 'assigned_to' );
-				$oResponse->code = 1;
-				return $oResponse;
-			}
-
-			$oDp = $this->loadDataProcessor();
-
-			$sRequestedKey = $oDp->FetchGet( 'key', '' );
-			if ( empty( $sRequestedKey ) ) {
-				$oResponse->message = 'KeyEmpty:'.'.';
-				$oResponse->code = 2;
-				return $oResponse;
-			}
-			if ( $sRequestedKey != $this->getOpt( 'key' ) ) {
-				$oResponse->message = 'KeyMismatch:'.$sRequestedKey.'.';
-				$oResponse->code = 2;
-				return $oResponse;
-			}
-
-			$sRequestedPin = $oDp->FetchGet( 'pin', '' );
-			if ( empty( $sRequestedPin ) ) {
-				$oResponse->message = 'PinEmpty:'.'.';
-				$oResponse->code = 2;
-				return $oResponse;
-			}
-			$sRequestedPin = md5( $sRequestedPin );
-
-			$sRequestedAcc = $oDp->FetchGet( 'accname', '' );
-			if ( empty( $sRequestedAcc ) ) {
-				$oResponse->message = 'AccountEmpty:'.'.';
-				$oResponse->code = 2;
-				return $oResponse;
-			}
-			if ( !is_email( $sRequestedAcc ) ) {
-				$oResponse->message = 'AccountNotValid:'.$sRequestedAcc;
-				$oResponse->code = 2;
-				return $oResponse;
-			}
-
-			$this->setOpt( 'pin', $sRequestedPin );
-			$this->setOpt( 'assigned', 'Y' );
-			$this->setOpt( 'assigned_to', $sRequestedAcc );
-
-			$this->savePluginOptions();
-			$oResponse->success = true;
-
-			return $oResponse;
-		}
-
-		/**
 		 */
 		public function doClearAdminFeedback() {
 			$this->setOpt( 'feedback_admin_notice', array() );
@@ -164,9 +106,8 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		 * @return bool
 		 */
 		public function getIsSiteLinked() {
-			return ( $this->getOptIs( 'assigned', 'Y' ) && !$this->getOptIs( 'assigned_to', '' ) );
+			return ( $this->getOptIs( 'assigned', 'Y' ) && is_email( $this->getOpt( 'assigned_to' ) ) );
 		}
-
 
 		public function doExtraSubmitProcessing() {
 			$oDp = $this->loadDataProcessor();

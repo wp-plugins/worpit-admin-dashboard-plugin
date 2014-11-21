@@ -511,6 +511,7 @@ if ( !class_exists('ICWP_APP_DataProcessor_V4') ):
 			}
 			return self::ArrayFetch( $_ENV, $sKey, $mDefault );
 		}
+
 		/**
 		 * @param string $sKey
 		 * @param mixed $mDefault

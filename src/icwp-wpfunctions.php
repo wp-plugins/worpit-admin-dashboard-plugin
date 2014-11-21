@@ -19,17 +19,17 @@
 
 require_once( dirname(__FILE__).'/icwp-data-processor.php' );
 
-if ( !class_exists('ICWP_WpFunctions_V5') ):
+if ( !class_exists('ICWP_WpFunctions_V6') ):
 
-	class ICWP_WpFunctions_V5 {
+	class ICWP_WpFunctions_V6 {
 
 		/**
-		 * @var ICWP_WpFunctions_V5
+		 * @var ICWP_WpFunctions_V6
 		 */
 		protected static $oInstance = NULL;
 
 		/**
-		 * @return ICWP_WpFunctions_V5
+		 * @return ICWP_WpFunctions_V6
 		 */
 		public static function GetInstance() {
 			if ( is_null( self::$oInstance ) ) {
@@ -107,6 +107,17 @@ if ( !class_exists('ICWP_WpFunctions_V5') ):
 			$sUrl = $this->getPluginUpgradeLink( $sPluginFile );
 			wp_redirect( $sUrl );
 			exit();
+		}
+
+		/**
+		 * Clears any WordPress caches
+		 */
+		public function doBustCache() {
+			global $_wp_using_ext_object_cache, $wp_object_cache;
+			$_wp_using_ext_object_cache = false;
+			if( !empty( $wp_object_cache ) ) {
+				@$wp_object_cache->flush();
+			}
 		}
 
 		/**
@@ -241,6 +252,28 @@ if ( !class_exists('ICWP_WpFunctions_V5') ):
 			}
 
 			return apply_filters( 'site_transient_'.$sKey, get_option( '_site_transient_'.$sKey ) );
+		}
+
+		/**
+		 * @param $sKey
+		 *
+		 * @return bool
+		 */
+		public function deleteTransient( $sKey ) {
+
+			if ( version_compare( $this->getWordpressVersion(), '2.7.9', '<=' ) ) {
+				return delete_option( $sKey );
+			}
+
+			if ( function_exists( 'delete_site_transient' ) ) {
+				return delete_site_transient( $sKey );
+			}
+
+			if ( version_compare( $this->getWordpressVersion(), '2.9.9', '<=' ) ) {
+				return delete_option( '_transient_'.$sKey );
+			}
+
+			return delete_option( '_site_transient_'.$sKey );
 		}
 
 		/**
@@ -439,6 +472,26 @@ if ( !class_exists('ICWP_WpFunctions_V5') ):
 		}
 
 		/**
+		 * @param $sUsername
+		 *
+		 * @return bool|WP_User
+		 */
+		public function getUserByUsername( $sUsername ) {
+			if ( empty( $sUsername ) ) {
+				return false;
+			}
+
+			if ( version_compare( $this->getWordpressVersion(), '2.8.0', '<' ) ) {
+				$oUser = get_userdatabylogin( $sUsername );
+			}
+			else {
+				$oUser = get_user_by( 'login', $sUsername );
+			}
+
+			return $oUser;
+		}
+
+		/**
 		 * @param array $aLoginUrlParams
 		 */
 		public function forceUserRelogin( $aLoginUrlParams = array() ) {
@@ -536,21 +589,23 @@ if ( !class_exists('ICWP_WpFunctions_V5') ):
 		}
 
 		/**
-		 * @param $sUsername
+		 * @param string $sUsername
+		 *
+		 * @return bool
 		 */
 		public function setUserLoggedIn( $sUsername ) {
 
-			if ( version_compare( $this->getWordpressVersion(), '2.8.0', '<' ) ) {
-				$oUser = get_userdatabylogin( $sUsername );
-			}
-			else {
-				$oUser = get_user_by( 'login', $sUsername );
+			$oUser = $this->getUserByUsername( $sUsername );
+			if ( !is_a( $oUser, 'WP_User' ) ) {
+				return false;
 			}
 
 			wp_clear_auth_cookie();
 			wp_set_current_user ( $oUser->ID, $oUser->get( 'user_login' ) );
 			wp_set_auth_cookie  ( $oUser->ID, true );
 			do_action( 'wp_login', $oUser->get( 'user_login' ), $oUser );
+
+			return true;
 		}
 
 		/**
@@ -627,7 +682,7 @@ endif;
 
 if ( !class_exists('ICWP_APP_WpFunctions') ):
 
-	class ICWP_APP_WpFunctions extends ICWP_WpFunctions_V5 {
+	class ICWP_APP_WpFunctions extends ICWP_WpFunctions_V6 {
 		/**
 		 * @return ICWP_APP_WpFunctions
 		 */

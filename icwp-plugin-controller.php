@@ -729,6 +729,7 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 
 	/**
 	 * @param string $sPath
+	 *
 	 * @return string
 	 */
 	public function getPluginUrl( $sPath = '' ) {

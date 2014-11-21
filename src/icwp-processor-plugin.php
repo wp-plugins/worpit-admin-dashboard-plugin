@@ -48,8 +48,9 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			 * Always perform the API check, as this is used for linking as well and requires
 			 * a different variation of POST variables.
 			 */
-			add_action( 'plugins_loaded', array( $this, 'onWpPluginsLoaded' ), 1 );
+			add_action( 'init', array( $this, 'onWpInit' ), 1 );
 			add_action( $this->getApiHook(), array( $this, 'doAPI' ), 1 );
+
 			$oCon = $this->getController();
 			add_filter( $oCon->doPluginPrefix( 'verify_site_can_handshake' ), array( $this, 'doVerifyCanHandshake' ) );
 			add_filter( $oCon->doPluginPrefix( 'verify_is_icwp_authenticated' ), array( $this, 'getIcwpAuthenticated' ) );
@@ -72,7 +73,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			add_action( 'wp_footer', array( $this, 'printPluginUri') );
 		}
 
-		public function onWpPluginsLoaded() {
+		public function onWpInit() {
 			$this->doWpEngine();
 		}
 
@@ -154,16 +155,36 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		 * @return void
 		 */
 		public function doAPI() {
-			if ( isset( $_GET['worpit_link'] ) && !empty( $_GET['worpit_link'] ) ) {
-				define( 'WORPIT_DIRECT_API', 1 );
-				include_once( dirname(__FILE__).'/link.php' );
+			$oDp = $this->loadDataProcessor();
+			if ( $oDp->FetchGet( 'worpit_link' ) == 1 ) {
+				require_once( 'icwp-processor-plugin_sitelink.php' );
+				$oLinkProcessor = new ICWP_APP_Processor_Plugin_SiteLink( $this->getFeatureOptions() );
+				$oLinkResponse = $oLinkProcessor->run();
+				$this->sendApiResponse( $oLinkResponse );
+			}
+			else if ( $oDp->FetchGet('worpit_api') == 1 ) {
+				require_once( 'icwp-processor-plugin_api.php' );
+				$oApiProcessor = new ICWP_APP_Processor_Plugin_Api( $this->getFeatureOptions() );
+				$oApiResponse = $oApiProcessor->run();
+				$this->sendApiResponse( $oApiResponse );
 				die();
 			}
-			else if ( isset( $_GET['worpit_api'] ) && !empty( $_GET['worpit_api'] ) ) {
-				define( 'WORPIT_DIRECT_API', 1 );
-				include_once( dirname(__FILE__).'/transport.php' );
-				die();
-			}
+		}
+
+		/**
+		 * @param stdClass|string $oResponse
+		 * @param bool $fEncode
+		 */
+		protected function sendApiResponse( $oResponse, $fEncode = true ) {
+			$this->sendHeaders();
+			echo "<icwp>".( $fEncode ? base64_encode( serialize( $oResponse ) ) : $oResponse )."</icwp>";
+			die();
+		}
+
+		protected function sendHeaders() {
+			return;
+			header( "Content-type: application/octet-stream" );
+			header( "Content-Transfer-Encoding: binary");
 		}
 
 		/**
@@ -220,7 +241,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		 * @return void
 		 */
 		protected function returnIcwpPluginUrl() {
-			die( '<worpitresponse>'. $this->getController()->getPluginUrl() .'</worpitresponse>' );
+			$this->sendApiResponse( $this->getController()->getPluginUrl(), false );
 		}
 
 		/**

@@ -60,13 +60,6 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	}
 
 	/**
-	 * @return stdClass
-	 */
-	public static function DoLink() {
-		return self::getController()->loadCorePluginFeatureHandler()->doLink();
-	}
-
-	/**
 	 * @param string $sKey
 	 * @param mixed $mDefault
 	 *
