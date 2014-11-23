@@ -810,6 +810,15 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	}
 
 	/**
+	 * @param string $sTmpFile
+	 *
+	 * @return string
+	 */
+	public function getPath_Temp( $sTmpFile = '' ) {
+		return $this->getRootDir().$this->getPluginSpec_Path( 'temp' ).ICWP_DS.$sTmpFile;
+	}
+
+	/**
 	 * @param string $sAsset
 	 *
 	 * @return string

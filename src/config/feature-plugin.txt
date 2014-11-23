@@ -55,6 +55,11 @@ options:
     value: 'https://app.icontrolwp.com/system/verification/reset/'
     immutable: true
   -
+    key: 'package_retrieve_url'
+    section: 'section_non_ui'
+    value: 'https://app.icontrolwp.com/system/package/retrieve/'
+    immutable: true
+  -
     key: 'installation_time'
     section: 'section_non_ui'
   -

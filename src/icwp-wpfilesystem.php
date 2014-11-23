@@ -318,6 +318,21 @@ if ( !class_exists('ICWP_APP_WpFilesystem') ):
 		}
 
 		/**
+		 * @param string $sFilePathSource
+		 * @param string $sFilePathDestination
+		 *
+		 * @return bool|null
+		 */
+		public function move( $sFilePathSource, $sFilePathDestination ) {
+			$oFs = $this->getWpfs();
+			if ( $oFs && $oFs->move( $sFilePathSource, $sFilePathDestination ) ) {
+				return true;
+			}
+
+			return function_exists( 'rename' ) ? @rename( $sFilePathSource, $sFilePathDestination ) : null;
+		}
+
+		/**
 		 * @param $sFilePath
 		 * @return bool|mixed
 		 */

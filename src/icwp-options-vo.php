@@ -350,7 +350,10 @@ class ICWP_APP_OptionsVO extends ICWP_APP_Foundation {
 			}
 
 			// Prevent overwriting of immutable options
-			if ( !isset( $aOption['immutable'] ) || $aOption['immutable'] !== true ) {
+			if ( isset( $aOption['immutable'] ) && $aOption['immutable'] === true ) {
+				$this->aOptionsValues[ $sOptionKey ] = $this->getOptDefault( $sOptionKey );
+			}
+			else {
 				$this->aOptionsValues[ $sOptionKey ] = $mValue;
 			}
 		}
