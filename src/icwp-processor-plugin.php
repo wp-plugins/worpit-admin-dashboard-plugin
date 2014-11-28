@@ -48,19 +48,20 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			 * Always perform the API check, as this is used for linking as well and requires
 			 * a different variation of POST variables.
 			 */
-			add_action( 'init', array( $this, 'onWpInit' ), 1 );
 			add_action( $this->getApiHook(), array( $this, 'doAPI' ), 1 );
 
 			$oCon = $this->getController();
-			add_filter( $oCon->doPluginPrefix( 'verify_site_can_handshake' ), array( $this, 'doVerifyCanHandshake' ) );
-			add_filter( $oCon->doPluginPrefix( 'verify_is_icwp_authenticated' ), array( $this, 'getIcwpAuthenticated' ) );
+			add_filter( $oCon->doPluginPrefix( 'get_service_ips_v4' ), array( $this, 'getServiceIpAddressesV4' ) );
+			add_filter( $oCon->doPluginPrefix( 'get_service_ips_v6' ), array( $this, 'getServiceIpAddressesV6' ) );
 
-			if ( true ) {
-				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-			}
+			add_filter( $oCon->doPluginPrefix( 'verify_site_can_handshake' ), array( $this, 'doVerifyCanHandshake' ) );
+
+//			if ( true ) {
+//				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+//			}
 
 			$oDp = $this->loadDataProcessor();
-			if ( ( $oDp->FetchRequest( 'getworpitpluginurl' ) == 1 ) ) {
+			if ( ( $oDp->FetchRequest( 'getworpitpluginurl' ) == 1 ) || $oDp->FetchRequest( 'geticwppluginurl' ) == 1 ) {
 				$this->returnIcwpPluginUrl();
 			}
 
@@ -73,54 +74,38 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			add_action( 'wp_footer', array( $this, 'printPluginUri') );
 		}
 
-		public function onWpInit() {
-			$this->doWpEngine();
-		}
-
 		/**
 		 * @return string
 		 */
 		protected function getApiHook() {
-			$sLoginToken = $this->loadWpFunctionsProcessor()->getTransient( 'worpit_login_token' );
-			return empty( $sLoginToken ) ? 'wp_loaded' : 'init';
+			return 'wp_loaded';
 		}
 
 		/**
-		 * @param boolean $fIsIcwp
-		 *
-		 * @return boolean
+		 * @return array
 		 */
-		public function getIcwpAuthenticated( $fIsIcwp ) {
+		public function getServiceIpAddressesV4() {
+			return $this->getValidServiceIps( 'ipv4' );
+		}
 
-			if ( !$fIsIcwp ) {
-				return false;
+		/**
+		 * @return array
+		 */
+		public function getServiceIpAddressesV6() {
+			return $this->getValidServiceIps( 'ipv6' );
+		}
+
+		/**
+		 * @param string $sIps
+		 *
+		 * @return array
+		 */
+		protected function getValidServiceIps( $sIps = 'ipv4' ) {
+			$aLists = $this->getOption( 'service_ip_addresses_'.$sIps, array() );
+			if ( isset( $aLists['valid'] ) && is_array( $aLists['valid'] ) ) {
+				return $aLists['valid'];
 			}
-
-			// We shouldn't be recognised as authenticated unless we're at least linked
-			if ( !$this->getFeatureOptions()->getIsSiteLinked() ) {
-				return false;
-			}
-
-			$oDp = $this->loadDataProcessor();
-
-			// Otherwise we use the old-style Key + PIN Auth sent in the POST
-			$sAuthKey = $this->getOption( 'key' );
-			$sPostKey = $oDp->FetchPost( 'key' );
-			$sPostPin = $oDp->FetchPost( 'pin' );
-			if ( empty( $sPostKey ) || empty( $sPostPin ) ) {
-				return false;
-			}
-
-			if ( $sAuthKey != trim( $sPostKey ) ) {
-				return false;
-			}
-
-			$sPin = $this->getOption( 'pin' );
-			if ( $sPin !== md5( trim( $sPostPin ) ) ) {
-				return false;
-			}
-
-			return true;
+			return array();
 		}
 
 		/**
@@ -131,21 +116,20 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		public function doVerifyCanHandshake( $fCanHandshake ) {
 
 			$nTimeout = 20;
-			$sHandshakeVerifyUrl = $this->getFeatureOptions()->getOpt( 'handshake_verify_url' );
+			$sHandshakeVerifyTestUrl = $this->getFeatureOptions()->getOpt( 'handshake_verify_test_url' );
 			$aArgs = array(
 				'timeout'		=> $nTimeout,
 				'redirection'	=> $nTimeout,
 				'sslverify'		=> true //this is default, but just to make sure.
 			);
 			$oFs = $this->loadFileSystemProcessor();
-			$sResponse = $oFs->getUrlContent( $sHandshakeVerifyUrl, $aArgs );
+			$sResponse = $oFs->getUrlContent( $sHandshakeVerifyTestUrl, $aArgs );
 
 			if ( !$sResponse ) {
 				return false;
 			}
-			$oJson = $this->loadDataProcessor()->doJsonDecode( trim( $sResponse ) );
-
-			return ( isset( $oJson->success ) && $oJson->success === true );
+			$oJsonResponse = $this->loadDataProcessor()->doJsonDecode( trim( $sResponse ) );
+			return ( is_object( $oJsonResponse ) && isset( $oJsonResponse->success ) && $oJsonResponse->success === true );
 		}
 
 		/**
@@ -161,6 +145,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 				$oLinkProcessor = new ICWP_APP_Processor_Plugin_SiteLink( $this->getFeatureOptions() );
 				$oLinkResponse = $oLinkProcessor->run();
 				$this->sendApiResponse( $oLinkResponse );
+				die();
 			}
 			else if ( $oDp->FetchGet('worpit_api') == 1 ) {
 				require_once( 'icwp-processor-plugin_api.php' );
@@ -173,58 +158,29 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 
 		/**
 		 * @param stdClass|string $oResponse
-		 * @param bool $fEncode
+		 * @param boolean $fDoBinaryEncode
 		 */
-		protected function sendApiResponse( $oResponse, $fEncode = true ) {
-			$this->sendHeaders();
-			echo "<icwp>".( $fEncode ? base64_encode( serialize( $oResponse ) ) : $oResponse )."</icwp>";
+		protected function sendApiResponse( $oResponse, $fDoBinaryEncode = true ) {
+			$oResponse = $fDoBinaryEncode ? base64_encode( serialize( $oResponse ) ) : $oResponse;
+
+			$this->sendHeaders( $fDoBinaryEncode );
+			echo "<icwp>".$oResponse."</icwp>";
+			echo "<icwpversion>".$this->getFeatureOptions()->getVersion()."</icwpversion>";
 			die();
 		}
 
-		protected function sendHeaders() {
-			return;
-			header( "Content-type: application/octet-stream" );
-			header( "Content-Transfer-Encoding: binary");
-		}
-
 		/**
-		 *
+		 * @param bool $fAsBinary
 		 */
-		protected function doWpEngine() {
-			if ( @getenv( 'IS_WPE' ) == '1' && class_exists( 'WpeCommon', false ) && $this->setAuthorizedUser() ) {
-				$oWpEngineCommon = WpeCommon::instance();
-				$oWpEngineCommon->set_wpe_auth_cookie();
+		protected function sendHeaders( $fAsBinary = true ) {
+			if ( $fAsBinary ) {
+				header( "Content-type: application/octet-stream" );
+				header( "Content-Transfer-Encoding: binary");
 			}
-		}
-
-		/**
-		 * @return void
-		 */
-		protected function setAuthorizedUser() {
-			// moved this to here to ensure it can't get called from elsewhere
-			if ( !apply_filters( $this->getController()->doPluginPrefix( 'verify_is_icwp_authenticated' ), true ) ) {
-				return false;
+			else {
+				header( "Content-type: text/html" );
+				header( "Content-Transfer-Encoding: quoted-printable");
 			}
-
-			$oDp = $this->loadDataProcessor();
-			$oWp = $this->loadWpFunctionsProcessor();
-			$sWpUser = $oDp->FetchPost( 'wpadmin_user' );
-			if ( empty( $sWpUser ) ) {
-
-				if ( version_compare( $oWp->getWordpressVersion(), '3.1', '>=' ) ) {
-					$aUserRecords = get_users( 'role=administrator' );
-					if ( is_array( $aUserRecords ) && count( $aUserRecords ) ) {
-						$oUser = $aUserRecords[0];
-					}
-				}
-				else {
-					$oUser = $oWp->getUserById( 1 );
-				}
-				$sWpUser = is_a( $oUser, 'WP_User' ) ? $oUser->get( 'user_login' ) : '';
-			}
-
-			$oWp->setUserLoggedIn( empty( $sWpUser ) ? 'admin' : $sWpUser );
-			return true;
 		}
 
 		/**
@@ -237,7 +193,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		}
 
 		/**
-		 * @uses die
 		 * @return void
 		 */
 		protected function returnIcwpPluginUrl() {

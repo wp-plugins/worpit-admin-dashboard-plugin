@@ -288,6 +288,34 @@ if ( !class_exists('ICWP_APP_WpFilesystem') ):
 		}
 
 		/**
+		 * @param string|null $sBaseDir
+		 * @param string $sPrefix
+		 * @param string $outsRandomDir
+		 *
+		 * @return bool|string
+		 */
+		public function getTempDir( $sBaseDir = null, $sPrefix = '', &$outsRandomDir = '' ) {
+			$sTemp = rtrim( (is_null( $sBaseDir )? sys_get_temp_dir(): $sBaseDir), DIRECTORY_SEPARATOR ).DIRECTORY_SEPARATOR;
+
+			$sCharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789';
+			do {
+				$sDir = $sPrefix;
+				for ( $i = 0; $i < 8; $i++ ) {
+					$sDir .= $sCharset[(rand() % strlen( $sCharset ))];
+				}
+			}
+			while ( is_dir( $sTemp.$sDir ) );
+
+			$outsRandomDir = $sDir;
+
+			$fSuccess = true;
+			if ( !@mkdir( $sTemp.$sDir, 0755, true ) ) {
+				$fSuccess = false;
+			}
+			return ($fSuccess? $sTemp.$sDir: false);
+		}
+
+		/**
 		 * @param string $sFilePath
 		 * @param string $sContents
 		 * @return boolean|null
@@ -302,6 +330,21 @@ if ( !class_exists('ICWP_APP_WpFilesystem') ):
 				return file_put_contents( $sFilePath, $sContents ) !== false;
 			}
 			return null;
+		}
+
+		/**
+		 * Recursive delete
+		 *
+		 * @param $sDir
+		 *
+		 * @return bool
+		 */
+		public function deleteDir( $sDir ) {
+			$oFs = $this->getWpfs();
+			if ( $oFs && $oFs->rmdir( $sDir, true ) ) {
+				return $oFs->rmdir( $sDir );
+			}
+			return @rmdir( $sDir );
 		}
 
 		/**

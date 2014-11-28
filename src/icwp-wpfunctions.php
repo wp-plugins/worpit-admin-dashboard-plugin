@@ -93,6 +93,29 @@ if ( !class_exists('ICWP_WpFunctions_V6') ):
 		}
 
 		/**
+		 * @return null|string
+		 */
+		public function findWpLoad() {
+			$sLoaderPath	= dirname( __FILE__ );
+			$sFilename		= 'wp-load.php';
+			$nLimiter		= 0;
+			$nMaxLimit		= count( explode( DIRECTORY_SEPARATOR, trim( $sLoaderPath, DIRECTORY_SEPARATOR ) ) );
+			$fFound			= false;
+
+			do {
+				if ( @is_file( $sLoaderPath.DIRECTORY_SEPARATOR.$sFilename ) ) {
+					$fFound = true;
+					break;
+				}
+				$sLoaderPath = realpath( $sLoaderPath.DIRECTORY_SEPARATOR.'..' );
+				$nLimiter++;
+			}
+			while ( $nLimiter < $nMaxLimit );
+
+			return $fFound ? $sLoaderPath.DIRECTORY_SEPARATOR.$sFilename : null;
+		}
+
+		/**
 		 * The full plugin file to be upgraded.
 		 *
 		 * @param string $sPluginFile

@@ -24,13 +24,9 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 		/**
 		 */
 		public function run() {
-
-			add_filter( $this->getController()->doPluginPrefix( 'verify_is_icwp_authenticated' ), array( $this, 'filter_getIsRequestIpFromIcwp' ) );
-
 			if ( is_admin() ) {
 				$this->setupWhitelists();
 			}
-
 			if ( $this->getIsRequestFromServiceIp() ) {
 				// Only when the request comes from iControlWP.
 				$this->unhookMaintenanceModePlugins();
@@ -39,15 +35,14 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 		}
 
 		/**
-		 * @param bool $fIsIcwp
+		 * @param int $nIpVersion
 		 *
-		 * @return bool
+		 * @return array
 		 */
-		public function filter_getIsRequestIpFromIcwp( $fIsIcwp ) {
-			if ( !$fIsIcwp ) {
-				return false;
-			}
-			return $this->getIsRequestFromServiceIp();
+		public function getServiceIps( $nIpVersion = 4 ) {
+			$nVersion = in_array( $nIpVersion, array( 4, 6 ) ) ? $nIpVersion : 4;
+			$aResult = apply_filters( $this->getController()->doPluginPrefix( 'get_service_ips_v'.$nVersion ), array() );
+			return is_array( $aResult ) ? $aResult : array();
 		}
 
 		/**
@@ -55,8 +50,7 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 		 */
 		protected function getIsRequestFromServiceIp() {
 			$sIp = $this->loadDataProcessor()->getVisitorIpAddress( true );
-			return ( in_array( $sIp, $this->getOption( 'service_ip_addresses_ipv4', array() ) )
-					 || in_array( $sIp, $this->getOption( 'service_ip_addresses_ipv6', array() ) ) );
+			return ( in_array( $sIp, $this->getServiceIps( 4 ) ) || in_array( $sIp, $this->getServiceIps( 6 ) ) );
 		}
 
 		/**
@@ -73,12 +67,11 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 		}
 
 		protected function addToWordfence() {
-
 			if ( !class_exists('wordfence') || !method_exists( 'wordfence', 'whitelistIP' ) ) {
 				return;
 			}
 
-			$aServiceIps = $this->getValidWhitelistIps();
+			$aServiceIps = $this->getServiceIps( 4 );
 			try {
 				foreach( $aServiceIps as $sServiceIp ) {
 					if ( !empty( $sServiceIp ) && is_string( $sServiceIp ) ) {
@@ -184,7 +177,7 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 		 */
 		public function addToSimpleFirewallWhitelist( $aWhitelistIps ) {
 			$sServiceName = $this->getOption( 'service_name', 'iControlWP' );
-			$aIpLists = array_merge( $this->getValidWhitelistIps( 'ipv4' ), $this->getValidWhitelistIps( 'ipv6' ) );
+			$aIpLists = array_merge( $this->getServiceIps( 4 ), $this->getServiceIps( 6 ) );
 
 			foreach( $aIpLists as $aServiceIps ) {
 
@@ -314,19 +307,6 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 					$bwpsoptions['id_whitelist'] .= "\n".$sServiceIps;
 				}
 			}
-		}
-
-		/**
-		 * @param string $sIps
-		 *
-		 * @return array
-		 */
-		protected function getValidWhitelistIps( $sIps = 'ipv4' ) {
-			$aLists = $this->getOption( 'service_ip_addresses_'.$sIps, array() );
-			if ( isset( $aLists['valid'] ) && is_array( $aLists['valid'] ) ) {
-				return $aLists['valid'];
-			}
-			return array();
 		}
 	}
 

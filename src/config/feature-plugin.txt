@@ -40,9 +40,14 @@ options:
     key: 'handshake_enabled'
     section: 'section_non_ui'
   -
+    key: 'handshake_verify_test_url'
+    section: 'section_non_ui'
+    value: 'https://app.icontrolwp.com/system/verification/test'
+    immutable: true
+  -
     key: 'handshake_verify_url'
     section: 'section_non_ui'
-    value: 'https://app.icontrolwp.com/system/verification/test/'
+    value: 'https://app.icontrolwp.com/system/verification/check'
     immutable: true
   -
     key: 'remote_add_site_url'
@@ -70,8 +75,27 @@ options:
     key: 'feedback_admin_notice'
     section: 'section_non_ui'
   -
-    key: 'update_success_tracker'
+    key: 'service_ip_addresses_ipv4'
     section: 'section_non_ui'
+    value:
+      valid:
+        - '198.61.176.9' #wd01
+        - '23.253.56.59' #app01
+        - '23.253.62.185' #app01
+        - '23.253.32.180' #wd02
+      old:
+        - '198.61.173.69'
+  -
+    key: 'service_ip_addresses_ipv6'
+    section: 'section_non_ui'
+    value:
+      valid:
+        - '2001:4801:7817:0072:ca75:cc9b:ff10:4699' #wd01
+        - '2001:4801:7817:72:ca75:cc9b:ff10:4699' #wd01
+        - '2001:4801:7824:0101:ca75:cc9b:ff10:a7b2' #app01
+        - '2001:4801:7824:101:ca75:cc9b:ff10:a7b2' #app01
+        - '2001:4801:7822:0103:be76:4eff:fe10:89a9' #wd02
+        - '2001:4801:7822:103:be76:4eff:fe10:89a9' #wd02
   -
     key: 'active_plugin_features'
     section: 'section_non_ui'
