@@ -624,8 +624,8 @@ if ( !class_exists('ICWP_WpFunctions_V6') ):
 			}
 
 			wp_clear_auth_cookie();
-			wp_set_current_user ( $oUser->ID, $oUser->get( 'user_login' ) );
-			wp_set_auth_cookie  ( $oUser->ID, true );
+			wp_set_current_user( $oUser->ID, $oUser->get( 'user_login' ) );
+			wp_set_auth_cookie( $oUser->ID, true );
 			do_action( 'wp_login', $oUser->get( 'user_login' ), $oUser );
 
 			return true;

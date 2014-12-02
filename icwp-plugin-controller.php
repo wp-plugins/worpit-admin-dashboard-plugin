@@ -687,7 +687,7 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 
 		$oDp = $this->loadDataProcessor();
 		foreach( $aFormSubmitOptions as $sOption ) {
-			if ( !is_null( $oDp->FetchRequest( $sOption ) ) ) {
+			if ( !is_null( $oDp->FetchRequest( $sOption, false ) ) ) {
 				return true;
 			}
 		}

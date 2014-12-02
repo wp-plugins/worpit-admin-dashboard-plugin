@@ -49,20 +49,17 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		public function run() {
 			$oDp = $this->loadDataProcessor();
 
-			$oResponse = new stdClass();
-			$oResponse->message = '';
-			$oResponse->success = true;
-			$oResponse->code = 0;
-			$oResponse->data = null;
 			$sApiMethod = $oDp->FetchGet( 'm', 'index' );
 			if ( !preg_match( '/[A-Z0-9_]+/i', $sApiMethod ) ) {
 				$sApiMethod = 'index';
 			}
+
+			$oResponse = $this->getStandardResponse();
 			$oResponse->method = $sApiMethod;
 
 			// Should we preApiCheck login?
 			if ( $sApiMethod == 'login' ) {
-				$this->doLogin( $oResponse );
+				return $this->doLogin( $oResponse );
 			}
 
 			$this->preApiCheck( $oResponse );
@@ -113,37 +110,50 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$oDp = $this->loadDataProcessor();
 
 			if ( !$this->getFeatureOptions()->getIsSiteLinked() ) {
-				$oResponse->success = false;
-				$oResponse->code = 9999;
-				$oResponse->message = 'NotAssigned';
-				return $oResponse;
+				$sErrorMessage = 'NotAssigned';
+				return $this->setErrorResponse(
+					$oResponse,
+					$sErrorMessage,
+					9999
+				);
 			}
 
 			$sKey = $this->getOption( 'key' );
 			$sRequestKey = trim( $oDp->FetchRequest( 'key', false ) );
 			if ( empty( $sRequestKey ) ) {
-				$oResponse->success = false;
-				$oResponse->code = 9995;
-				$oResponse->message = 'EmptyRequestKey';
+				$sErrorMessage = 'EmptyRequestKey';
+				return $this->setErrorResponse(
+					$oResponse,
+					$sErrorMessage,
+					9995
+				);
 			}
 			if ( $sRequestKey != $sKey ) {
-				$oResponse->success = false;
-				$oResponse->code = 9998;
-				$oResponse->message = 'InvalidKey:'.$sRequestKey;
+				$sErrorMessage = 'InvalidKey';
+				return $this->setErrorResponse(
+					$oResponse,
+					$sErrorMessage,
+					9998
+				);
 			}
 
 			$sPin = $this->getOption( 'pin' );
 			$sRequestPin = trim( $oDp->FetchRequest( 'pin', false ) );
 			if ( empty( $sRequestPin ) ) {
-				$oResponse->success = false;
-				$oResponse->code = 9994;
-				$oResponse->message = 'EmptyRequestPin';
+				$sErrorMessage = 'EmptyRequestPin';
+				return $this->setErrorResponse(
+					$oResponse,
+					$sErrorMessage,
+					9994
+				);
 			}
 			if ( md5( $sRequestPin ) != $sPin ) {
-				$oResponse->success = false;
-				$oResponse->code = 9997;
-				$oResponse->message = 'InvalidPin:'.$sRequestPin;
-				return $oResponse;
+				$sErrorMessage = 'InvalidPin';
+				return $this->setErrorResponse(
+					$oResponse,
+					$sErrorMessage,
+					9997
+				);
 			}
 
 			return $oResponse;
@@ -164,15 +174,15 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$sPin = $oDp->FetchRequest( 'pin', false );
 
 			if ( empty( $sVerificationCode ) || empty( $sPackageName ) || empty( $sPin ) ) {
-				$oResponse->success = false;
-				$oResponse->code = 9990;
-				$oResponse->message = 'Either the Verification Code, Package Name, or PIN were empty. Could not Handshake.';
-				return $oResponse;
+				return $this->setErrorResponse(
+					$oResponse,
+					'Either the Verification Code, Package Name, or PIN were empty. Could not Handshake.',
+					9990
+				);
 			}
 
 			$sHandshakeVerifyBaseUrl = $this->getOption( 'handshake_verify_url' );
 			// We can do this because we've assumed at this point we've validated the communication with iControlWP
-//			$sHandshakeVerifyBaseUrl = 'http://staging.worpitapp.com/system/package/retrieve/';
 			$sHandshakeVerifyUrl = sprintf(
 				'%s/%s/%s/%s',
 				rtrim( $sHandshakeVerifyBaseUrl, '/' ),
@@ -184,22 +194,23 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$oFs = $this->loadFileSystemProcessor();
 			$sResponse = $oFs->getUrlContent( $sHandshakeVerifyUrl );
 			if ( empty( $sResponse ) ) {
-				$oResponse->success = false;
-				$oResponse->code = 9991; //this code is use to re-initiate Handshaking verification test
-				$oResponse->message = sprintf( 'Package Handshaking Failed against URL "%s" with an empty response.', $sHandshakeVerifyUrl );
-				return $oResponse;
+				return $this->setErrorResponse(
+					$oResponse,
+					sprintf( 'Package Handshaking Failed against URL "%s" with an empty response.', $sHandshakeVerifyUrl ),
+					9991
+				);
 			}
 
 			$oJsonResponse = $this->loadDataProcessor()->doJsonDecode( trim( $sResponse ) );
 			if ( !is_object( $oJsonResponse ) || !isset( $oJsonResponse->success ) || $oJsonResponse->success !== true ) {
-				$oResponse->success = false;
-				$oResponse->code = 9992;
-				$oResponse->message = sprintf( 'Package Handshaking Failed against URL "%s" with response: "%s".', $sHandshakeVerifyUrl, print_r( $oJsonResponse,true ) );
-				return $oResponse;
+				return $this->setErrorResponse(
+					$oResponse,
+					sprintf( 'Package Handshaking Failed against URL "%s" with response: "%s".', $sHandshakeVerifyUrl, print_r( $oJsonResponse,true ) ),
+					9992
+				);
 			}
 
-			$oResponse->success = true; //just to be sure we proceed
-			return $oResponse;
+			return $this->setSuccessResponse( $oResponse ); //just to be sure we proceed thereafter
 		}
 
 		/**
@@ -213,7 +224,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		}
 
 		/**
-		 * @return void
+		 * @return bool
 		 */
 		protected function setAuthorizedUser() {
 			$oDp = $this->loadDataProcessor();
@@ -230,11 +241,10 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				else {
 					$oUser = $oWp->getUserById( 1 );
 				}
-				$sWpUser = is_a( $oUser, 'WP_User' ) ? $oUser->get( 'user_login' ) : '';
+				$sWpUser = ( !empty( $oUser ) && is_a( $oUser, 'WP_User' ) ) ? $oUser->get( 'user_login' ) : '';
 			}
 
-			$oWp->setUserLoggedIn( empty( $sWpUser ) ? 'admin' : $sWpUser );
-			return true;
+			return $oWp->setUserLoggedIn( empty( $sWpUser ) ? 'admin' : $sWpUser );
 		}
 
 		/**
@@ -247,32 +257,32 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$oFs = $this->loadFileSystemProcessor();
 
 			if ( !function_exists( 'download_url' ) ) {
-				$oResponse->success = false;
-				$oResponse->message = sprintf( 'Function "%s" does not exit.', 'download_url' );
-				//TODO: Set a code
-				$oResponse->code = -1;
-				return $oResponse;
+				return $this->setErrorResponse(
+					$oResponse,
+					sprintf( 'Function "%s" does not exit.', 'download_url' )
+					-1 //TODO: Set a code
+				);
 			}
 
 			if ( !function_exists( 'is_wp_error' ) ) {
-				$oResponse->success = false;
-				$oResponse->message = sprintf( 'Function "%s" does not exit.', 'is_wp_error' );
-				//TODO: Set a code
-				$oResponse->code = -1;
-				return $oResponse;
+				return $this->setErrorResponse(
+					$oResponse,
+					sprintf( 'Function "%s" does not exit.', 'is_wp_error' ),
+					-1 //TODO: Set a code
+				);
 			}
 
 			$sPackageId = $oDp->FetchGet( 'package_id' );
 			if ( empty( $sPackageId ) ) {
-				$oResponse->success = false;
-				$oResponse->message = 'Package ID to retrieve is empty.';
-				//TODO: Set a code
-				$oResponse->code = -1;
-				return $oResponse;
+				return $this->setErrorResponse(
+					$oResponse,
+					'Package ID to retrieve is empty.',
+					-1 //TODO: Set a code
+				);
 			}
 
 			// We can do this because we've assumed at this point we've validated the communication with iControlWP
-			$sRetrieveBaseUrl = $oDp->FetchRequest( 'package_retrieve_url', $this->getOption( 'package_retrieve_url' ) );
+			$sRetrieveBaseUrl = $oDp->FetchRequest( 'package_retrieve_url', false, $this->getOption( 'package_retrieve_url' ) );
 //			$sRetrieveUrl = 'http://staging.worpitapp.com/system/package/retrieve/';
 			$sPackageRetrieveUrl = sprintf(
 				'%s/%s/%s/%s',
@@ -284,21 +294,22 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$sRetrievedTmpFile = download_url( $sPackageRetrieveUrl );
 
 			if ( is_wp_error( $sRetrievedTmpFile ) ) {
-				$oResponse->success = false;
-				$oResponse->message = sprintf(
+				$sMessage = sprintf(
 					'The package could not be downloaded from "%s" with error: %s',
 					$sPackageRetrieveUrl,
 					$sRetrievedTmpFile->get_error_message()
 				);
-				//TODO: Set a code
-				$oResponse->code = -1;
-				return $oResponse;
+				return $this->setErrorResponse(
+					$oResponse,
+					$sMessage,
+					-1 //TODO: Set a code
+				);
 			}
 
 			$sNewFile = $this->getController()->getPath_Temp( basename( $sRetrievedTmpFile ) );
 			$sFileToInclude = $oFs->move( $sRetrievedTmpFile, $sNewFile ) ? $sNewFile : $sRetrievedTmpFile;
 
-			$oResponse = $this->runInstaller( $sFileToInclude, $oResponse );
+			$this->runInstaller( $oResponse, $sFileToInclude );
 			return $oResponse;
 		}
 
@@ -323,24 +334,39 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				$_POST['abs_package_dir'] = $sTempDir;
 			}
 			else {
-				$this->fail( 'No longer support EVAL().' );
+				$this->setErrorResponse(
+					$oResponse,
+					'No longer support EVAL() methods.',
+					9800
+				);
 			}
 
+			// TODO:
+			//https://yoast.com/smarter-upload-handling-wp-plugins/
+			//wp_handle_upload()
 			foreach ( $_FILES as $sKey => $aUpload ) {
 				if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
 					$sMoveTarget = $sTempDir.WORPIT_DS.$aUpload['name'];
 					if ( !move_uploaded_file( $aUpload['tmp_name'], $sMoveTarget ) ) {
-						$this->fail( sprintf( 'Failed to move uploaded file from %s to %s', $aUpload['tmp_name'], $sMoveTarget ) );
+						$this->setErrorResponse(
+							$oResponse,
+							sprintf( 'Failed to move uploaded file from %s to %s', $aUpload['tmp_name'], $sMoveTarget ),
+							9801
+						);
 					}
 					chmod( $sMoveTarget, 0644 );
 				}
 				else {
-					$this->fail( 'One of the uploaded files could not be copied to the temp dir.' );
+					$this->setErrorResponse(
+						$oResponse,
+						'One of the uploaded files could not be copied to the temp dir.',
+						9802
+					);
 				}
 			}
 
 			$sFileToInclude = $sTempDir . WORPIT_DS . 'installer.php';
-			$oResponse = $this->runInstaller( $sFileToInclude, $oResponse );
+			$this->runInstaller( $oResponse, $sFileToInclude );
 			$oFs->deleteDir( $sTempDir );
 
 			return $oResponse;
@@ -352,43 +378,45 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		 *
 		 * @return stdClass
 		 */
-		private function runInstaller( $sInstallerFileToInclude, $oResponse ) {
+		private function runInstaller( $oResponse, $sInstallerFileToInclude ) {
 
 			include_once( $sInstallerFileToInclude );
 			$oFs = $this->loadFileSystemProcessor();
 			$oFs->deleteFile( $sInstallerFileToInclude );
 
 			if ( !class_exists( 'Worpit_Package_Installer', false ) ) {
-				$oResponse->success = false;
-				$oResponse->message = sprintf( 'Worpit_Package_Installer does not exist in file: "%s".', $sInstallerFileToInclude );
-				//TODO: Set a code
-				$oResponse->code = -1;
-				return $oResponse;
+				$sErrorMessage = sprintf( 'Worpit_Package_Installer does not exist in file: "%s".', $sInstallerFileToInclude );
+				return $this->setErrorResponse(
+					$oResponse,
+					$sErrorMessage,
+					-1 //TODO: Set a code
+				);
 			}
 
 			$oInstall = new Worpit_Package_Installer();
 			$aInstallerResponse = $oInstall->run();
-
 			$sInstallerExecutionMessage = !empty( $aInstallerResponse[ 'message' ] ) ? $aInstallerResponse[ 'message' ] : 'No message';
 
 			// TODO
 //			$this->log( $aInstallerResponse );
 
 			if ( !$aInstallerResponse['success'] ) {
-				$oResponse->success = false;
-				$oResponse->message = sprintf( 'Package Execution FAILED with error message: "%s"', $sInstallerExecutionMessage );
-				//TODO: Set a code
-				$oResponse->code = -1;
-				return $oResponse;
+
+				$this->setErrorResponse(
+					$oResponse,
+					sprintf( 'Package Execution FAILED with error message: "%s"', $sInstallerExecutionMessage ),
+					-1 //TODO: Set a code
+				);
 			}
+			else {
 
-			$aData = isset( $aInstallerResponse['data'] )? $aInstallerResponse['data']: '';
-
-			$oResponse->success = true;
-			$oResponse->message = sprintf( 'Package Execution SUCCEEDED with message: "%s".', $sInstallerExecutionMessage );
-			$oResponse->data = $aData;
-			//TODO: Set a code
-			$oResponse->code = 0;
+				$this->setSuccessResponse(
+					$oResponse,
+					sprintf( 'Package Execution SUCCEEDED with message: "%s".', $sInstallerExecutionMessage ),
+					0,
+					isset( $aInstallerResponse['data'] )? $aInstallerResponse['data']: ''
+				);
+			}
 
 			return $oResponse;
 		}
@@ -403,32 +431,38 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$oDp = $this->loadDataProcessor();
 			$oWp->doBustCache();
 
+			// If there's an error with login, we die.
+			$oResponse->die = true;
+
 			$sRequestToken = $oDp->FetchRequest( 'token', false, '' );
 			if ( empty( $sRequestToken ) ) {
-				$oResponse->success = false;
-				$oResponse->message = 'No valid Login Token was sent';
-				//TODO: Set a code
-				$oResponse->code = -1;
-				return $oResponse;
+				$sErrorMessage = 'No valid Login Token was sent.';
+				return $this->setErrorResponse(
+					$oResponse,
+					$sErrorMessage,
+					-1 //TODO: Set a code
+				);
 			}
 
 			$sLoginTokenKey = 'worpit_login_token';
 			$sStoredToken = $oWp->getTransient( $sLoginTokenKey );
 			$oWp->deleteTransient( $sLoginTokenKey ); // One chance per token
 			if ( empty( $sStoredToken ) || strlen( $sStoredToken ) != 32 ) {
-				$oResponse->success = false;
-				$oResponse->message = 'Login Token is not present or is not of the correct format.';
-				//TODO: Set a code
-				$oResponse->code = -1;
-				return $oResponse;
+				$sErrorMessage = 'Login Token is not present or is not of the correct format.';
+				return $this->setErrorResponse(
+					$oResponse,
+					$sErrorMessage,
+					-1 //TODO: Set a code
+				);
 			}
 
 			if ( $sStoredToken !== $sRequestToken ) {
-				$oResponse->success = false;
-				$oResponse->message = 'Login Tokens do not match';
-				//TODO: Set a code
-				$oResponse->code = -1;
-				return $oResponse;
+				$sErrorMessage = 'Login Tokens do not match.';
+				return $this->setErrorResponse(
+					$oResponse,
+					$sErrorMessage,
+					-1 //TODO: Set a code
+				);
 			}
 
 			$sUsername = $oDp->FetchRequest( 'username', false, '' );
@@ -436,11 +470,12 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			if ( empty( $sUsername ) || empty( $oUser ) ) {
 				$aUserRecords = version_compare( $oWp->getWordpressVersion(), '3.1', '>=' ) ? get_users( 'role=administrator' ) : array();
 				if ( empty( $aUserRecords[0] ) ) {
-					$oResponse->success = false;
-					$oResponse->message = 'Failed to find an administrator user';
-					//TODO: Set a code
-					$oResponse->code = -1;
-					return $oResponse;
+					$sErrorMessage = 'Failed to find an administrator user.';
+					return $this->setErrorResponse(
+						$oResponse,
+						$sErrorMessage,
+						-1 //TODO: Set a code
+					);
 				}
 				$oUser = $aUserRecords[0];
 			}
@@ -449,10 +484,14 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				wp_cookie_constants();
 			}
 
-			wp_clear_auth_cookie();
-			wp_set_current_user( $oUser->ID, $oUser->get( 'user_login' ) );
-			wp_set_auth_cookie( $oUser->ID, true );
-			do_action( 'wp_login', $oUser->get( 'user_login' ), $oUser );
+			$fLoginSuccess = $oWp->setUserLoggedIn( $oUser->get( 'user_login' ) );
+			if ( !$fLoginSuccess ) {
+				return $this->setErrorResponse(
+					$oResponse,
+					sprintf( 'There was a problem logging you in as "%s".', $oUser->get( 'user_login' ) ),
+					-1 //TODO: Set a code
+				);
+			}
 
 			$sRedirectPath = $oDp->FetchGet( 'redirect', '' );
 			if ( strlen( $sRedirectPath ) == 0 ) {
@@ -462,6 +501,53 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				$oWp->doRedirect( $sRedirectPath );
 			}
 			die();
+		}
+
+		/**
+		 * @param stdClass $oResponse
+		 * @param string $sErrorMessage
+		 * @param int $nErrorCode
+		 * @param mixed $mErrorData
+		 *
+		 * @return stdClass
+		 */
+		protected function setErrorResponse( stdClass $oResponse, $sErrorMessage = '', $nErrorCode = -1, $mErrorData = '' ) {
+			$oResponse->success = false;
+			$oResponse->error_message = $sErrorMessage;
+			$oResponse->code = $nErrorCode;
+			$oResponse->data = $mErrorData;
+			return $oResponse;
+		}
+
+		/**
+		 * @param stdClass $oResponse
+		 * @param string $sMessage
+		 * @param int $nSuccessCode
+		 * @param mixed $mData
+		 *
+		 * @return stdClass
+		 */
+		protected function setSuccessResponse( stdClass $oResponse, $sMessage = '', $nSuccessCode = 0, $mData = '' ) {
+			$oResponse->success = true;
+			$oResponse->message = $sMessage;
+			$oResponse->code = $nSuccessCode;
+			$oResponse->data = $mData;
+			return $oResponse;
+		}
+
+		/**
+		 * @return stdClass
+		 */
+		protected function getStandardResponse() {
+			$oResponse = new stdClass();
+			$oResponse->error_message = '';
+			$oResponse->message = '';
+			$oResponse->success = true;
+			$oResponse->code = 0;
+			$oResponse->data = null;
+			$oResponse->method = '';
+			$oResponse->die = false;
+			return $oResponse;
 		}
 	}
 

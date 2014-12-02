@@ -540,17 +540,19 @@ if ( !class_exists('ICWP_APP_DataProcessor_V4') ):
 			}
 			return self::ArrayFetch( $_POST, $sKey, $mDefault );
 		}
+
 		/**
 		 * @param string $sKey
-		 * @param boolean $infIncludeCookie
+		 * @param boolean $fIncludeCookie
 		 * @param mixed $mDefault
+		 *
 		 * @return mixed|null
 		 */
-		public static function FetchRequest( $sKey, $infIncludeCookie = true, $mDefault = null ) {
+		public static function FetchRequest( $sKey, $fIncludeCookie = true, $mDefault = null ) {
 			$mFetchVal = self::FetchPost( $sKey );
 			if ( is_null( $mFetchVal ) ) {
 				$mFetchVal = self::FetchGet( $sKey );
-				if ( is_null( $mFetchVal && $infIncludeCookie ) ) {
+				if ( is_null( $mFetchVal && $fIncludeCookie ) ) {
 					$mFetchVal = self::FetchCookie( $sKey );
 				}
 			}

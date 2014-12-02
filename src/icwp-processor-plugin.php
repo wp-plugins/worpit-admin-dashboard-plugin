@@ -61,7 +61,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 //			}
 
 			$oDp = $this->loadDataProcessor();
-			if ( ( $oDp->FetchRequest( 'getworpitpluginurl' ) == 1 ) || $oDp->FetchRequest( 'geticwppluginurl' ) == 1 ) {
+			if ( ( $oDp->FetchRequest( 'getworpitpluginurl', false ) == 1 ) || $oDp->FetchRequest( 'geticwppluginurl', false ) == 1 ) {
 				$this->returnIcwpPluginUrl();
 			}
 
@@ -161,6 +161,12 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		 * @param boolean $fDoBinaryEncode
 		 */
 		protected function sendApiResponse( $oResponse, $fDoBinaryEncode = true ) {
+
+			if ( $oResponse->die ) {
+				wp_die( $oResponse->error_message );
+				return;
+			}
+
 			$oResponse = $fDoBinaryEncode ? base64_encode( serialize( $oResponse ) ) : $oResponse;
 
 			$this->sendHeaders( $fDoBinaryEncode );
