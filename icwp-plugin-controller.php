@@ -168,7 +168,8 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 */
 	protected function createPluginMenu() {
 
-		if ( !$this->getPluginSpec_Menu( 'show' ) ) {
+		$fHideMenu = apply_filters( $this->doPluginPrefix( 'filter_hidePluginMenu' ), !$this->getPluginSpec_Menu( 'show' ) );
+		if ( $fHideMenu ) {
 			return true;
 		}
 

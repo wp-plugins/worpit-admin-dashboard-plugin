@@ -52,3 +52,4 @@ options:
       - 'year_id'
       - 'count_total'
       - 'deleted_at'
+      - 'created_at'

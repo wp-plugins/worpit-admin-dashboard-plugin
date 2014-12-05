@@ -28,10 +28,13 @@ Author URI: http://www.icontrolwp.com/
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+if ( !defined( 'ICWP_DS' ) ) {
+	define( 'ICWP_DS', DIRECTORY_SEPARATOR );
+}
+
 if ( !defined( 'WORPIT_DS' ) ) {
 	define( 'WORPIT_DS', DIRECTORY_SEPARATOR );
 }
-
 if ( class_exists( 'Worpit_Plugin', false ) ) {
 	return;
 }
@@ -50,6 +53,7 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	public function __construct( ICWP_APP_Plugin_Controller $oPluginController ) {
 		self::$oPluginController = $oPluginController;
 		$this->getController()->loadAllFeatures();
+
 	}
 
 	/**

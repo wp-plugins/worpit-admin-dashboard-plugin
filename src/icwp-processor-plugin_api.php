@@ -25,6 +25,11 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 	class ICWP_APP_Processor_Plugin_Api extends ICWP_APP_Processor_Base {
 
 		/**
+		 * @var stdClass
+		 */
+		protected static $oActionResponse;
+
+		/**
 		 * @var ICWP_APP_FeatureHandler_Plugin
 		 */
 		protected $oFeatureOptions;
@@ -59,18 +64,18 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 
 			// Should we preApiCheck login?
 			if ( $sApiMethod == 'login' ) {
-				return $this->doLogin( $oResponse );
+				return $this->doLogin();
 			}
 
-			$this->preApiCheck( $oResponse );
+			$this->preApiCheck();
 			if ( !$oResponse->success ) {
 				return $oResponse;
 			}
 
-			$this->doHandshakeVerify( $oResponse );
+			$this->doHandshakeVerify();
 			if ( !$oResponse->success ) {
 				if ( $oResponse->code == 9991 ) {
-					$this->getFeatureOptions()->setCanHandshake();
+					$this->getFeatureOptions()->setCanHandshake(); //recheck ability to handshake
 				}
 				return $oResponse;
 			}
@@ -79,8 +84,8 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			@set_time_limit( $oDp->FetchRequest( 'timeout', false, 60 ) );
 
 			$aOldVersionMethods = array(
-				'index',
 				'query',
+//				'index',
 //				'retrieve',
 //				'execute',
 			);
@@ -91,28 +96,39 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				die();
 			}
 
-			if ( $sApiMethod == 'retrieve' ) {
-				$this->doRetrieve( $oResponse );
+			if ( $sApiMethod == 'index' ) {
+				$this->doIndex();
 			}
-			if ( $sApiMethod == 'execute' ) {
-				$this->doExecute( $oResponse );
+			else if ( $sApiMethod == 'retrieve' ) {
+				$this->doRetrieve();
+			}
+			else if ( $sApiMethod == 'execute' ) {
+				$this->doExecute();
+			}
+			else if ( $sApiMethod == 'internal' ) {
+//				$this->doInternal();
 			}
 
 			return $oResponse;
 		}
 
 		/**
-		 * @param stdClass $oResponse
-		 *
 		 * @return stdClass
 		 */
-		protected function preApiCheck( $oResponse ) {
+		protected function doIndex() {
+			return $this->setSuccessResponse( 'Plugin Index' ); //just to be sure we proceed thereafter
+		}
+
+		/**
+		 * @return stdClass
+		 */
+		protected function preApiCheck() {
 			$oDp = $this->loadDataProcessor();
+			$oResponse = $this->getStandardResponse();
 
 			if ( !$this->getFeatureOptions()->getIsSiteLinked() ) {
 				$sErrorMessage = 'NotAssigned';
 				return $this->setErrorResponse(
-					$oResponse,
 					$sErrorMessage,
 					9999
 				);
@@ -123,7 +139,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			if ( empty( $sRequestKey ) ) {
 				$sErrorMessage = 'EmptyRequestKey';
 				return $this->setErrorResponse(
-					$oResponse,
 					$sErrorMessage,
 					9995
 				);
@@ -131,7 +146,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			if ( $sRequestKey != $sKey ) {
 				$sErrorMessage = 'InvalidKey';
 				return $this->setErrorResponse(
-					$oResponse,
 					$sErrorMessage,
 					9998
 				);
@@ -142,7 +156,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			if ( empty( $sRequestPin ) ) {
 				$sErrorMessage = 'EmptyRequestPin';
 				return $this->setErrorResponse(
-					$oResponse,
 					$sErrorMessage,
 					9994
 				);
@@ -150,7 +163,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			if ( md5( $sRequestPin ) != $sPin ) {
 				$sErrorMessage = 'InvalidPin';
 				return $this->setErrorResponse(
-					$oResponse,
 					$sErrorMessage,
 					9997
 				);
@@ -160,22 +172,37 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		}
 
 		/**
-		 * @param stdClass $oResponse
-		 *
 		 * @return stdClass
 		 */
-		protected function doHandshakeVerify( stdClass $oResponse ) {
+		protected function doHandshakeVerify() {
+			$oResponse = $this->getStandardResponse();
 			if( !$this->getFeatureOptions()->getCanHandshake() ) {
+				$oResponse->handshake = 'unsupported';
 				return $oResponse;
 			}
+			$oResponse->handshake = 'failed';
+
 			$oDp = $this->loadDataProcessor();
 			$sVerificationCode = $oDp->FetchRequest( 'verification_code', false );
+			if ( $oDp->getCanOpensslSign() ) {
+				$sSignature = base64_decode( $oDp->FetchRequest( 'opensig', false, '' ) );
+				$sPublicKey = $this->getOption( 'icwp_public_key', '' );
+				if ( !empty( $sSignature ) && !empty( $sPublicKey ) ) {
+					$oResponse->openssl_verify = openssl_verify( $sVerificationCode, $sSignature, base64_decode( $sPublicKey ) );
+					if ( $oResponse->openssl_verify === 1 ) {
+						$oResponse->handshake = 'openssl';
+						return $this->setSuccessResponse(); //just to be sure we proceed thereafter
+					}
+				}
+			}
+
+
+			$oDp = $this->loadDataProcessor();
 			$sPackageName = $oDp->FetchRequest( 'package_name', false );
 			$sPin = $oDp->FetchRequest( 'pin', false );
 
 			if ( empty( $sVerificationCode ) || empty( $sPackageName ) || empty( $sPin ) ) {
 				return $this->setErrorResponse(
-					$oResponse,
 					'Either the Verification Code, Package Name, or PIN were empty. Could not Handshake.',
 					9990
 				);
@@ -195,7 +222,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$sResponse = $oFs->getUrlContent( $sHandshakeVerifyUrl );
 			if ( empty( $sResponse ) ) {
 				return $this->setErrorResponse(
-					$oResponse,
 					sprintf( 'Package Handshaking Failed against URL "%s" with an empty response.', $sHandshakeVerifyUrl ),
 					9991
 				);
@@ -204,13 +230,13 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$oJsonResponse = $this->loadDataProcessor()->doJsonDecode( trim( $sResponse ) );
 			if ( !is_object( $oJsonResponse ) || !isset( $oJsonResponse->success ) || $oJsonResponse->success !== true ) {
 				return $this->setErrorResponse(
-					$oResponse,
 					sprintf( 'Package Handshaking Failed against URL "%s" with response: "%s".', $sHandshakeVerifyUrl, print_r( $oJsonResponse,true ) ),
 					9992
 				);
 			}
 
-			return $this->setSuccessResponse( $oResponse ); //just to be sure we proceed thereafter
+			$oResponse->handshake = 'url';
+			return $this->setSuccessResponse(); //just to be sure we proceed thereafter
 		}
 
 		/**
@@ -248,17 +274,24 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		}
 
 		/**
-		 * @param stdClass $oResponse
-		 *
 		 * @return stdClass
 		 */
-		protected function doRetrieve( $oResponse ) {
+		protected function doInternal() {
+			include_once( 'icwp-processor-plugin_internalapi.php' );
+			$oInternalApi = new ICWP_APP_Processor_Plugin_InternalApi( $this->getFeatureOptions() );
+			return $oInternalApi->run();
+		}
+
+		/**
+		 * @return stdClass
+		 */
+		protected function doRetrieve() {
+			$oResponse = $this->getStandardResponse();
 			$oDp = $this->loadDataProcessor();
 			$oFs = $this->loadFileSystemProcessor();
 
 			if ( !function_exists( 'download_url' ) ) {
 				return $this->setErrorResponse(
-					$oResponse,
 					sprintf( 'Function "%s" does not exit.', 'download_url' )
 					-1 //TODO: Set a code
 				);
@@ -266,7 +299,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 
 			if ( !function_exists( 'is_wp_error' ) ) {
 				return $this->setErrorResponse(
-					$oResponse,
 					sprintf( 'Function "%s" does not exit.', 'is_wp_error' ),
 					-1 //TODO: Set a code
 				);
@@ -275,7 +307,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$sPackageId = $oDp->FetchGet( 'package_id' );
 			if ( empty( $sPackageId ) ) {
 				return $this->setErrorResponse(
-					$oResponse,
 					'Package ID to retrieve is empty.',
 					-1 //TODO: Set a code
 				);
@@ -300,7 +331,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 					$sRetrievedTmpFile->get_error_message()
 				);
 				return $this->setErrorResponse(
-					$oResponse,
 					$sMessage,
 					-1 //TODO: Set a code
 				);
@@ -309,17 +339,14 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$sNewFile = $this->getController()->getPath_Temp( basename( $sRetrievedTmpFile ) );
 			$sFileToInclude = $oFs->move( $sRetrievedTmpFile, $sNewFile ) ? $sNewFile : $sRetrievedTmpFile;
 
-			$this->runInstaller( $oResponse, $sFileToInclude );
+			$this->runInstaller( $sFileToInclude );
 			return $oResponse;
 		}
 
 		/**
-		 * @param stdClass $oResponse
-		 *
 		 * @return stdClass
 		 */
-		protected function doExecute( $oResponse ) {
-
+		protected function doExecute() {
 			$oFs = $this->loadFileSystemProcessor();
 
 			/**
@@ -334,8 +361,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				$_POST['abs_package_dir'] = $sTempDir;
 			}
 			else {
-				$this->setErrorResponse(
-					$oResponse,
+				return $this->setErrorResponse(
 					'No longer support EVAL() methods.',
 					9800
 				);
@@ -348,8 +374,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
 					$sMoveTarget = $sTempDir.WORPIT_DS.$aUpload['name'];
 					if ( !move_uploaded_file( $aUpload['tmp_name'], $sMoveTarget ) ) {
-						$this->setErrorResponse(
-							$oResponse,
+						return $this->setErrorResponse(
 							sprintf( 'Failed to move uploaded file from %s to %s', $aUpload['tmp_name'], $sMoveTarget ),
 							9801
 						);
@@ -357,8 +382,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 					chmod( $sMoveTarget, 0644 );
 				}
 				else {
-					$this->setErrorResponse(
-						$oResponse,
+					return $this->setErrorResponse(
 						'One of the uploaded files could not be copied to the temp dir.',
 						9802
 					);
@@ -366,19 +390,18 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			}
 
 			$sFileToInclude = $sTempDir . WORPIT_DS . 'installer.php';
-			$this->runInstaller( $oResponse, $sFileToInclude );
+			$this->runInstaller( $sFileToInclude );
 			$oFs->deleteDir( $sTempDir );
 
-			return $oResponse;
+			return $this->getStandardResponse();
 		}
 
 		/**
 		 * @param string $sInstallerFileToInclude
-		 * @param stdClass $oResponse
 		 *
 		 * @return stdClass
 		 */
-		private function runInstaller( $oResponse, $sInstallerFileToInclude ) {
+		private function runInstaller( $sInstallerFileToInclude ) {
 
 			include_once( $sInstallerFileToInclude );
 			$oFs = $this->loadFileSystemProcessor();
@@ -387,7 +410,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			if ( !class_exists( 'Worpit_Package_Installer', false ) ) {
 				$sErrorMessage = sprintf( 'Worpit_Package_Installer does not exist in file: "%s".', $sInstallerFileToInclude );
 				return $this->setErrorResponse(
-					$oResponse,
 					$sErrorMessage,
 					-1 //TODO: Set a code
 				);
@@ -401,36 +423,30 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 //			$this->log( $aInstallerResponse );
 
 			if ( !$aInstallerResponse['success'] ) {
-
-				$this->setErrorResponse(
-					$oResponse,
+				return $this->setErrorResponse(
 					sprintf( 'Package Execution FAILED with error message: "%s"', $sInstallerExecutionMessage ),
 					-1 //TODO: Set a code
 				);
 			}
 			else {
 
-				$this->setSuccessResponse(
-					$oResponse,
+				return $this->setSuccessResponse(
 					sprintf( 'Package Execution SUCCEEDED with message: "%s".', $sInstallerExecutionMessage ),
 					0,
 					isset( $aInstallerResponse['data'] )? $aInstallerResponse['data']: ''
 				);
 			}
-
-			return $oResponse;
 		}
 
 		/**
-		 * @param stdClass $oResponse
-		 *
 		 * @return stdClass
 		 */
-		protected function doLogin( $oResponse ) {
+		protected function doLogin() {
 			$oWp = $this->loadWpFunctionsProcessor();
 			$oDp = $this->loadDataProcessor();
 			$oWp->doBustCache();
 
+			$oResponse = $this->getStandardResponse();
 			// If there's an error with login, we die.
 			$oResponse->die = true;
 
@@ -438,7 +454,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			if ( empty( $sRequestToken ) ) {
 				$sErrorMessage = 'No valid Login Token was sent.';
 				return $this->setErrorResponse(
-					$oResponse,
 					$sErrorMessage,
 					-1 //TODO: Set a code
 				);
@@ -450,7 +465,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			if ( empty( $sStoredToken ) || strlen( $sStoredToken ) != 32 ) {
 				$sErrorMessage = 'Login Token is not present or is not of the correct format.';
 				return $this->setErrorResponse(
-					$oResponse,
 					$sErrorMessage,
 					-1 //TODO: Set a code
 				);
@@ -459,7 +473,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			if ( $sStoredToken !== $sRequestToken ) {
 				$sErrorMessage = 'Login Tokens do not match.';
 				return $this->setErrorResponse(
-					$oResponse,
 					$sErrorMessage,
 					-1 //TODO: Set a code
 				);
@@ -472,7 +485,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				if ( empty( $aUserRecords[0] ) ) {
 					$sErrorMessage = 'Failed to find an administrator user.';
 					return $this->setErrorResponse(
-						$oResponse,
 						$sErrorMessage,
 						-1 //TODO: Set a code
 					);
@@ -487,7 +499,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$fLoginSuccess = $oWp->setUserLoggedIn( $oUser->get( 'user_login' ) );
 			if ( !$fLoginSuccess ) {
 				return $this->setErrorResponse(
-					$oResponse,
 					sprintf( 'There was a problem logging you in as "%s".', $oUser->get( 'user_login' ) ),
 					-1 //TODO: Set a code
 				);
@@ -504,14 +515,14 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		}
 
 		/**
-		 * @param stdClass $oResponse
 		 * @param string $sErrorMessage
 		 * @param int $nErrorCode
 		 * @param mixed $mErrorData
 		 *
 		 * @return stdClass
 		 */
-		protected function setErrorResponse( stdClass $oResponse, $sErrorMessage = '', $nErrorCode = -1, $mErrorData = '' ) {
+		protected function setErrorResponse( $sErrorMessage = '', $nErrorCode = -1, $mErrorData = '' ) {
+			$oResponse = $this->getStandardResponse();
 			$oResponse->success = false;
 			$oResponse->error_message = $sErrorMessage;
 			$oResponse->code = $nErrorCode;
@@ -520,35 +531,41 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		}
 
 		/**
-		 * @param stdClass $oResponse
 		 * @param string $sMessage
 		 * @param int $nSuccessCode
 		 * @param mixed $mData
 		 *
 		 * @return stdClass
 		 */
-		protected function setSuccessResponse( stdClass $oResponse, $sMessage = '', $nSuccessCode = 0, $mData = '' ) {
+		protected function setSuccessResponse( $sMessage = '', $nSuccessCode = 0, $mData = null ) {
+			$oResponse = $this->getStandardResponse();
 			$oResponse->success = true;
 			$oResponse->message = $sMessage;
 			$oResponse->code = $nSuccessCode;
-			$oResponse->data = $mData;
+			$oResponse->data = is_null( $mData ) ? array( 'success' => 1 ) : $mData;
 			return $oResponse;
 		}
 
 		/**
 		 * @return stdClass
 		 */
-		protected function getStandardResponse() {
-			$oResponse = new stdClass();
-			$oResponse->error_message = '';
-			$oResponse->message = '';
-			$oResponse->success = true;
-			$oResponse->code = 0;
-			$oResponse->data = null;
-			$oResponse->method = '';
-			$oResponse->die = false;
-			return $oResponse;
+		static protected function getStandardResponse() {
+			if ( is_null( self::$oActionResponse ) ) {
+				$oResponse = new stdClass();
+				$oResponse->error_message = '';
+				$oResponse->message = '';
+				$oResponse->success = true;
+				$oResponse->code = 0;
+				$oResponse->data = null;
+				$oResponse->method = '';
+				$oResponse->die = false;
+				$oResponse->action_object = null;
+				$oResponse->handshake = 'none';
+				self::$oActionResponse = $oResponse;
+			}
+			return self::$oActionResponse;
 		}
+
 	}
 
 endif;

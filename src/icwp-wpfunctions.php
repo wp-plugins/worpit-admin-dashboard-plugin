@@ -179,7 +179,6 @@ if ( !class_exists('ICWP_WpFunctions_V6') ):
 		 */
 		public function getIsPluginInstalled( $sCompareString, $sKey = 'Name' ) {
 			$aPlugins = $this->getPlugins();
-
 			if ( empty( $aPlugins ) || !is_array( $aPlugins ) ) {
 				return false;
 			}
@@ -190,6 +189,19 @@ if ( !class_exists('ICWP_WpFunctions_V6') ):
 				}
 			}
 			return false;
+		}
+
+		/**
+		 * @param string $sPluginFile
+		 *
+		 * @return bool
+		 */
+		public function getIsPluginInstalledByFile( $sPluginFile ) {
+			$aPlugins = $this->getPlugins();
+			if ( empty( $aPlugins ) || !is_array( $aPlugins ) ) {
+				return false;
+			}
+			return array_key_exists( $sPluginFile, $aPlugins );
 		}
 
 		/**
@@ -246,6 +258,9 @@ if ( !class_exists('ICWP_WpFunctions_V6') ):
 		 * @return array
 		 */
 		public function getPlugins() {
+			if ( !function_exists( 'get_plugins' ) ) {
+				require_once ( ABSPATH . 'wp-admin/includes/plugin.php' );
+			}
 			return function_exists( 'get_plugins' ) ? get_plugins() : array();
 		}
 

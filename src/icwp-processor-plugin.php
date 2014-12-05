@@ -43,7 +43,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		/**
 		 */
 		public function run() {
-
 			/**
 			 * Always perform the API check, as this is used for linking as well and requires
 			 * a different variation of POST variables.
@@ -56,8 +55,11 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 
 			add_filter( $oCon->doPluginPrefix( 'verify_site_can_handshake' ), array( $this, 'doVerifyCanHandshake' ) );
 
+			add_filter( $oCon->doPluginPrefix( 'hide_plugin' ), array( $this->getFeatureOptions(), 'getIsSiteLinked' ) );
+//			add_filter( $oCon->doPluginPrefix( 'filter_hidePluginMenu' ), array( $this->getFeatureOptions(), 'getIsSiteLinked' ) );
+
 //			if ( true ) {
-//				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 //			}
 
 			$oDp = $this->loadDataProcessor();
@@ -114,6 +116,12 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		 * @return boolean
 		 */
 		public function doVerifyCanHandshake( $fCanHandshake ) {
+			$oDp = $this->loadDataProcessor();
+
+			// First simply check SSL usage
+			if ( $oDp->getCanOpensslSign() ) {
+				return true;
+			}
 
 			$nTimeout = 20;
 			$sHandshakeVerifyTestUrl = $this->getFeatureOptions()->getOpt( 'handshake_verify_test_url' );
@@ -157,17 +165,19 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		}
 
 		/**
-		 * @param stdClass|string $oResponse
+		 * @uses die() / wp_die()
+		 *
+		 * @param stdClass|string $mResponse
 		 * @param boolean $fDoBinaryEncode
 		 */
-		protected function sendApiResponse( $oResponse, $fDoBinaryEncode = true ) {
+		protected function sendApiResponse( $mResponse, $fDoBinaryEncode = true ) {
 
-			if ( $oResponse->die ) {
-				wp_die( $oResponse->error_message );
+			if ( is_object( $mResponse ) && $mResponse->die ) {
+				wp_die( $mResponse->error_message );
 				return;
 			}
 
-			$oResponse = $fDoBinaryEncode ? base64_encode( serialize( $oResponse ) ) : $oResponse;
+			$oResponse = $fDoBinaryEncode ? base64_encode( serialize( $mResponse ) ) : $mResponse;
 
 			$this->sendHeaders( $fDoBinaryEncode );
 			echo "<icwp>".$oResponse."</icwp>";

@@ -300,6 +300,7 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 			$aData[ 'month_id' ]	= $nMonth;
 			$aData[ 'year_id' ]		= $nYear;
 			$aData[ 'count_total' ]	= 1;
+			$aData[ 'created_at' ]	= $this->time();
 
 			$mResult = $this->insertData( $aData );
 			return $mResult;
@@ -381,7 +382,8 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 				`month_id` TINYINT(2) NOT NULL DEFAULT '0',
 				`year_id` SMALLINT(4) NOT NULL DEFAULT '0',
 				`count_total` int(15) NOT NULL DEFAULT '1',
-				`deleted_at` TINYINT(1) NOT NULL DEFAULT '0',
+				`created_at` INT(15) NOT NULL DEFAULT '0',
+				`deleted_at` INT(15) NOT NULL DEFAULT '0',
 	            PRIMARY KEY (`id`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 			return sprintf( $sSql, $this->getTableName() );
@@ -391,6 +393,39 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 			return $this->getOption( 'statistics_table_columns' );
 		}
 
+		/**
+		 * This is hooked into a cron in the base class and overrides the parent method.
+		 *
+		 * It'll delete everything older than 24hrs.
+		 */
+		public function cleanupDatabase() {
+			if ( !$this->getTableExists() ) {
+				return;
+			}
+
+			$sQuery = "
+				DELETE from `%s`
+				WHERE
+					`day_id`			!= '0'
+					AND `created_at`	< '%s'
+			";
+			$sQuery = sprintf( $sQuery,
+				$this->getTableName(),
+				( $this->time() - 31 * DAY_IN_SECONDS )
+			);
+			$this->doSql( $sQuery );
+		}
+
+		/**
+		 * @param int $nMonth
+		 *
+		 * @return int
+		 */
+		protected function getPreviousMonthId( $nMonth = 0 ) {
+			$nCompareMonth = ( $nMonth < 1 || $nMonth > 12 )? $this->getMonth() : $nMonth;
+			$nPrev = $nCompareMonth - 1;
+			return ($nPrev == 0)? 12 : $nPrev;
+		}
 	}
 
 endif;
