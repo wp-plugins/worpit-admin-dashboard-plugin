@@ -438,6 +438,15 @@ if ( !class_exists('ICWP_APP_DataProcessor_V4') ):
 		}
 
 		/**
+		 * @return string
+		 */
+		static public function GenerateRandomLetter() {
+			$sAtoZ = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+			$nRandomInt = rand( 0, (strlen( $sAtoZ ) - 1) );
+			return $sAtoZ[ $nRandomInt ];
+		}
+
+		/**
 		 * @return bool
 		 */
 		static public function GetIsRequestPost() {
@@ -577,9 +586,12 @@ if ( !class_exists('ICWP_APP_DataProcessor_V4') ):
 		/**
 		 * @param $sData
 		 *
-		 * @return mixed
+		 * @return array|mixed
 		 */
 		public function doJsonDecode( $sData ) {
+			if ( function_exists( 'json_decode' ) ) {
+				return json_decode( $sData );
+			}
 			if ( !class_exists( 'JSON' )  ) {
 				require_once( 'lib/json/JSON.php' );
 			}

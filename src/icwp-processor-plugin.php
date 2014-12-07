@@ -257,6 +257,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			$sNonce = wp_nonce_field( $oCon->getPluginPrefix() );
 			$sServiceName = $oCon->getHumanName();
 			$sFormAction = $oCon->getPluginUrl_AdminMainPage();
+			$sAuthKey = $this->getOption('key');
 			ob_start();
 			include( $this->getFeatureOptions()->getViewSnippet( 'admin_notice_add_site' ) );
 			$sNoticeMessage = ob_get_contents();

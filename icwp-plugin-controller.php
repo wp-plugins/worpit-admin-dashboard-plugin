@@ -3,7 +3,7 @@
  * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
- * "WordPress Simple Firewall" is distributed under the GNU General Public License, Version 2,
+ * "iControlWP" is distributed under the GNU General Public License, Version 2,
  * June 1991. Copyright (C) 1989, 1991 Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110, USA
  *
@@ -121,8 +121,8 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 * Hooked to 'plugins_loaded'
 	 */
 	public function onWpPluginsLoaded() {
-		add_filter( $this->doPluginPrefix( 'has_permission_to_view' ), array( $this, 'filter_hasPermissionToView' ) );
-		add_filter( $this->doPluginPrefix( 'has_permission_to_submit' ), array( $this, 'filter_hasPermissionToSubmit' ) );
+//		add_filter( $this->doPluginPrefix( 'has_permission_to_view' ), array( $this, 'filter_hasPermissionToView' ) );
+//		add_filter( $this->doPluginPrefix( 'has_permission_to_submit' ), array( $this, 'filter_hasPermissionToSubmit' ) );
 		if ( $this->getIsValidAdminArea() ) {
 			add_action( 'admin_notices',			array( $this, 'onWpAdminNotices' ) );
 			add_action( 'network_admin_notices',	array( $this, 'onWpAdminNotices' ) );

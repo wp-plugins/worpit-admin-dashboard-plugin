@@ -3,8 +3,6 @@
  * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
- * Version: 2013-08-14_A
- *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -395,7 +393,6 @@ if ( !class_exists('ICWP_WpFunctions_V6') ):
 		 * @return int
 		 */
 		public function getCurrentPostId() {
-			/** @var WP_Post $oPost */
 			$oPost = $this->getCurrentPost();
 			return empty( $oPost->ID ) ? -1 : $oPost->ID;
 		}
@@ -655,7 +652,7 @@ if ( !class_exists('ICWP_WpFunctions_V6') ):
 
 		/**
 		 * @param string $sKey should be already prefixed
-		 * @param int|null $nId - if omitted get current user meta
+		 * @param int|null $nId - if omitted get for current user
 		 * @return bool|string
 		 */
 		public function getUserMeta( $sKey, $nId = null ) {
@@ -718,11 +715,11 @@ if ( !class_exists('ICWP_WpFunctions_V6') ):
 	}
 endif;
 
-if ( !class_exists('ICWP_APP_WpFunctions') ):
+if ( !class_exists('ICWP_WPSF_WpFunctions') ):
 
-	class ICWP_APP_WpFunctions extends ICWP_WpFunctions_V6 {
+	class ICWP_WPSF_WpFunctions extends ICWP_WpFunctions_V6 {
 		/**
-		 * @return ICWP_APP_WpFunctions
+		 * @return ICWP_WPSF_WpFunctions
 		 */
 		public static function GetInstance() {
 			if ( is_null( self::$oInstance ) ) {

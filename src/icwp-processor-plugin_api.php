@@ -197,7 +197,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			}
 
 
-			$oDp = $this->loadDataProcessor();
 			$sPackageName = $oDp->FetchRequest( 'package_name', false );
 			$sPin = $oDp->FetchRequest( 'pin', false );
 
@@ -227,7 +226,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				);
 			}
 
-			$oJsonResponse = $this->loadDataProcessor()->doJsonDecode( trim( $sResponse ) );
+			$oJsonResponse = $oDp->doJsonDecode( trim( $sResponse ) );
 			if ( !is_object( $oJsonResponse ) || !isset( $oJsonResponse->success ) || $oJsonResponse->success !== true ) {
 				return $this->setErrorResponse(
 					sprintf( 'Package Handshaking Failed against URL "%s" with response: "%s".', $sHandshakeVerifyUrl, print_r( $oJsonResponse,true ) ),
@@ -411,13 +410,19 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		 * @return stdClass
 		 */
 		private function runInstaller( $sInstallerFileToInclude ) {
-
-			include_once( $sInstallerFileToInclude );
 			$oFs = $this->loadFileSystemProcessor();
+
+			$fIncludeSuccess = include_once( $sInstallerFileToInclude );
 			$oFs->deleteFile( $sInstallerFileToInclude );
 
+			if ( !$fIncludeSuccess ) {
+				return $this->setErrorResponse(
+					'PHP failed to include the Installer file for execution'
+				);
+			}
+
 			if ( !class_exists( 'Worpit_Package_Installer', false ) ) {
-				$sErrorMessage = sprintf( 'Worpit_Package_Installer does not exist in file: "%s".', $sInstallerFileToInclude );
+				$sErrorMessage = sprintf( 'Worpit_Package_Installer class does not exist after including file: "%s".', $sInstallerFileToInclude );
 				return $this->setErrorResponse(
 					$sErrorMessage,
 					-1 //TODO: Set a code

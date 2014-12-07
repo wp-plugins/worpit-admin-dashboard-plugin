@@ -131,6 +131,12 @@ if ( !class_exists('ICWP_APP_WpFilesystem') ):
 			return $this->sWpConfigPath;
 		}
 
+		/**
+		 * @param string $sUrl
+		 * @param array $aRequestArgs
+		 *
+		 * @return array|bool
+		 */
 		public function requestUrl( $sUrl, $aRequestArgs = array() ) {
 
 			$mResult = wp_remote_request( $sUrl, $aRequestArgs );
@@ -342,22 +348,22 @@ if ( !class_exists('ICWP_APP_WpFilesystem') ):
 		public function deleteDir( $sDir ) {
 			$oFs = $this->getWpfs();
 			if ( $oFs && $oFs->rmdir( $sDir, true ) ) {
-				return $oFs->rmdir( $sDir );
+				return true;
 			}
 			return @rmdir( $sDir );
 		}
 
 		/**
 		 * @param $sFilePath
+		 *
 		 * @return boolean|null
 		 */
 		public function deleteFile( $sFilePath ) {
 			$oFs = $this->getWpfs();
-			if ( $oFs ) {
-				return $oFs->delete( $sFilePath );
+			if ( $oFs && $oFs->delete( $sFilePath ) ) {
+				return true;
 			}
-
-			return function_exists( 'unlink' ) ? unlink( $sFilePath ) : null;
+			return function_exists( 'unlink' ) ? @unlink( $sFilePath ) : null;
 		}
 
 		/**
