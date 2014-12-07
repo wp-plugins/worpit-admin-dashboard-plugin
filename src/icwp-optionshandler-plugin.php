@@ -89,8 +89,17 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		 * @return bool
 		 */
 		public function getCanHandshake( $fDoVerify = false ) {
-			if ( $fDoVerify && apply_filters( $this->getController()->doPluginPrefix( 'verify_site_can_handshake' ), false ) ) {
-				$this->setOpt( 'can_handshake', 'Y' );
+
+			if ( !$fDoVerify ) { // we always verify can handshake at least once every 24hrs
+				$nSinceLastHandshakeCheck = time() - $this->getOpt( 'time_last_check_can_handshake', 0 );
+				if ( $nSinceLastHandshakeCheck > DAY_IN_SECONDS ) {
+					$fDoVerify = true;
+				}
+			}
+
+			if ( $fDoVerify ) {
+				$fCanHandshake = apply_filters( $this->getController()->doPluginPrefix( 'verify_site_can_handshake' ), false );
+				$this->setOpt( 'can_handshake', ( $fCanHandshake ? 'Y' : 'N' ) );
 			}
 			return $this->getOptIs( 'can_handshake', 'Y' );
 		}

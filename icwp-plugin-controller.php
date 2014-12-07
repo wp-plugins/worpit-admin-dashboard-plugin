@@ -816,7 +816,12 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 * @return string
 	 */
 	public function getPath_Temp( $sTmpFile = '' ) {
-		return $this->getRootDir().$this->getPluginSpec_Path( 'temp' ).ICWP_DS.$sTmpFile;
+		$oFs = $this->loadFileSystemProcessor();
+		$sTempPath = $this->getRootDir() . $this->getPluginSpec_Path( 'temp' ) . ICWP_DS;
+		if ( $oFs->mkdir( $sTempPath ) ) {
+			return $this->getRootDir().$this->getPluginSpec_Path( 'temp' ).ICWP_DS.$sTmpFile;
+		}
+		return null;
 	}
 
 	/**

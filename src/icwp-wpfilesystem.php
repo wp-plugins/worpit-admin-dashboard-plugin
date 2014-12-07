@@ -371,7 +371,6 @@ if ( !class_exists('ICWP_APP_WpFilesystem') ):
 			if ( $oFs && $oFs->move( $sFilePathSource, $sFilePathDestination ) ) {
 				return true;
 			}
-
 			return function_exists( 'rename' ) ? @rename( $sFilePathSource, $sFilePathDestination ) : null;
 		}
 
@@ -381,10 +380,19 @@ if ( !class_exists('ICWP_APP_WpFilesystem') ):
 		 */
 		public function isFile( $sFilePath ) {
 			$oFs = $this->getWpfs();
-			if ( $oFs ) {
-				return $oFs->is_file( $sFilePath );
+			if ( $oFs && $oFs->is_file( $sFilePath ) ) {
+				return true;
 			}
 			return function_exists( 'is_file' ) ? is_file( $sFilePath ) : null;
+		}
+
+		/**
+		 * @param $sDirPath
+		 *
+		 * @return bool
+		 */
+		public function mkdir( $sDirPath ) {
+			return wp_mkdir_p( $sDirPath );
 		}
 
 		/**

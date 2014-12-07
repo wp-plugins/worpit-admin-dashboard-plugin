@@ -663,6 +663,13 @@ if ( !class_exists('ICWP_APP_DataProcessor_V4') ):
 				   && function_exists( 'openssl_verify' )
 				   && defined( 'OPENSSL_ALGO_SHA1' );
 		}
+
+		/**
+		 * @return int
+		 */
+		public function time() {
+			return self::GetRequestTime();
+		}
 	}
 endif;
 

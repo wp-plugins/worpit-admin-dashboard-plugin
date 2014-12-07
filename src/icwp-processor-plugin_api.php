@@ -337,7 +337,16 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			}
 
 			$sNewFile = $this->getController()->getPath_Temp( basename( $sRetrievedTmpFile ) );
-			$sFileToInclude = $oFs->move( $sRetrievedTmpFile, $sNewFile ) ? $sNewFile : $sRetrievedTmpFile;
+//			if ( is_null( $sNewFile ) ) {
+//				return $this->setErrorResponse(
+//					'Could not create temporary folder to store package',
+//					-1 //TODO: Set a code
+//				);
+//			}
+			$sFileToInclude = $sRetrievedTmpFile;
+			if ( !is_null( $sNewFile ) && $oFs->move( $sRetrievedTmpFile, $sNewFile ) ) { //we try to move it to our plugin tmp folder.
+				$sFileToInclude = $sNewFile;
+			}
 
 			$this->runInstaller( $sFileToInclude );
 			return $oResponse;

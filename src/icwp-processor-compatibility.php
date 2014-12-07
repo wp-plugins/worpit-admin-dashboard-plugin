@@ -179,14 +179,9 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 			$sServiceName = $this->getOption( 'service_name', 'iControlWP' );
 			$aIpLists = array_merge( $this->getServiceIps( 4 ), $this->getServiceIps( 6 ) );
 
-			foreach( $aIpLists as $aServiceIps ) {
-
-				if ( !empty( $aServiceIps['valid'] ) ) {
-					foreach ( $aServiceIps['valid'] as $sAddress ) {
-						if ( !in_array( $sAddress, $aWhitelistIps ) ) {
-							$aWhitelistIps[ $sAddress ] = $sServiceName;
-						}
-					}
+			foreach( $aIpLists as $sAddress ) {
+				if ( !in_array( $sAddress, $aWhitelistIps ) ) {
+					$aWhitelistIps[ $sAddress ] = $sServiceName;
 				}
 			}
 

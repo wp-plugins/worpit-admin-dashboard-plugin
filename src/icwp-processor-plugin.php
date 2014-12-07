@@ -117,6 +117,9 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		 */
 		public function doVerifyCanHandshake( $fCanHandshake ) {
 			$oDp = $this->loadDataProcessor();
+			$oFO = $this->getFeatureOptions();
+
+			$oFO->setOpt( 'time_last_check_can_handshake', $this->time() );
 
 			// First simply check SSL usage
 			if ( $oDp->getCanOpensslSign() ) {
@@ -124,7 +127,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			}
 
 			$nTimeout = 20;
-			$sHandshakeVerifyTestUrl = $this->getFeatureOptions()->getOpt( 'handshake_verify_test_url' );
+			$sHandshakeVerifyTestUrl = $oFO->getOpt( 'handshake_verify_test_url' );
 			$aArgs = array(
 				'timeout'		=> $nTimeout,
 				'redirection'	=> $nTimeout,
@@ -136,7 +139,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			if ( !$sResponse ) {
 				return false;
 			}
-			$oJsonResponse = $this->loadDataProcessor()->doJsonDecode( trim( $sResponse ) );
+			$oJsonResponse = $oDp->doJsonDecode( trim( $sResponse ) );
 			return ( is_object( $oJsonResponse ) && isset( $oJsonResponse->success ) && $oJsonResponse->success === true );
 		}
 
