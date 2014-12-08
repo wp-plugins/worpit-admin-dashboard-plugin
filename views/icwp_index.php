@@ -156,40 +156,6 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 		<div class="row">
 			<div class="span12">
 				<div class="well">
-					
-					<div class="enable-handshake-authentication">
-						<h3>Allow Secure Plugin Hand-Shaking</h3>
-						<p>Normally, this option is not turned on because some websites do not support it.</p>
-						<p>If you do turn it on, it will greatly increase your security - the plugin will "phone home" to the <?php echo $sServiceName; ?> Dashboard with every connection to ensure the request originated from <?php echo $sServiceName; ?>.</p>
-						<p><strong>Warning:</strong> Do not enable this option until you have synchronized your site with your <?php echo $sServiceName; ?> account.</p>
-						<div class="<?php echo ( $icwp_can_handshake !== 'Y' )? 'cant-handshake' : ''; ?>">
-							<form action="<?php echo ( $icwp_can_handshake === 'Y' )? $icwp_form_action : ''; ?>" method="POST" name="form-hand-shaking" id="form-hand-shaking">
-								<?php wp_nonce_field( $icwp_nonce_field ); ?>
-								<input type="hidden" name="icwp_admin_form_submit" value="1" />
-								<input type="hidden" name="icwp_admin_form_submit_handshake" value="1" />
-								<label>
-									<input
-									type="checkbox"
-									name="icwp_admin_handshake_enabled"
-									value="Y"
-									class=""
-									id="icwp_admin_handshake_enabled"
-									<?php echo ( $icwp_handshake_enabled === 'Y' )? ' checked="checked"' : ''; ?>
-									<?php echo ( $icwp_can_handshake !== 'Y' )? ' disabled="disabled"' : ''; ?>
-									/> If this box is checked, plugin handshaking will be enabled. If you have problems syncing with <?php echo $sServiceName; ?>, disable this option.
-								</label>
-								<button class="btn btn-warning" name="submit" type="submit" <?php echo ( $icwp_can_handshake !== 'Y' )? 'disabled="disabled"' : ''; ?>>Change Option</button>
-							</form>
-						</div>
-					</div>
-					
-				</div>
-			</div>
-		</div>
-		
-		<div class="row">
-			<div class="span12">
-				<div class="well">
 					<div class="reset-authentication" name="">
 						<h3>Reset <?php echo $sServiceName; ?> Access Key</h3>
 						<p>You can break the connection with <?php echo $sServiceName; ?> and regenerate a new access key, using the button below</p>

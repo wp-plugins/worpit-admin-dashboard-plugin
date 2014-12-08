@@ -41,9 +41,6 @@ options:
     section: 'section_non_ui'
     default: 'N'
   -
-    key: 'handshake_enabled'
-    section: 'section_non_ui'
-  -
     key: 'handshake_verify_test_url'
     section: 'section_non_ui'
     value: 'https://app.icontrolwp.com/system/verification/test'

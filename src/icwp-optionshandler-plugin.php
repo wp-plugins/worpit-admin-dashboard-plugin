@@ -69,24 +69,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		 * @return bool
 		 */
 		public function getIsHandshakeEnabled() {
-			return ( $this->getCanHandshake() && $this->getOptIs( 'handshake_enabled', 'Y' ) );
-		}
-
-		/**
-		 * Also verifies whether handshaking is possible and returns the final setting.
-		 *
-		 * @param bool $fSetOn
-		 *
-		 * @return bool
-		 */
-		public function setIsHandshakeEnabled( $fSetOn = false ) {
-			if ( $fSetOn && $this->setCanHandshake() ) {
-				$this->setOpt( 'handshake_enabled', 'Y' );
-			}
-			else {
-				$this->setOpt( 'handshake_enabled', 'N' );
-			}
-			return $this->getIsHandshakeEnabled();
+			return $this->getCanHandshake();
 		}
 
 		/**
@@ -159,11 +142,6 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 				}
 				$this->doAddAdminFeedback( sprintf( ( '%s Site NOT added.' ), $this->getController()->getHumanName() ) );
 				return;
-			}
-
-			//Clicked the button to enable/disable hand-shaking
-			if ( $oDp->FetchPost( $this->getController()->doPluginOptionPrefix( 'do_set_handshake' ) ) ) {
-				$this->setIsHandshakeEnabled( $oDp->FetchPost( $this->getController()->doPluginOptionPrefix( 'handshake_enable' ) ) == 'Y' );
 			}
 			$this->doAddAdminFeedback( sprintf( ( '%s Plugin options updated successfully.' ), $this->getController()->getHumanName() ) );
 		}

@@ -5,7 +5,6 @@ $fAssigned = isset( $icwp_aHiddenOptions['assigned'] ) && $icwp_aHiddenOptions['
 $sAssignedTo = isset( $icwp_aHiddenOptions['assigned_to'] ) ? $icwp_aHiddenOptions['assigned_to'] : '';
 $fIsLinked = $fAssigned && !empty( $sAssignedTo );
 $fCanHandshake = isset( $icwp_aHiddenOptions['can_handshake'] ) && $icwp_aHiddenOptions['can_handshake'] == 'Y';
-$fHandshakeEnabled = isset( $icwp_aHiddenOptions['handshake_enabled'] ) && $icwp_aHiddenOptions['handshake_enabled'] == 'Y';
 
 $sServiceName = $icwp_aPluginLabels['Name'];
 $sUrlServiceHome = $icwp_aPluginLabels['PluginURI'];

@@ -89,20 +89,6 @@ class Worpit_Plugin extends ICWP_APP_Foundation {
 	/**
 	 * @return bool
 	 */
-	public static function GetIsHandshakeEnabled() {
-		return self::getController()->loadCorePluginFeatureHandler()->getIsHandshakeEnabled();
-	}
-
-	/**
-	 * @return bool
-	 */
-	public static function VerifyHandshaking() {
-		return self::getController()->loadCorePluginFeatureHandler()->setIsHandshakeEnabled();
-	}
-
-	/**
-	 * @return bool
-	 */
 	public static function GetHandshakingEnabled() {
 		return self::getController()->loadCorePluginFeatureHandler()->getIsHandshakeEnabled();
 	}
