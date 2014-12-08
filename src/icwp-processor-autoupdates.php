@@ -45,7 +45,7 @@ if ( !class_exists('ICWP_APP_AutoupdatesProcessor_V6') ):
 		/**
 		 * @return boolean
 		 */
-		public function getForceRunAutoupdates() {
+		public function getIfForceRunAutoupdates() {
 			return apply_filters( $this->getFeatureOptions()->doPluginPrefix( 'force_autoupdate' ), $this->fDoForceRunAutoupdates );
 		}
 
@@ -56,11 +56,6 @@ if ( !class_exists('ICWP_APP_AutoupdatesProcessor_V6') ):
 			$oDp = $this->loadDataProcessor();
 			if ( $oDp->FetchGet( 'forcerun' ) == 1 ) {
 				$this->setForceRunAutoupdates( true );
-			}
-
-			// When we force run we only want our filters.
-			if ( $this->getForceRunAutoupdates() ) {
-				$this->removeAllAutoupdateFilters();
 			}
 
 			add_filter( 'allow_minor_auto_core_updates',	array( $this, 'autoupdate_core_minor' ), self::FilterPriority );
@@ -81,33 +76,20 @@ if ( !class_exists('ICWP_APP_AutoupdatesProcessor_V6') ):
 			add_filter( 'auto_core_update_send_email', array( $this, 'autoupdate_send_email' ), self::FilterPriority, 1 ); //more parameter options here for later
 			add_filter( 'auto_core_update_email', array( $this, 'autoupdate_email_override' ), self::FilterPriority, 1 ); //more parameter options here for later
 
-			if ( $this->getForceRunAutoupdates() ) {
-				$this->force_run_autoupdates( 'update-core.php' ); //we'll redirect to the updates page for to show
-			}
+			add_action( 'wp_loaded', array( $this, 'force_run_autoupdates' ) );
 		}
 
 		/**
 		 * Will force-run the WordPress automatic updates process and then redirect to the updates screen.
 		 *
-		 * @param bool $sRedirect
-		 *
 		 * @return bool
 		 */
-		public function force_run_autoupdates( $sRedirect = false ) {
-			$lock_name = 'auto_updater.lock'; //ref: /wp-admin/includes/class-wp-upgrader.php
-			delete_option( $lock_name );
-			if ( !defined('DOING_CRON') ) {
-				define( 'DOING_CRON', true ); // this prevents WP from disabling plugins pre-upgrade
-			}
+		public function force_run_autoupdates() {
 
-			// does the actual updating
-			wp_maybe_auto_update();
-
-			if ( !empty( $sRedirect ) ) {
-				wp_redirect( network_admin_url( $sRedirect ) );
-				exit();
+			if ( !$this->getIfForceRunAutoupdates() ) {
+				return true;
 			}
-			return true;
+			return $this->loadWpFunctionsProcessor()->doForceRunAutomaticUpdates();
 		}
 
 		/**
@@ -163,11 +145,12 @@ if ( !class_exists('ICWP_APP_AutoupdatesProcessor_V6') ):
 		 * This is a filter method designed to say whether WordPress plugin upgrades should be permitted,
 		 * based on the plugin settings.
 		 *
-		 * @param boolean $fAutoUpdate
+		 * @param boolean $fDoAutoUpdate
 		 * @param StdClass|string $mItem
+		 *
 		 * @return boolean
 		 */
-		public function autoupdate_plugins( $fAutoUpdate, $mItem ) {
+		public function autoupdate_plugins( $fDoAutoUpdate, $mItem ) {
 
 			// first, is global auto updates for plugins set
 			if ( $this->getIsOption( 'enable_autoupdate_plugins', 'Y' ) ) {
@@ -182,34 +165,33 @@ if ( !class_exists('ICWP_APP_AutoupdatesProcessor_V6') ):
 			}
 			// at this point we don't have a slug to use so we just return the current update setting
 			else {
-				return $fAutoUpdate;
+				return $fDoAutoUpdate;
 			}
 
 			// If it's this plugin and autoupdate this plugin is set...
 			if ( $sItemFile === $this->getFeatureOptions()->getPluginBaseFile() ) {
 				if ( $this->getIsOption( 'autoupdate_plugin_self', 'Y' ) ) {
-					return true;
+					$fDoAutoUpdate = true;
 				}
 			}
 
 			$aAutoupdateFiles = $this->getFeatureOptions()->getAutoUpdates( 'plugins' );
-
 			if ( !empty( $aAutoupdateFiles ) && is_array( $aAutoupdateFiles ) && in_array( $sItemFile, $aAutoupdateFiles ) ) {
-				return true;
+				$fDoAutoUpdate = true;
 			}
-
-			return $fAutoUpdate;
+			return $fDoAutoUpdate;
 		}
 
 		/**
 		 * This is a filter method designed to say whether WordPress theme upgrades should be permitted,
 		 * based on the plugin settings.
 		 *
-		 * @param boolean $fAutoUpdate
+		 * @param boolean $fDoAutoUpdate
 		 * @param stdClass|string $mItem
+		 *
 		 * @return boolean
 		 */
-		public function autoupdate_themes( $fAutoUpdate, $mItem ) {
+		public function autoupdate_themes( $fDoAutoUpdate, $mItem ) {
 
 			// first, is global auto updates for themes set
 			if ( $this->getIsOption( 'enable_autoupdate_themes', 'Y' ) ) {
@@ -224,16 +206,14 @@ if ( !class_exists('ICWP_APP_AutoupdatesProcessor_V6') ):
 			}
 			// at this point we don't have a slug to use so we just return the current update setting
 			else {
-				return $fAutoUpdate;
+				return $fDoAutoUpdate;
 			}
 
 			$aAutoupdateFiles = $this->getFeatureOptions()->getAutoUpdates( 'themes' );
-
 			if ( !empty( $aAutoupdateFiles ) && is_array( $aAutoupdateFiles ) && in_array( $sItemFile, $aAutoupdateFiles ) ) {
-				return true;
+				$fDoAutoUpdate = true;
 			}
-
-			return $fAutoUpdate;
+			return $fDoAutoUpdate;
 		}
 
 		/**

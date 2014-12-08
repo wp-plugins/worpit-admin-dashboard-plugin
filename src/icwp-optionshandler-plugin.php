@@ -57,12 +57,18 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		}
 
 		/**
+		 * @param boolean $fDoHidePlugin
+		 *
+		 * @return bool
+		 */
+		public function getIfHidePlugin( $fDoHidePlugin ) {
+			return $this->getIsSiteLinked() && $this->getOptIs( 'enable_hide_plugin', 'Y' );
+		}
+
+		/**
 		 * @return bool
 		 */
 		public function getIsHandshakeEnabled() {
-			if ( $this->getOptIs( 'is_testing', 'Y' ) ) {
-				return false;
-			}
 			return ( $this->getCanHandshake() && $this->getOptIs( 'handshake_enabled', 'Y' ) );
 		}
 

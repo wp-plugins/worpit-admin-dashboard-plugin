@@ -114,6 +114,28 @@ if ( !class_exists('ICWP_WpFunctions_V6') ):
 		}
 
 		/**
+		 * @param string $sRedirect
+		 *
+		 * @return bool
+		 */
+		public function doForceRunAutomaticUpdates( $sRedirect = '' ) {
+
+			$lock_name = 'auto_updater.lock'; //ref: /wp-admin/includes/class-wp-upgrader.php
+			delete_option( $lock_name );
+			if ( !defined('DOING_CRON') ) {
+				define( 'DOING_CRON', true ); // this prevents WP from disabling plugins pre-upgrade
+			}
+
+			// does the actual updating
+			wp_maybe_auto_update();
+
+			if ( !empty( $sRedirect ) ) {
+				$this->doRedirect( network_admin_url( $sRedirect ) );
+			}
+			return true;
+		}
+
+		/**
 		 * The full plugin file to be upgraded.
 		 *
 		 * @param string $sPluginFile
@@ -715,9 +737,9 @@ if ( !class_exists('ICWP_WpFunctions_V6') ):
 	}
 endif;
 
-if ( !class_exists('ICWP_WPSF_WpFunctions') ):
+if ( !class_exists('ICWP_APP_WpFunctions') ):
 
-	class ICWP_WPSF_WpFunctions extends ICWP_WpFunctions_V6 {
+	class ICWP_APP_WpFunctions extends ICWP_WpFunctions_V6 {
 		/**
 		 * @return ICWP_WPSF_WpFunctions
 		 */

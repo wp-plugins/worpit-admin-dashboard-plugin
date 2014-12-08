@@ -54,13 +54,8 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			add_filter( $oCon->doPluginPrefix( 'get_service_ips_v6' ), array( $this, 'getServiceIpAddressesV6' ) );
 
 			add_filter( $oCon->doPluginPrefix( 'verify_site_can_handshake' ), array( $this, 'doVerifyCanHandshake' ) );
-
-			add_filter( $oCon->doPluginPrefix( 'hide_plugin' ), array( $this->getFeatureOptions(), 'getIsSiteLinked' ) );
-//			add_filter( $oCon->doPluginPrefix( 'filter_hidePluginMenu' ), array( $this->getFeatureOptions(), 'getIsSiteLinked' ) );
-
-//			if ( true ) {
-				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-//			}
+			add_filter( $oCon->doPluginPrefix( 'hide_plugin' ), array( $this->getFeatureOptions(), 'getIfHidePlugin' ) );
+			add_filter( $oCon->doPluginPrefix( 'filter_hidePluginMenu' ), array( $this->getFeatureOptions(), 'getIfHidePlugin' ) );
 
 			$oDp = $this->loadDataProcessor();
 			if ( ( $oDp->FetchRequest( 'getworpitpluginurl', false ) == 1 ) || $oDp->FetchRequest( 'geticwppluginurl', false ) == 1 ) {
@@ -152,6 +147,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		public function doAPI() {
 			$oDp = $this->loadDataProcessor();
 			if ( $oDp->FetchGet( 'worpit_link' ) == 1 ) {
+				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 				require_once( 'icwp-processor-plugin_sitelink.php' );
 				$oLinkProcessor = new ICWP_APP_Processor_Plugin_SiteLink( $this->getFeatureOptions() );
 				$oLinkResponse = $oLinkProcessor->run();
@@ -159,6 +155,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 				die();
 			}
 			else if ( $oDp->FetchGet('worpit_api') == 1 ) {
+				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 				require_once( 'icwp-processor-plugin_api.php' );
 				$oApiProcessor = new ICWP_APP_Processor_Plugin_Api( $this->getFeatureOptions() );
 				$oApiResponse = $oApiProcessor->run();

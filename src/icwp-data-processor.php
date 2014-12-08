@@ -557,7 +557,7 @@ if ( !class_exists('ICWP_APP_DataProcessor_V4') ):
 		 *
 		 * @return mixed|null
 		 */
-		public static function FetchRequest( $sKey, $fIncludeCookie = true, $mDefault = null ) {
+		public static function FetchRequest( $sKey, $fIncludeCookie = false, $mDefault = null ) {
 			$mFetchVal = self::FetchPost( $sKey );
 			if ( is_null( $mFetchVal ) ) {
 				$mFetchVal = self::FetchGet( $sKey );

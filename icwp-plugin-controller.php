@@ -357,15 +357,12 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 * This is a filter method designed to say whether WordPress plugin upgrades should be permitted,
 	 * based on the plugin settings.
 	 *
-	 * @param boolean $fDoUpdate
+	 * @param boolean $fDoAutoUpdate
 	 * @param string|object $mItemToUpdate
+	 *
 	 * @return boolean
 	 */
-	public function onWpAutoUpdate( $fDoUpdate, $mItemToUpdate ) {
-
-		if ( $this->getPluginSpec_Property( 'autoupdate' ) == 'pass' ) {
-			return $fDoUpdate;
-		}
+	public function onWpAutoUpdate( $fDoAutoUpdate, $mItemToUpdate ) {
 
 		if ( is_object( $mItemToUpdate ) && !empty( $mItemToUpdate->plugin ) ) { // 3.8.2+
 			$sItemFile = $mItemToUpdate->plugin;
@@ -375,13 +372,19 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 		}
 		else {
 			// at this point we don't have a slug/file to use so we just return the current update setting
-			return $fDoUpdate;
+			return $fDoAutoUpdate;
 		}
 
 		if ( $sItemFile === $this->getPluginBaseFile() ) {
-			return ( $this->getPluginSpec_Property( 'autoupdate' ) == 'yes' );
+			$fAutoupdateSpec = $this->getPluginSpec_Property( 'autoupdate' );
+			if ( $fAutoupdateSpec == 'yes' ) {
+				$fDoAutoUpdate = true;
+			}
+			else if ( $fAutoupdateSpec == 'block' ) {
+				$fDoAutoUpdate = false;
+			}
 		}
-		return $fDoUpdate;
+		return $fDoAutoUpdate;
 	}
 
 	/**
@@ -430,7 +433,6 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	public function filter_hidePluginFromTableList( $aPlugins ) {
 
 		$fHide = apply_filters( $this->doPluginPrefix( 'hide_plugin' ), false );
-
 		if ( !$fHide ) {
 			return $aPlugins;
 		}

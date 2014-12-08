@@ -72,7 +72,7 @@ options:
     key: 'installation_time'
     section: 'section_non_ui'
   -
-    key: 'is_testing'
+    key: 'enable_hide_plugin'
     section: 'section_non_ui'
     default: 'N'
   -
