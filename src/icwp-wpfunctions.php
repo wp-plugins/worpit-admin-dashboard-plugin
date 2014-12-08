@@ -741,7 +741,7 @@ if ( !class_exists('ICWP_APP_WpFunctions') ):
 
 	class ICWP_APP_WpFunctions extends ICWP_WpFunctions_V6 {
 		/**
-		 * @return ICWP_WPSF_WpFunctions
+		 * @return ICWP_APP_WpFunctions
 		 */
 		public static function GetInstance() {
 			if ( is_null( self::$oInstance ) ) {

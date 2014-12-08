@@ -71,8 +71,19 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Statistics_V1') ):
 				$this->setOpt( 'ignore_from_user_level', isset( $aOldOptions['ignore_from_user_level'] ) ? $aOldOptions['ignore_from_user_level']  : 11 );
 
 				$oDb = $this->loadDbProcessor();
-				$sNewTable = $this->loadFeatureProcessor()->getTableName(); // This will also create the table
 
+				$sDailyStatsTable = $oDb->getPrefix() . 'icwp_dailystats';
+				if ( $oDb->getIfTableExists( $sDailyStatsTable ) ) {
+					$oDb->doDropTable( $sDailyStatsTable );
+				}
+
+				$aMonthlyStatsTable = $oDb->getPrefix() . 'icwp_monthlystats';
+				if ( $oDb->getIfTableExists( $aMonthlyStatsTable ) ) {
+					$oDb->doDropTable( $aMonthlyStatsTable );
+				}
+				$this->loadWpFunctionsProcessor()->deleteOption( 'icwp_stats_system_options' );
+
+				/**
 				if ( $oDb->getIfTableExists( $sNewTable ) ) {
 
 					$sBaseQuery = "INSERT INTO %s (page_id, uri, day_id, month_id, year_id, count_total, deleted_at)
@@ -96,34 +107,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Statistics_V1') ):
 					// now we delete so we don't repeat this.
 					$this->loadWpFunctionsProcessor()->deleteOption( 'icwp_stats_system_options' );
 				}
-//				if ( $oDb->getIfTableExists( $sNewTable ) ) {
-//
-//					$sDailyStatsTable = $oDb->getPrefix() . 'icwp_dailystats';
-//					if ( $oDb->getIfTableExists( $sDailyStatsTable ) ) {
-//						$aDailyStats = $oDb->selectAllFromTable( $sDailyStatsTable );
-//						$oDb->doDropTable( $sDailyStatsTable );
-//						foreach ( $aDailyStats as $aStat ) {
-//							unset( $aStat['id'] );
-//							$oDb->insertDataIntoTable( $sNewTable, $aStat );
-//						}
-//					}
-//					$fDailyStatsEmpty = empty( $aDailyStats );
-//					unset( $aDailyStats ); //clear up some memory just in case
-//
-//					$aMonthlyStatsTable = $oDb->getPrefix() . 'icwp_monthlystats';
-//					if ( $oDb->getIfTableExists( $aMonthlyStatsTable ) ) {
-//						$aMonthlyStats = $oDb->selectAllFromTable( $aMonthlyStatsTable );
-//						$oDb->doDropTable( $aMonthlyStatsTable );
-//						foreach ( $aMonthlyStats as $aStat ) {
-//							unset( $aStat['id'] );
-//							$oDb->insertDataIntoTable( $sNewTable, $aStat );
-//						}
-//					}
-//					if ( $fDailyStatsEmpty && empty( $aMonthlyStats ) ) {
-//						$this->loadWpFunctionsProcessor()->deleteOption( 'icwp_stats_system_options' );
-//					}
-//				}
-
+				 */
 			}
 		}
 	}

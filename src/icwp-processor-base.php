@@ -51,7 +51,7 @@ if ( !class_exists('ICWP_APP_BaseProcessor_V3') ):
 		public function __construct( $oFeatureOptions ) {
 			$this->oFeatureOptions = $oFeatureOptions;
 			add_action( $this->getFeatureOptions()->doPluginPrefix( 'plugin_shutdown' ), array( $this, 'action_doFeatureProcessorShutdown' ) );
-			add_filter( $this->getFeatureOptions()->doPluginPrefix( 'wpsf_audit_trail_gather' ), array( $this, 'getAuditEntry' ) );
+//			add_filter( $this->getFeatureOptions()->doPluginPrefix( 'wpsf_audit_trail_gather' ), array( $this, 'getAuditEntry' ) );
 			$this->reset();
 		}
 
