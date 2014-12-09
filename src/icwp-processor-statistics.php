@@ -15,7 +15,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( dirname(__FILE__).'/icwp-processor-basedb.php' );
+require_once( dirname(__FILE__).ICWP_DS.'icwp-processor-basedb.php' );
 
 if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 
@@ -376,12 +376,12 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 		protected function getCreateTableSql() {
 			$sSql = "CREATE TABLE IF NOT EXISTS `%s` (
 				`id` int(11) NOT NULL AUTO_INCREMENT,
-				`page_id` int(11) NOT NULL DEFAULT '0',
+				`page_id` INT(11) NOT NULL DEFAULT '0',
 				`uri` varchar(255) NOT NULL DEFAULT '',
 				`day_id` TINYINT(2) NOT NULL DEFAULT '0',
 				`month_id` TINYINT(2) NOT NULL DEFAULT '0',
 				`year_id` SMALLINT(4) NOT NULL DEFAULT '0',
-				`count_total` int(15) NOT NULL DEFAULT '1',
+				`count_total` INT(15) NOT NULL DEFAULT '1',
 				`created_at` INT(15) NOT NULL DEFAULT '0',
 				`deleted_at` INT(15) NOT NULL DEFAULT '0',
 	            PRIMARY KEY (`id`)

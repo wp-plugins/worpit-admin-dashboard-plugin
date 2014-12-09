@@ -16,7 +16,7 @@
  *
  */
 
-require_once( dirname(__FILE__).'/icwp-processor-base.php' );
+require_once( dirname(__FILE__).ICWP_DS.'icwp-processor-base.php' );
 
 if ( !class_exists('ICWP_APP_BaseDbProcessor') ):
 
@@ -133,10 +133,10 @@ if ( !class_exists('ICWP_APP_BaseDbProcessor') ):
 		 */
 		protected function deleteAllRowsOlderThan( $nTimeStamp ) {
 			$sQuery = "
-			DELETE from `%s`
-			WHERE
-				`created_at` < '%s'
-		";
+				DELETE from `%s`
+				WHERE
+					`created_at` < '%s'
+			";
 			$sQuery = sprintf(
 				$sQuery,
 				$this->getTableName(),

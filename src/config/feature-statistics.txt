@@ -43,6 +43,7 @@ options:
   -
     key: 'statistics_table_columns'
     section: 'section_non_ui'
+    immutable: true
     value:
       - 'id'
       - 'page_id'

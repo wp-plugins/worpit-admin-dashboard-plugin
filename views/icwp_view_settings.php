@@ -1,5 +1,5 @@
 <?php
-	include_once( dirname(__FILE__).WORPIT_DS.'worpit_options_helper.php' );
+	include_once( dirname(__FILE__).ICWP_DS.'worpit_options_helper.php' );
 ?>
 <div class="wrap">
 	<div class="bootstrap-wpadmin">

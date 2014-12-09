@@ -380,7 +380,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			//wp_handle_upload()
 			foreach ( $_FILES as $sKey => $aUpload ) {
 				if ( $aUpload['error'] == UPLOAD_ERR_OK ) {
-					$sMoveTarget = $sTempDir.WORPIT_DS.$aUpload['name'];
+					$sMoveTarget = $sTempDir.ICWP_DS.$aUpload['name'];
 					if ( !move_uploaded_file( $aUpload['tmp_name'], $sMoveTarget ) ) {
 						return $this->setErrorResponse(
 							sprintf( 'Failed to move uploaded file from %s to %s', $aUpload['tmp_name'], $sMoveTarget ),
@@ -397,7 +397,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				}
 			}
 
-			$sFileToInclude = $sTempDir . WORPIT_DS . 'installer.php';
+			$sFileToInclude = $sTempDir.ICWP_DS.'installer.php';
 			$this->runInstaller( $sFileToInclude );
 			$oFs->deleteDir( $sTempDir );
 
