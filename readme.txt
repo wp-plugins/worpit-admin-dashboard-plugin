@@ -1,10 +1,10 @@
 === iControlWP - Take Control of WordPress  ===
 Contributors: paultgoodchild, dlgoodchild
 Donate link: http://www.icontrolwp.com/
-Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, worpit, icontrolwp, automatic updates
+Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, managewp, worpit, automatic updates
 Requires at least: 3.2.0
-Tested up to: 4.0
-Stable tag: 2.8.4
+Tested up to: 4.1
+Stable tag: 2.9.0
 
 == Description ==
 
