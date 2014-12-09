@@ -251,7 +251,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 					$mValue = $oWp->getOption( 'worpit_admin_' . $sOption );
 					if ( $mValue !== false ) {
 						$this->setOpt( $sOption, $mValue );
-						$oWp->deleteOption( 'worpit_admin_' . $sOption );
+//						$oWp->deleteOption( 'worpit_admin_' . $sOption );
 					}
 				}
 			}
