@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, managewp, worpit, automatic updates
 Requires at least: 3.2.0
 Tested up to: 4.1
-Stable tag: 2.9.2.1
+Stable tag: 2.8.4
 
 == Description ==
 
