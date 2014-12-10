@@ -409,7 +409,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		 */
 		public function getVersion() {
 			$sVersion = $this->getOpt( self::PluginVersionKey );
-			return empty( $sVersion )? '0.0' : $sVersion;
+			return empty( $sVersion )? $this->getController()->getVersion() : $sVersion;
 		}
 
 		/**

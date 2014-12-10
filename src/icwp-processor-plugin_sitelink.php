@@ -51,8 +51,9 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_SiteLink') ):
 			$oResponse->code = 0;
 
 			$oDp = $this->loadDataProcessor();
+			$oFO = $this->getFeatureOptions();
 
-			if ( $this->getFeatureOptions()->getIsSiteLinked() ) {
+			if ( $oFO->getIsSiteLinked() ) {
 				$oResponse->message = 'Assigned To:'.$this->getOption( 'assigned_to' );
 				$oResponse->status = 'AlreadyAssigned';
 				$oResponse->code = 1;
@@ -77,7 +78,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_SiteLink') ):
 				$oResponse->code = 2;
 				return $oResponse;
 			}
-			if ( $sRequestedKey != $this->getOption( 'key' ) ) {
+			if ( $sRequestedKey != $oFO->getPluginAuthKey() ) {
 				$oResponse->message = 'KeyMismatch:'.$sRequestedKey.'.';
 				$oResponse->code = 3;
 				return $oResponse;
@@ -103,10 +104,9 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_SiteLink') ):
 				return $oResponse;
 			}
 
-			$oF0 = $this->getFeatureOptions();
-			$oF0->setOpt( 'pin', $sRequestedPin );
-			$oF0->setOpt( 'assigned', 'Y' );
-			$oF0->setOpt( 'assigned_to', $sRequestedAcc );
+			$oFO->setOpt( 'pin', $sRequestedPin );
+			$oFO->setOpt( 'assigned', 'Y' );
+			$oFO->setOpt( 'assigned_to', $sRequestedAcc );
 
 			$oResponse->success = true;
 			return $oResponse;

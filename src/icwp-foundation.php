@@ -48,5 +48,4 @@ class ICWP_APP_Foundation {
 	public function loadStatsProcessor() {
 		require_once( 'icwp-wpsf-stats.php' );
 	}
-
 }

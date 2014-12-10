@@ -172,7 +172,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 		 */
 		protected function sendApiResponse( $mResponse, $fDoBinaryEncode = true ) {
 
-			if ( is_object( $mResponse ) && $mResponse->die ) {
+			if ( is_object( $mResponse ) && isset( $mResponse->die ) && $mResponse->die ) {
 				wp_die( $mResponse->error_message );
 				return;
 			}
@@ -254,7 +254,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin') ):
 			$sNonce = wp_nonce_field( $oCon->getPluginPrefix() );
 			$sServiceName = $oCon->getHumanName();
 			$sFormAction = $oCon->getPluginUrl_AdminMainPage();
-			$sAuthKey = $this->getOption('key');
+			$sAuthKey = $this->getFeatureOptions()->getPluginAuthKey();
 			ob_start();
 			include( $this->getFeatureOptions()->getViewSnippet( 'admin_notice_add_site' ) );
 			$sNoticeMessage = ob_get_contents();

@@ -134,7 +134,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				);
 			}
 
-			$sKey = $this->getOption( 'key' );
+			$sKey = $this->getFeatureOptions()->getPluginAuthKey();
 			$sRequestKey = trim( $oDp->FetchRequest( 'key', false ) );
 			if ( empty( $sRequestKey ) ) {
 				$sErrorMessage = 'EmptyRequestKey';
@@ -151,7 +151,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				);
 			}
 
-			$sPin = $this->getOption( 'pin' );
+			$sPin = $this->getFeatureOptions()->getPluginPin();
 			$sRequestPin = trim( $oDp->FetchRequest( 'pin', false ) );
 			if ( empty( $sRequestPin ) ) {
 				$sErrorMessage = 'EmptyRequestPin';
@@ -318,8 +318,8 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				'%s/%s/%s/%s',
 				rtrim( $sRetrieveBaseUrl, '/' ),
 				$sPackageId,
-				$this->getOption( 'key' ),
-				$this->getOption( 'pin' )
+				$this->getFeatureOptions()->getPluginAuthKey(),
+				$this->getFeatureOptions()->getPluginPin()
 			);
 			$sRetrievedTmpFile = download_url( $sPackageRetrieveUrl );
 

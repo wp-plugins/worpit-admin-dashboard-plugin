@@ -104,16 +104,16 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		 * @return bool
 		 */
 		public function getIsSiteLinked() {
-			return ( $this->getOptIs( 'assigned', 'Y' ) && is_email( $this->getOpt( 'assigned_to' ) ) );
+			return ( $this->getAssigned() == 'Y' && is_email( $this->getAssignedTo() ) );
 		}
 
 		public function doExtraSubmitProcessing() {
 			$oDp = $this->loadDataProcessor();
 
 			if ( $oDp->FetchPost( $this->getController()->doPluginOptionPrefix( 'reset_plugin' ) ) ) {
-				$sTo = $this->getOpt( 'assigned_to' );
-				$sKey = $this->getOpt( 'key' );
-				$sPin = $this->getOpt( 'pin' );
+				$sTo = $this->getAssignedTo();
+				$sKey = $this->getPluginAuthKey();
+				$sPin = $this->getPluginPin();
 
 				if ( !empty( $sTo ) && !empty( $sKey ) && !empty( $sPin ) ) {
 					$aParts = array( urlencode( $sTo ), $sKey, $sPin );
@@ -197,6 +197,74 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		}
 
 		/**
+		 * @return string
+		 */
+		public function getAssigned() {
+			$sOptionKey = 'assigned';
+			$sNewPlugin = $this->getOpt( $sOptionKey );
+			if ( $sNewPlugin != 'Y' ) {
+				$sOldPlugin = $this->getPluginOptionPre290( $sOptionKey );
+				$this->deletePluginOptionPre290( $sOptionKey );
+				if ( $sOldPlugin == 'Y' ) {
+					$sNewPlugin = $sOldPlugin;
+					$this->setOpt( $sOptionKey, $sNewPlugin );
+				}
+			}
+			return $sNewPlugin;
+		}
+
+		public function getAssignedTo() {
+			$sOptionKey = 'assigned_to';
+			$sNewPlugin = $this->getOpt( $sOptionKey );
+			if ( empty( $sNewPlugin ) ) {
+				$sOldPlugin = $this->getPluginOptionPre290( $sOptionKey );
+				$this->deletePluginOptionPre290( $sOptionKey );
+				if ( !empty( $sOldPlugin ) ) {
+					$sNewPlugin = $sOldPlugin;
+					$this->setOpt( $sOptionKey, $sNewPlugin );
+				}
+			}
+			return $sNewPlugin;
+		}
+
+		/**
+		 * @return string
+		 */
+		public function getPluginAuthKey() {
+			$sOptionKey = 'key';
+			$sNewPlugin = $this->getOpt( $sOptionKey );
+			if ( empty( $sNewPlugin ) ) {
+				$sOldPlugin = $this->getPluginOptionPre290( $sOptionKey );
+				$this->deletePluginOptionPre290( $sOptionKey );
+				if ( !empty( $sOldPlugin ) ) {
+					$sNewPlugin = $sOldPlugin;
+				}
+				else {
+					$sNewPlugin = $this->loadDataProcessor()->GenerateRandomString( 24, 7 );
+				}
+				$this->setOpt( $sOptionKey, $sNewPlugin );
+			}
+			return $sNewPlugin;
+		}
+
+		/**
+		 * @return string
+		 */
+		public function getPluginPin() {
+			$sOptionKey = 'pin';
+			$sNewPlugin = $this->getOpt( $sOptionKey );
+			if ( empty( $sNewPlugin ) ) {
+				$sOldPlugin = $this->getPluginOptionPre290( $sOptionKey );
+				$this->deletePluginOptionPre290( $sOptionKey );
+				if ( !empty( $sOldPlugin ) ) {
+					$sNewPlugin = $sOldPlugin;
+					$this->setOpt( $sOptionKey, $sNewPlugin );
+				}
+			}
+			return $sNewPlugin;
+		}
+
+		/**
 		 * @param array $aSummaryData
 		 * @return array
 		 */
@@ -211,7 +279,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 
 			$oDp = $this->loadDataProcessor();
 
-			$sAuthKey = $this->getOpt( 'key' );
+			$sAuthKey = $this->getPluginAuthKey();
 			if ( empty( $sAuthKey ) || strlen( $sAuthKey ) != 24 ) {
 				$this->setOpt( 'key', $oDp->GenerateRandomString( 24, 7 ) );
 			}
@@ -237,7 +305,6 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 			parent::updateHandler();
 
 			//migrate from old
-			$oWp = $this->loadWpFunctionsProcessor();
 			if ( !$this->getIsSiteLinked() ) {
 				$aOldOptions = array(
 					'key',
@@ -248,13 +315,31 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 					'handshake_enabled'
 				);
 				foreach( $aOldOptions as $sOption ) {
-					$mValue = $oWp->getOption( 'worpit_admin_' . $sOption );
+					$mValue = $this->getPluginOptionPre290( $sOption );
 					if ( $mValue !== false ) {
 						$this->setOpt( $sOption, $mValue );
 //						$oWp->deleteOption( 'worpit_admin_' . $sOption );
 					}
 				}
 			}
+		}
+
+		/**
+		 * @param $sKey
+		 *
+		 * @return mixed|void
+		 */
+		private function getPluginOptionPre290( $sKey ) {
+			return get_option( 'worpit_admin_'.$sKey );
+		}
+
+		/**
+		 * @param $sKey
+		 *
+		 * @return mixed|void
+		 */
+		private function deletePluginOptionPre290( $sKey ) {
+			return delete_option( 'worpit_admin_'.$sKey );
 		}
 	}
 
