@@ -17,7 +17,7 @@
 
 require_once( dirname(__FILE__).ICWP_DS.'icwp-processor-base.php' );
 
-if ( !class_exists('ICWP_APP_Processor_Plugin') ):
+if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 
 	class ICWP_APP_Processor_Plugin extends ICWP_APP_Processor_Base {
 

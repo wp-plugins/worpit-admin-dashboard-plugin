@@ -17,7 +17,7 @@
  *
  */
 
-if ( !class_exists('ICWP_APP_DataProcessor_V4') ):
+if ( !class_exists( 'ICWP_APP_DataProcessor_V4', false ) ):
 
 	class ICWP_APP_DataProcessor_V4 {
 

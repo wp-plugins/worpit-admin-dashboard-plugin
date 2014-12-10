@@ -1,6 +1,6 @@
 ---
 properties:
-  version: '2.9.2.1'
+  version: '2.9.2.2'
 #  slug_parent: 'worpit'
 #  slug_plugin: 'admin'
   slug_parent: 'icwp'

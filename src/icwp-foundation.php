@@ -1,5 +1,9 @@
 <?php
 
+if ( class_exists( 'ICWP_APP_Foundation', false ) ) {
+	return;
+}
+
 class ICWP_APP_Foundation {
 
 	/**

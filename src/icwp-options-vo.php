@@ -1,4 +1,10 @@
 <?php
+
+if ( class_exists( 'ICWP_APP_OptionsVO', false ) ) {
+	return;
+}
+require_once( 'icwp-foundation.php' );
+
 class ICWP_APP_OptionsVO extends ICWP_APP_Foundation {
 
 	/**
