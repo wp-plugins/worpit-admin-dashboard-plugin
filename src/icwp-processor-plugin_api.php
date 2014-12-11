@@ -67,11 +67,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				return $this->doLogin();
 			}
 
-			$this->preApiCheck();
-			if ( !$oResponse->success ) {
-				return $oResponse;
-			}
-
 			$this->doHandshakeVerify();
 			if ( !$oResponse->success ) {
 				if ( $oResponse->code == 9991 ) {
@@ -80,6 +75,12 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				return $oResponse;
 			}
 
+			$this->preApiCheck();
+			if ( !$oResponse->success ) {
+				if ( !$this->doAttemptSiteReassign() ) {
+					return $oResponse;
+				}
+			}
 			$this->doWpEngine();
 			@set_time_limit( $oDp->FetchRequest( 'timeout', false, 60 ) );
 
@@ -172,6 +173,59 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		}
 
 		/**
+		 * Attempts to relink/reassign a site upon API failure, with certain pre-conditions
+		 *
+		 * 1) The method is "retrieve"
+		 * 2) The site CAN Handshake (it will check this)
+		 * 3) The handshake is verified for this package
+		 *
+		 * @return bool
+		 */
+		protected function doAttemptSiteReassign() {
+
+			$oResponse = $this->getStandardResponse();
+			if ( !isset( $oResponse->method ) || $oResponse->method == 'execute' ) {
+				return false;
+			}
+
+			$oFO = $this->getFeatureOptions();
+			// We first verify fully if we CAN handshake
+			if ( !$oFO->getCanHandshake( true ) ) {
+				return false;
+			}
+			$oResponse = $this->doHandshakeVerify();
+			if ( !$oResponse->success ) {
+				return false;
+			}
+
+			$oDp = $this->loadDataProcessor();
+			$sRequestedAcc = urldecode( $oDp->FetchRequest( 'accname' ) );
+			if ( empty( $sRequestedAcc ) || !is_email( $sRequestedAcc ) ) {
+				return false;
+			}
+
+			$sRequestedKey = $oDp->FetchRequest( 'key', '' );
+			if ( empty( $sRequestedKey ) || strlen( $sRequestedKey ) != 24 ) {
+				die( $sRequestedKey );
+				return false;
+			}
+
+			$sRequestedPin = $oDp->FetchRequest( 'pin', '' );
+			if ( empty( $sRequestedPin ) ) {
+				return false;
+			}
+			$sRequestedPin = md5( $sRequestedPin );
+
+			$oFO->setOpt( 'key', $sRequestedKey );
+			$oFO->setOpt( 'pin', $sRequestedPin );
+			$oFO->setOpt( 'assigned', 'Y' );
+			$oFO->setOpt( 'assigned_to', $sRequestedAcc );
+			$oFO->savePluginOptions();
+
+			return true;
+		}
+
+		/**
 		 * @return stdClass
 		 */
 		protected function doHandshakeVerify() {
@@ -195,7 +249,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 					}
 				}
 			}
-
 
 			$sPackageName = $oDp->FetchRequest( 'package_name', false );
 			$sPin = $oDp->FetchRequest( 'pin', false );
