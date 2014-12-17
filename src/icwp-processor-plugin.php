@@ -75,6 +75,9 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 		 * @return string
 		 */
 		protected function getApiHook() {
+			if ( class_exists( 'WooDojo_Maintenance_Mode', false ) ) {
+				return 'init';
+			}
 			return 'wp_loaded';
 		}
 

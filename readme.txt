@@ -115,7 +115,11 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
-= 2.9.2.3 =
+= 2.9.3 =
+
+* CHANGED:  Added work arounds for some maintenance mode plugins.
+
+= 2.9.2 =
 *Released: 11th December 2014*
 
 * CHANGED:  Significant plugin refactoring to improve performance, security, and reliability of the iControlWP service.

@@ -200,25 +200,25 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 
 			// WP Maintenance Mode Plugin
 			// http://wordpress.org/extend/plugins/themefuse-maintenance-mode/developers/
-			if ( class_exists( 'WPMaintenanceMode' ) ) {
+			if ( class_exists( 'WPMaintenanceMode', false ) ) {
 				remove_action( 'plugins_loaded', array ( 'WPMaintenanceMode', 'get_instance' ) );
 			}
 
 			//Maintenance Mode Plugin
 			global $myMaMo;
-			if ( class_exists( 'MaintenanceMode' ) && isset( $myMaMo ) && is_object( $myMaMo ) ) {
+			if ( class_exists( 'MaintenanceMode', false ) && isset( $myMaMo ) && is_object( $myMaMo ) ) {
 				remove_action( 'plugins_loaded', array( $myMaMo, 'ApplyMaintenanceMode') );
 			}
 
 			// ThemeFuse Maintenance Mode Plugin
 			// http://wordpress.org/extend/plugins/themefuse-maintenance-mode/developers/
-			if ( class_exists( 'tf_maintenance' ) ) {
+			if ( class_exists( 'tf_maintenance', false ) ) {
 				remove_action( 'init', 'tf_maintenance_Init', 5 );
 			}
 
 			//underConstruction plugin
 			global $underConstructionPlugin;
-			if ( class_exists( 'underConstruction' ) && isset( $underConstructionPlugin ) && is_object( $underConstructionPlugin ) ) {
+			if ( class_exists( 'underConstruction', false ) && isset( $underConstructionPlugin ) && is_object( $underConstructionPlugin ) ) {
 				remove_action( 'template_redirect', array( $underConstructionPlugin, 'uc_overrideWP' ) );
 				remove_action( 'admin_init', array( $underConstructionPlugin, 'uc_admin_override_WP' ) );
 				remove_action( 'wp_login', array( $underConstructionPlugin, 'uc_admin_override_WP' ) );
