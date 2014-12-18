@@ -301,7 +301,7 @@ if ( !class_exists( 'ICWP_APP_WpFilesystem', false ) ):
 		 * @return bool|string
 		 */
 		public function getTempDir( $sBaseDir = null, $sPrefix = '', &$outsRandomDir = '' ) {
-			$sTemp = rtrim( (is_null( $sBaseDir )? sys_get_temp_dir(): $sBaseDir), DIRECTORY_SEPARATOR ).DIRECTORY_SEPARATOR;
+			$sTemp = rtrim( (is_null( $sBaseDir )? get_temp_dir(): $sBaseDir), DIRECTORY_SEPARATOR ).DIRECTORY_SEPARATOR;
 
 			$sCharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789';
 			do {
