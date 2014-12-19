@@ -82,17 +82,23 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 			catch( Exception $oE ) {
 				return null;
 			}
-			add_action( 'plugins_loaded',			array( $this, 'onWpPluginsLoaded' ) );
-			add_action( 'admin_init',				array( $this, 'onWpAdminInit' ) );
-			add_filter( 'plugin_action_links',		array( $this, 'onWpPluginActionLinks' ), 10, 4 );
-			add_action( 'admin_menu',				array( $this, 'onWpAdminMenu' ) );
-			add_action(	'network_admin_menu',		array( $this, 'onWpAdminMenu' ) );
-			add_action( 'wp_loaded',			    array( $this, 'onWpLoaded' ) );
-			add_action( 'init',			        	array( $this, 'onWpInit' ) );
-			add_filter( 'auto_update_plugin',		array( $this, 'onWpAutoUpdate' ), 10000, 2 );
-			add_action( 'shutdown',					array( $this, 'onWpShutdown' ) );
-			$this->registerActivationHooks();
+			$this->doRegisterHooks();
 		}
+	}
+
+	/**
+	 */
+	protected function doRegisterHooks() {
+		$this->registerActivationHooks();
+		add_action( 'plugins_loaded',			array( $this, 'onWpPluginsLoaded' ) );
+		add_action( 'admin_init',				array( $this, 'onWpAdminInit' ) );
+		add_filter( 'plugin_action_links',		array( $this, 'onWpPluginActionLinks' ), 10, 4 );
+		add_action( 'admin_menu',				array( $this, 'onWpAdminMenu' ) );
+		add_action(	'network_admin_menu',		array( $this, 'onWpAdminMenu' ) );
+		add_action( 'wp_loaded',			    array( $this, 'onWpLoaded' ) );
+		add_action( 'init',			        	array( $this, 'onWpInit' ) );
+		add_filter( 'auto_update_plugin',		array( $this, 'onWpAutoUpdate' ), 10001, 2 );
+		add_action( 'shutdown',					array( $this, 'onWpShutdown' ) );
 	}
 
 	/**
@@ -376,11 +382,11 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 		}
 
 		if ( $sItemFile === $this->getPluginBaseFile() ) {
-			$fAutoupdateSpec = $this->getPluginSpec_Property( 'autoupdate' );
-			if ( $fAutoupdateSpec == 'yes' ) {
+			$sAutoupdateSpec = $this->getPluginSpec_Property( 'autoupdate' );
+			if ( $sAutoupdateSpec == 'yes' ) {
 				$fDoAutoUpdate = true;
 			}
-			else if ( $fAutoupdateSpec == 'block' ) {
+			else if ( $sAutoupdateSpec == 'block' ) {
 				$fDoAutoUpdate = false;
 			}
 		}
@@ -1024,7 +1030,7 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 		$oFs = $this->loadFileSystemProcessor();
 
 		$aConfig = array();
-		$sConfigFile = $this->getRootDir().'plugin-spec.txt';
+		$sConfigFile = $this->getRootDir().'plugin-spec.php';
 		$sContents = $oFs->getFileContent( $sConfigFile );
 		if ( !empty( $sContents ) ) {
 			$oYaml = $this->loadYamlProcessor();

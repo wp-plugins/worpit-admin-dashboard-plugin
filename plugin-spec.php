@@ -1,6 +1,6 @@
 ---
 properties:
-  version: '2.9.3'
+  version: '2.9.3.1'
 #  slug_parent: 'worpit'
 #  slug_plugin: 'admin'
   slug_parent: 'icwp'
@@ -9,7 +9,7 @@ properties:
   base_permissions: 'manage_options'
   wpms_network_admin_only: true
   logging_enabled: false
-  autoupdate: 'pass' #yes/block/pass
+  autoupdate: 'block' #yes/block/pass
 
 paths:
   source: 'src'

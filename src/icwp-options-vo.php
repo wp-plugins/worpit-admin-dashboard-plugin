@@ -437,7 +437,7 @@ class ICWP_APP_OptionsVO extends ICWP_APP_Foundation {
 		$oFs = $this->loadFileSystemProcessor();
 
 		$aConfig = array();
-		$sConfigFile = dirname( __FILE__ ). sprintf( ICWP_DS.'config'.ICWP_DS.'feature-%s.txt', $sName );
+		$sConfigFile = dirname( __FILE__ ). sprintf( ICWP_DS.'config'.ICWP_DS.'feature-%s.php', $sName );
 		$sContents = $oFs->getFileContent( $sConfigFile );
 		if ( !empty( $sContents ) ) {
 			$oYaml = $this->loadYamlProcessor();
