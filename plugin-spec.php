@@ -1,6 +1,7 @@
----
+<?php
+return "---
 properties:
-  version: '2.9.3.1'
+  version: '2.9.3.2'
 #  slug_parent: 'worpit'
 #  slug_plugin: 'admin'
   slug_parent: 'icwp'
@@ -57,3 +58,4 @@ action_links:
     -
       name: 'Dashboard'
       url_method_name: 'getPluginUrl_AdminMainPage'
+";

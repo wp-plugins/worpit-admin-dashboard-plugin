@@ -1,4 +1,5 @@
----
+<?php
+return "---
 properties:
   slug: 'plugin'
   name: 'Dashboard'
@@ -124,3 +125,4 @@ options:
       -
         slug: 'whitelabel'
         storage_key: 'whitelabel'
+";

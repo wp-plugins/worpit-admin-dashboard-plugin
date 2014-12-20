@@ -1,4 +1,5 @@
----
+<?php
+return "---
 properties:
   slug: 'statistics'
   name: 'Statistics'
@@ -54,3 +55,4 @@ options:
       - 'count_total'
       - 'deleted_at'
       - 'created_at'
+";

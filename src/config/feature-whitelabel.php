@@ -1,4 +1,5 @@
----
+<?php
+return "---
 properties:
   slug: 'whitelabel'
   name: 'whitelabel'
@@ -40,3 +41,4 @@ options:
     key: 'icon_url_32x32'
     section: 'section_non_ui'
     default: 'N'
+";

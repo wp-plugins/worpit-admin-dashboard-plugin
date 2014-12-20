@@ -1,4 +1,5 @@
----
+<?php
+return "---
 properties:
   slug: 'google_analytics'
   name: 'Google Analytics'
@@ -40,3 +41,4 @@ options:
     key: 'in_footer'
     section: 'section_non_ui'
     default: 'N'
+";

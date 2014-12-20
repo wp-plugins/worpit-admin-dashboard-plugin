@@ -1,4 +1,5 @@
----
+<?php
+return "---
 properties:
   slug: 'compatibility'
   name: 'Compatibility'
@@ -16,3 +17,4 @@ options:
   -
     key: 'current_plugin_version'
     section: 'section_non_ui'
+";

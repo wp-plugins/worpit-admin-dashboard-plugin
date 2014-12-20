@@ -1,4 +1,5 @@
----
+<?php
+return "---
 properties:
   slug: 'security'
   name: 'Security'
@@ -44,3 +45,4 @@ options:
     key: 'cloudflare_flexible_ssl'
     section: 'section_non_ui'
     default: 'N'
+";

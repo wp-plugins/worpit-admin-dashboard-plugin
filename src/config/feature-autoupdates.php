@@ -1,4 +1,5 @@
----
+<?php
+return "---
 slug: 'autoupdates'
 properties:
   name: 'Automatic Updates'
@@ -62,3 +63,4 @@ options:
     key: 'auto_update_themes'
     section: 'section_non_ui'
     default: ''
+";

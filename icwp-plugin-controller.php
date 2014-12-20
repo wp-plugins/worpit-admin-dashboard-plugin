@@ -1027,11 +1027,8 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 * @throws Exception
 	 */
 	private function readPluginConfiguration() {
-		$oFs = $this->loadFileSystemProcessor();
-
 		$aConfig = array();
-		$sConfigFile = $this->getRootDir().'plugin-spec.php';
-		$sContents = $oFs->getFileContent( $sConfigFile );
+		$sContents = include( $this->getRootDir().'plugin-spec.php' );
 		if ( !empty( $sContents ) ) {
 			$oYaml = $this->loadYamlProcessor();
 			$aConfig = $oYaml->parseYamlString( $sContents );
