@@ -55,7 +55,7 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 		 *
 		 * @var bool
 		 */
-		protected static $fStatRegistered = false;
+		protected static $bStatRegistered = false;
 
 		/**
 		 * @param ICWP_APP_FeatureHandler_Base $oFeatureOptions
@@ -68,17 +68,16 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 		 * @return bool
 		 */
 		public function run() {
-			if ( self::$fStatRegistered || strlen( $this->getPageUri() ) == 0 || ( defined( 'DOING_CRON' ) && DOING_CRON ) ) {
+			if ( self::$bStatRegistered || strlen( $this->getPageUri() ) == 0 || ( defined( 'DOING_CRON' ) && DOING_CRON ) ) {
 				return true;
 			}
 
 			add_action( $this->getController()->doPluginPrefix( 'plugin_shutdown' ), array( $this, 'doStats' ) );
-			self::$fStatRegistered = true;
+			self::$bStatRegistered = true;
 			return true;
 		}
 
 		public function doStats() {
-
 			if ( $this->getPageId() < 0 || $this->getIfIgnoreUser() ) {
 				return;
 			}
@@ -97,9 +96,9 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 		 * @return bool
 		 */
 		protected function getIfIgnoreUser() {
-			$fIgnoreLoggedInUser = $this->getIsOption( 'ignore_logged_in_user', 'Y' );
+			$bIgnoreLoggedInUser = $this->getIsOption( 'ignore_logged_in_user', 'Y' );
 			$nCurrentUserLevel = $this->loadWpFunctionsProcessor()->getCurrentUserLevel();
-			if ( $fIgnoreLoggedInUser && $nCurrentUserLevel >= 0 ) { // logged in
+			if ( $bIgnoreLoggedInUser && $nCurrentUserLevel >= 0 ) { // logged in
 				$nIgnoreFromUserLevel = $this->getOption( 'ignore_from_user_level', 11 );
 				if ( $nCurrentUserLevel >= $nIgnoreFromUserLevel ) {
 					return true;
@@ -164,6 +163,14 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 				$this->getTableName()
 			);
 			return $this->selectCustom( $sQuery );
+		}
+
+		/**
+		 * @return bool
+		 */
+		public function resetStatistics() {
+			$this->recreateTable();
+			return $this->getTableExists();
 		}
 
 		/**

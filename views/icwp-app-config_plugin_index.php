@@ -1,17 +1,17 @@
 <?php include_once( 'icwp-app-config_header.php' );
 
 $sAuthKey = isset( $icwp_aHiddenOptions['key'] ) ? $icwp_aHiddenOptions['key'] : '';
-$fAssigned = isset( $icwp_aHiddenOptions['assigned'] ) && $icwp_aHiddenOptions['assigned'] == 'Y';
+$bAssigned = isset( $icwp_aHiddenOptions['assigned'] ) && $icwp_aHiddenOptions['assigned'] == 'Y';
 $sAssignedTo = isset( $icwp_aHiddenOptions['assigned_to'] ) ? $icwp_aHiddenOptions['assigned_to'] : '';
-$fIsLinked = $fAssigned && !empty( $sAssignedTo );
-$fCanHandshake = isset( $icwp_aHiddenOptions['can_handshake'] ) && $icwp_aHiddenOptions['can_handshake'] == 'Y';
+$bIsLinked = $bAssigned && !empty( $sAssignedTo );
+$bCanHandshake = isset( $icwp_aHiddenOptions['can_handshake'] ) && $icwp_aHiddenOptions['can_handshake'] == 'Y';
 
 $sServiceName = $icwp_aPluginLabels['Name'];
 $sUrlServiceHome = $icwp_aPluginLabels['PluginURI'];
 $sUrlServiceHomeHelp = 'http://icwp.io/help';
 $sUrlServiceHomeFeatures = 'http://icwp.io/features';
 
-$fWhitelabelled = ($sServiceName != 'iControlWP');
+$bWhitelabelled = ($sServiceName != 'iControlWP');
 ?>
 
 	<script type="text/javascript">
@@ -53,8 +53,8 @@ $fWhitelabelled = ($sServiceName != 'iControlWP');
 				}
 				?>
 				<div class="assigned-state">
-					<?php if ( $fAssigned ): ?>
-						<h3 id="isAssigned"><?php echo sprintf( 'Currently connected to %s.%s', "<u>$sServiceName</u>", ($fWhitelabelled? '' : " ($sAssignedTo)") ); ?></h3>
+					<?php if ( $bAssigned ): ?>
+						<h3 id="isAssigned"><?php echo sprintf( 'Currently connected to %s.%s', "<u>$sServiceName</u>", ($bWhitelabelled? '' : " ($sAssignedTo)") ); ?></h3>
 
 					<?php else: ?>
 						<h3>The unique <?php echo $sServiceName; ?> Access Key for this site is: <span class="the-key"><?php echo $sAuthKey; ?></span></h3>
@@ -67,7 +67,7 @@ $fWhitelabelled = ($sServiceName != 'iControlWP');
 			</div>
 		</div>
 	</div>
-<?php if ( !$fIsLinked ) : ?>
+<?php if ( !$bIsLinked ) : ?>
 	<div class="row">
 		<div class="span12">
 			<div class="well">
@@ -165,7 +165,7 @@ $fWhitelabelled = ($sServiceName != 'iControlWP');
 	</div>
 <?php endif; ?>
 
-<?php if ( !$fWhitelabelled ) : ?>
+<?php if ( !$bWhitelabelled ) : ?>
 
 	<div class="row">
 		<div class="span12">

@@ -31,7 +31,7 @@ if ( !class_exists('ICWP_APP_BaseDbProcessor') ):
 		/**
 		 * @var boolean
 		 */
-		protected $fTableExists;
+		protected $bTableExists;
 
 		/**
 		 * @param ICWP_APP_FeatureHandler_Base $oFeatureOptions
@@ -71,7 +71,13 @@ if ( !class_exists('ICWP_APP_BaseDbProcessor') ):
 		 */
 		protected function initializeTable() {
 			if ( $this->getTableExists() ) {
-				$this->recreateTable();
+
+				if ( $this->getFeatureOptions()->getOpt( 'recreate_database_table', false ) || !$this->tableIsValid() ) {
+					$this->getFeatureOptions()->setOpt( 'recreate_database_table', false );
+					$this->getFeatureOptions()->savePluginOptions();
+					$this->recreateTable();
+				}
+
 				$sFullHookName = $this->getDbCleanupHookName();
 				add_action( $sFullHookName, array( $this, 'cleanupDatabase' ) );
 			}
@@ -90,13 +96,13 @@ if ( !class_exists('ICWP_APP_BaseDbProcessor') ):
 		}
 
 		/**
-		 * @param boolean $fIncludeDeleted
+		 * @param boolean $bIncludeDeleted
 		 * @param $nFormat
 		 *
 		 * @return array|boolean
 		 */
-		public function selectAllRows( $fIncludeDeleted = false, $nFormat = ARRAY_A ) {
-			$sQuery = sprintf( "SELECT * FROM `%s` WHERE %s ( `deleted_at` = '0' )", $this->getTableName(), $fIncludeDeleted ? 'NOT' : '' );
+		public function selectAllRows( $bIncludeDeleted = false, $nFormat = ARRAY_A ) {
+			$sQuery = sprintf( "SELECT * FROM `%s` WHERE %s ( `deleted_at` = '0' )", $this->getTableName(), $bIncludeDeleted ? 'NOT' : '' );
 			return $this->selectCustom( $sQuery, $nFormat );
 		}
 
@@ -160,13 +166,9 @@ if ( !class_exists('ICWP_APP_BaseDbProcessor') ):
 		/**
 		 * Will recreate the whole table
 		 */
-		public function recreateTable() {
-			if ( $this->getFeatureOptions()->getOpt( 'recreate_database_table', false ) || !$this->tableIsValid() ) {
-				$this->getFeatureOptions()->setOpt( 'recreate_database_table', false );
-				$this->getFeatureOptions()->savePluginOptions();
-				$this->dropTable();
-				$this->createTable();
-			}
+		protected function recreateTable() {
+			$this->dropTable();
+			return $this->createTable();
 		}
 
 		/**
@@ -188,9 +190,14 @@ if ( !class_exists('ICWP_APP_BaseDbProcessor') ):
 
 		/**
 		 * Will completely remove this table from the database
+		 *
+		 * @return bool
 		 */
 		public function dropTable() {
-			return $this->loadDbProcessor()->doDropTable( $this->getTableName() );
+			if ( $this->loadDbProcessor()->doDropTable( $this->getTableName() ) ) {
+				$this->bTableExists = false;
+			}
+			return true;
 		}
 
 		/**
@@ -251,7 +258,7 @@ if ( !class_exists('ICWP_APP_BaseDbProcessor') ):
 		}
 
 		// by default does nothing - override this method
-		public function cleanupDatabase() { }
+		public function cleanupDatabase() {}
 
 		/**
 		 * @return bool
@@ -259,12 +266,12 @@ if ( !class_exists('ICWP_APP_BaseDbProcessor') ):
 		public function getTableExists() {
 
 			// only return true if this is true.
-			if ( $this->fTableExists === true ) {
+			if ( $this->bTableExists === true ) {
 				return true;
 			}
 
-			$this->fTableExists = $this->loadDbProcessor()->getIfTableExists( $this->getTableName() );
-			return $this->fTableExists;
+			$this->bTableExists = $this->loadDbProcessor()->getIfTableExists( $this->getTableName() );
+			return $this->bTableExists;
 		}
 	}
 

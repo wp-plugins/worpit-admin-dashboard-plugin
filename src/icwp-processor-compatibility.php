@@ -83,28 +83,28 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 		}
 
 		protected function addToBadBehaviour() {
-			$fInstalled = ( defined('BB2_VERSION') && defined('BB2_CORE') && function_exists('bb2_read_whitelist') );
-			if ( !$fInstalled ) {
+			$bInstalled = ( defined('BB2_VERSION') && defined('BB2_CORE') && function_exists('bb2_read_whitelist') );
+			if ( !$bInstalled ) {
 				return;
 			}
 
-			$fAdded = false;
+			$bAdded = false;
 			$aServiceIps = $this->getOption( 'service_ip_addresses_ipv4' );
 			$sBbIpWhitelist = bb2_read_whitelist();
 			if ( empty( $sBbIpWhitelist['ip'] ) || !is_array( $sBbIpWhitelist['ip'] ) ) {
 				$sBbIpWhitelist['ip'] = $aServiceIps;
-				$fAdded = true;
+				$bAdded = true;
 			}
 			else {
 				foreach( $aServiceIps as $sServiceIp ) {
 					if ( !in_array( $sServiceIp, $sBbIpWhitelist['ip'] ) ) {
 						$sBbIpWhitelist['ip'][] = $sServiceIp;
-						$fAdded = true;
+						$bAdded = true;
 					}
 				}
 			}
 
-			if ( $fAdded ) {
+			if ( $bAdded ) {
 				update_option( 'bad_behavior_whitelist', $sBbIpWhitelist );
 			}
 		}
@@ -114,7 +114,7 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 		 * @return boolean
 		 */
 		protected function addToWordpressFirewall2() {
-			$fUpdate = false;
+			$bUpdate = false;
 			$mWhiteListIps = get_option( 'WP_firewall_whitelisted_ip' );
 			if ( $mWhiteListIps !== false ) { //WP firewall 2 is installed.
 
@@ -127,14 +127,14 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 				foreach( $aServiceIps as $sAddress ) {
 					if ( !in_array( $sAddress, $aFirewallIps ) ) {
 						$aFirewallIps[] = $sAddress;
-						$fUpdate = true;
+						$bUpdate = true;
 					}
 				}
-				if ( $fUpdate ) {
+				if ( $bUpdate ) {
 					update_option( 'WP_firewall_whitelisted_ip', serialize( $aFirewallIps ) );
 				}
 			}
-			return $fUpdate;
+			return $bUpdate;
 		}
 
 		/**
@@ -149,19 +149,19 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 				$aItsecIpsLockoutWhiteList = isset( $itsec_globals['settings']['lockout_white_list'] ) ? $itsec_globals['settings']['lockout_white_list'] : array();
 
 				$aOurIps = $this->getOption( 'service_ip_addresses_ipv4', array() );
-				$fAdded = false;
+				$bAdded = false;
 				foreach( $aOurIps as $sIp ) {
 					if ( !in_array( $sIp, $aItsecIpsWhiteList ) ) {
 						$aItsecIpsWhiteList[] = $sIp;
-						$fAdded = true;
+						$bAdded = true;
 					}
 
 					if ( !in_array( $sIp, $aItsecIpsLockoutWhiteList ) ) {
 						$aItsecIpsLockoutWhiteList[] = $sIp;
-						$fAdded = true;
+						$bAdded = true;
 					}
 				}
-				if ( $fAdded ) {
+				if ( $bAdded ) {
 					$itsec_globals['settings']['lockout_white_list'] = $aItsecIpsLockoutWhiteList;
 					$itsec_globals['settings']['white_list'] = $aItsecIpsWhiteList;
 					update_site_option( 'itsec_global', $itsec_globals );

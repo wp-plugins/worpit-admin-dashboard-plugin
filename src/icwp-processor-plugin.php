@@ -109,11 +109,11 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 		}
 
 		/**
-		 * @param boolean $fCanHandshake
+		 * @param boolean $bCanHandshake
 		 *
 		 * @return boolean
 		 */
-		public function doVerifyCanHandshake( $fCanHandshake ) {
+		public function doVerifyCanHandshake( $bCanHandshake ) {
 			$oDp = $this->loadDataProcessor();
 			$oFO = $this->getFeatureOptions();
 
@@ -171,28 +171,28 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 		 * @uses die() / wp_die()
 		 *
 		 * @param stdClass|string $mResponse
-		 * @param boolean $fDoBinaryEncode
+		 * @param boolean $bDoBinaryEncode
 		 */
-		protected function sendApiResponse( $mResponse, $fDoBinaryEncode = true ) {
+		protected function sendApiResponse( $mResponse, $bDoBinaryEncode = true ) {
 
 			if ( is_object( $mResponse ) && isset( $mResponse->die ) && $mResponse->die ) {
 				wp_die( $mResponse->error_message );
 				return;
 			}
 
-			$oResponse = $fDoBinaryEncode ? base64_encode( serialize( $mResponse ) ) : $mResponse;
+			$oResponse = $bDoBinaryEncode ? base64_encode( serialize( $mResponse ) ) : $mResponse;
 
-			$this->sendHeaders( $fDoBinaryEncode );
+			$this->sendHeaders( $bDoBinaryEncode );
 			echo "<icwp>".$oResponse."</icwp>";
 			echo "<icwpversion>".$this->getFeatureOptions()->getVersion()."</icwpversion>";
 			die();
 		}
 
 		/**
-		 * @param bool $fAsBinary
+		 * @param bool $bAsBinary
 		 */
-		protected function sendHeaders( $fAsBinary = true ) {
-			if ( $fAsBinary ) {
+		protected function sendHeaders( $bAsBinary = true ) {
+			if ( $bAsBinary ) {
 				header( "Content-type: application/octet-stream" );
 				header( "Content-Transfer-Encoding: binary");
 			}

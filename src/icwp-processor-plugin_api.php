@@ -465,10 +465,10 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		private function runInstaller( $sInstallerFileToInclude ) {
 			$oFs = $this->loadFileSystemProcessor();
 
-			$fIncludeSuccess = include_once( $sInstallerFileToInclude );
+			$bIncludeSuccess = include_once( $sInstallerFileToInclude );
 			$oFs->deleteFile( $sInstallerFileToInclude );
 
-			if ( !$fIncludeSuccess ) {
+			if ( !$bIncludeSuccess ) {
 				return $this->setErrorResponse(
 					'PHP failed to include the Installer file for execution'
 				);
@@ -563,8 +563,8 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 				wp_cookie_constants();
 			}
 
-			$fLoginSuccess = $oWp->setUserLoggedIn( $oUser->get( 'user_login' ) );
-			if ( !$fLoginSuccess ) {
+			$bLoginSuccess = $oWp->setUserLoggedIn( $oUser->get( 'user_login' ) );
+			if ( !$bLoginSuccess ) {
 				return $this->setErrorResponse(
 					sprintf( 'There was a problem logging you in as "%s".', $oUser->get( 'user_login' ) ),
 					-1 //TODO: Set a code

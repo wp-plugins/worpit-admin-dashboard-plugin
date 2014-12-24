@@ -68,11 +68,12 @@ if ( !class_exists( 'ICWP_APP_WpFilesystem', false ) ):
 		/**
 		 * @param string $sNeedle
 		 * @param string $sDir
-		 * @param boolean $fCaseSensitive
+		 * @param boolean $bCaseSensitive
+		 *
 		 * @return boolean
 		 */
-		public function fileExistsInDir( $sNeedle, $sDir, $fCaseSensitive = true ) {
-			if ( $fCaseSensitive ) {
+		public function fileExistsInDir( $sNeedle, $sDir, $bCaseSensitive = true ) {
+			if ( $bCaseSensitive ) {
 				return $this->exists( $this->pathJoin( $sDir, $sNeedle ) );
 			}
 			$sNeedle = strtolower( $sNeedle );
@@ -115,11 +116,12 @@ if ( !class_exists( 'ICWP_APP_WpFilesystem', false ) ):
 
 		/**
 		 * @param string $sUrl
-		 * @param boolean $fSecure
+		 * @param boolean $bSecure
+		 *
 		 * @return boolean
 		 */
-		public function getIsUrlValid( $sUrl, $fSecure = false ) {
-			$sSchema = $fSecure? 'https://' : 'http://';
+		public function getIsUrlValid( $sUrl, $bSecure = false ) {
+			$sSchema = $bSecure? 'https://' : 'http://';
 			$sUrl = ( strpos( $sUrl, 'http' ) !== 0 )? $sSchema.$sUrl : $sUrl;
 			return ( $this->getUrl( $sUrl ) != false );
 		}
@@ -314,11 +316,11 @@ if ( !class_exists( 'ICWP_APP_WpFilesystem', false ) ):
 
 			$outsRandomDir = $sDir;
 
-			$fSuccess = true;
+			$bSuccess = true;
 			if ( !@mkdir( $sTemp.$sDir, 0755, true ) ) {
-				$fSuccess = false;
+				$bSuccess = false;
 			}
-			return ($fSuccess? $sTemp.$sDir: false);
+			return ($bSuccess? $sTemp.$sDir: false);
 		}
 
 		/**

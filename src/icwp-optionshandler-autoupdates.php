@@ -61,17 +61,17 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Autoupdates_V3') ):
 
 		/**
 		 * @param string $sSlug
-		 * @param bool $fSetOn
+		 * @param bool $bSetOn
 		 * @param string $sContext
 		 */
-		public function setAutoUpdate( $sSlug, $fSetOn = false, $sContext = 'plugins' ) {
+		public function setAutoUpdate( $sSlug, $bSetOn = false, $sContext = 'plugins' ) {
 			$aAutoUpdateItems = $this->getAutoUpdates( $sContext );
 
 			$nInArray = array_search( $sSlug, $aAutoUpdateItems );
-			if ( $fSetOn && $nInArray === false ) {
+			if ( $bSetOn && $nInArray === false ) {
 				$aAutoUpdateItems[] = $sSlug;
 			}
-			else if ( !$fSetOn && $nInArray !== false ) {
+			else if ( !$bSetOn && $nInArray !== false ) {
 				unset( $aAutoUpdateItems[$nInArray] );
 			}
 			$this->setAutoUpdates( $aAutoUpdateItems, $sContext );

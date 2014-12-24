@@ -42,7 +42,7 @@ if ( !class_exists( 'ICWP_WpFunctions_V6', false ) ):
 		/**
 		 * @var boolean
 		 */
-		protected $fIsMultisite;
+		protected $bIsMultisite;
 
 		public function __construct() {}
 
@@ -96,11 +96,11 @@ if ( !class_exists( 'ICWP_WpFunctions_V6', false ) ):
 			$sFilename		= 'wp-load.php';
 			$nLimiter		= 0;
 			$nMaxLimit		= count( explode( DIRECTORY_SEPARATOR, trim( $sLoaderPath, DIRECTORY_SEPARATOR ) ) );
-			$fFound			= false;
+			$bFound			= false;
 
 			do {
 				if ( @is_file( $sLoaderPath.DIRECTORY_SEPARATOR.$sFilename ) ) {
-					$fFound = true;
+					$bFound = true;
 					break;
 				}
 				$sLoaderPath = realpath( $sLoaderPath.DIRECTORY_SEPARATOR.'..' );
@@ -108,7 +108,7 @@ if ( !class_exists( 'ICWP_WpFunctions_V6', false ) ):
 			}
 			while ( $nLimiter < $nMaxLimit );
 
-			return $fFound ? $sLoaderPath.DIRECTORY_SEPARATOR.$sFilename : null;
+			return $bFound ? $sLoaderPath.DIRECTORY_SEPARATOR.$sFilename : null;
 		}
 
 		/**
@@ -565,10 +565,10 @@ if ( !class_exists( 'ICWP_WpFunctions_V6', false ) ):
 		 * @return bool
 		 */
 		public function isMultisite() {
-			if ( !isset( $this->fIsMultisite ) ) {
-				$this->fIsMultisite = function_exists( 'is_multisite' ) && is_multisite();
+			if ( !isset( $this->bIsMultisite ) ) {
+				$this->bIsMultisite = function_exists( 'is_multisite' ) && is_multisite();
 			}
-			return $this->fIsMultisite;
+			return $this->bIsMultisite;
 		}
 
 		/**

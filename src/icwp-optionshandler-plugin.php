@@ -57,11 +57,11 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		}
 
 		/**
-		 * @param boolean $fDoHidePlugin
+		 * @param boolean $bDoHidePlugin
 		 *
 		 * @return bool
 		 */
-		public function getIfHidePlugin( $fDoHidePlugin ) {
+		public function getIfHidePlugin( $bDoHidePlugin ) {
 			return $this->getIsSiteLinked() && $this->getOptIs( 'enable_hide_plugin', 'Y' );
 		}
 
@@ -73,22 +73,22 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		}
 
 		/**
-		 * @param bool $fDoVerify
+		 * @param bool $bDoVerify
 		 *
 		 * @return bool
 		 */
-		public function getCanHandshake( $fDoVerify = false ) {
+		public function getCanHandshake( $bDoVerify = false ) {
 
-			if ( !$fDoVerify ) { // we always verify can handshake at least once every 24hrs
+			if ( !$bDoVerify ) { // we always verify can handshake at least once every 24hrs
 				$nSinceLastHandshakeCheck = time() - $this->getOpt( 'time_last_check_can_handshake', 0 );
 				if ( $nSinceLastHandshakeCheck > DAY_IN_SECONDS ) {
-					$fDoVerify = true;
+					$bDoVerify = true;
 				}
 			}
 
-			if ( $fDoVerify ) {
-				$fCanHandshake = apply_filters( $this->getController()->doPluginPrefix( 'verify_site_can_handshake' ), false );
-				$this->setOpt( 'can_handshake', ( $fCanHandshake ? 'Y' : 'N' ) );
+			if ( $bDoVerify ) {
+				$bCanHandshake = apply_filters( $this->getController()->doPluginPrefix( 'verify_site_can_handshake' ), false );
+				$this->setOpt( 'can_handshake', ( $bCanHandshake ? 'Y' : 'N' ) );
 			}
 			return $this->getOptIs( 'can_handshake', 'Y' );
 		}

@@ -4,26 +4,26 @@ if ( empty($icwp_aSummaryData) ) {
 }
 $sInnerSpanSize = 'span4';
 
-function printFeatureSummaryBlock( $fOn, $sName, $sSettingsHref= '', $sInnerSpanSize = 4 ) {
+function printFeatureSummaryBlock( $bOn, $sName, $sSettingsHref= '', $sInnerSpanSize = 4 ) {
 	$sFeatureSummaryBlockNameTemplates = '%s : <span class="feature-enabled-text">%s</span>';
 	$sOn = ( 'On' );
 	$sOff = ( 'Off' );
 ?>
-	<div class="span<?php echo $sInnerSpanSize;?> feature-summary-block state-<?php echo strtolower( $fOn? $sOn : $sOff ); ?>"
+	<div class="span<?php echo $sInnerSpanSize;?> feature-summary-block state-<?php echo strtolower( $bOn? $sOn : $sOff ); ?>"
 		 id="feature-<?php echo str_replace( ' ', '', strtolower($sName) ); ?>"
 		>
 		<div class="row-fluid">
 			<div class="feature-icon span3">
 			</div>
 				<div class="span8 offset1">
-					<a class="btn btn-<?php echo $fOn?'success':'warning';?>"
+					<a class="btn btn-<?php echo $bOn?'success':'warning';?>"
 						<?php echo empty($sSettingsHref)? 'disabled="disabled"': sprintf('href="%s"',$sSettingsHref);?>>
 						<?php echo empty($sSettingsHref)? ('See Below') : ('Go To Settings');?>
 					</a>
 				</div>
 		</div>
 		<div class="feature-name">
-			<?php echo sprintf( $sFeatureSummaryBlockNameTemplates, $sName, $fOn? 'ON':'OFF' ); ?>
+			<?php echo sprintf( $sFeatureSummaryBlockNameTemplates, $sName, $bOn? 'ON':'OFF' ); ?>
 		</div>
 	</div>
 <?php

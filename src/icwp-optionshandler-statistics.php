@@ -59,6 +59,11 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Statistics_V1') ):
 		}
 
 		public function doPrePluginOptionsSave() {
+
+			$sOptionValue = $this->getIsMainFeatureEnabled() ? 'Y' : 'N';
+			$this->setOpt( 'enable_daily_statistics', $sOptionValue );
+			$this->setOpt( 'enable_monthly_statistics', $sOptionValue );
+
 			// Migrate from old system
 			$aOldOptions = $this->loadWpFunctionsProcessor()->getOption( 'icwp_stats_system_options' );
 			if ( !empty( $aOldOptions ) && is_array( $aOldOptions ) ) {
@@ -83,31 +88,6 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Statistics_V1') ):
 				}
 				$this->loadWpFunctionsProcessor()->deleteOption( 'icwp_stats_system_options' );
 
-				/**
-				if ( $oDb->getIfTableExists( $sNewTable ) ) {
-
-					$sBaseQuery = "INSERT INTO %s (page_id, uri, day_id, month_id, year_id, count_total, deleted_at)
-						SELECT page_id, uri, day_id, month_id, year_id, count_total, deleted_at FROM %s
-					";
-
-					$sDailyStatsTable = $oDb->getPrefix() . 'icwp_dailystats';
-					if ( $oDb->getIfTableExists( $sDailyStatsTable ) ) {
-						$sDailyQuery = sprintf( $sBaseQuery, $sNewTable, $sDailyStatsTable );
-						$oDb->doSql( $sDailyQuery );
-						$oDb->doDropTable( $sDailyStatsTable );
-					}
-
-					$aMonthlyStatsTable = $oDb->getPrefix() . 'icwp_monthlystats';
-					if ( $oDb->getIfTableExists( $aMonthlyStatsTable ) ) {
-						$sMonthlyQuery = sprintf( $sBaseQuery, $sNewTable, $aMonthlyStatsTable );
-						$oDb->doSql( $sMonthlyQuery );
-						$oDb->doDropTable( $aMonthlyStatsTable );
-					}
-
-					// now we delete so we don't repeat this.
-					$this->loadWpFunctionsProcessor()->deleteOption( 'icwp_stats_system_options' );
-				}
-				 */
 			}
 		}
 	}

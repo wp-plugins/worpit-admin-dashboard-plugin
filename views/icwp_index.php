@@ -7,7 +7,7 @@ $sUrlServiceHomeFeatures = 'http://icwp.io/features';
 $sUrlPlugin_TwitterBootstrap = 'http://icwp.io/pluginbootstrap';
 $sUrlPlugin_WpPlugins = 'http://icwp.io/wpplugins';
 
-$fWhitelabelled = ($sServiceName != 'iControlWP');
+$bWhitelabelled = ($sServiceName != 'iControlWP');
 
 function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 
@@ -115,7 +115,7 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 					?>
 					<div class="assigned-state">
 						<?php if ( $icwp_assigned === 'Y' ): ?>
-							<h3 id="isAssigned"><?php echo sprintf( 'Currently connected to %s account.%s', "<u>$sServiceName</u>", ($fWhitelabelled? '' : " ($icwp_assigned_to)") ); ?></h3>
+							<h3 id="isAssigned"><?php echo sprintf( 'Currently connected to %s account.%s', "<u>$sServiceName</u>", ($bWhitelabelled? '' : " ($icwp_assigned_to)") ); ?></h3>
 
 						<?php else: ?>
 							<h3>The unique <?php echo $sServiceName; ?> Access Key for this site is: <span class="the-key"><?php echo $icwp_key; ?></span></h3>
@@ -221,7 +221,7 @@ function printOptionsPageHeader( $insServiceName, $insUrl, $insSection = '' ) {
 			</div>
 		<?php endif; ?>
 
-		<?php if ( !$fWhitelabelled ) : ?>
+		<?php if ( !$bWhitelabelled ) : ?>
 
 		<div class="row">
 			<div class="span12">
