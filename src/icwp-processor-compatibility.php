@@ -27,8 +27,9 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 			if ( is_admin() ) {
 				$this->setupWhitelists();
 			}
+			// Only when the request comes from iControlWP.
 			if ( $this->getIsRequestFromServiceIp() ) {
-				// Only when the request comes from iControlWP.
+				$this->unhookRedirection();
 				$this->unhookMaintenanceModePlugins();
 				$this->unhookSecurityPlugins();
 			}
@@ -61,6 +62,7 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 			$this->addToWordfence();
 			$this->addToBadBehaviour();
 			$this->addToWordpressFirewall2();
+			$this->addToWpMaintenanceMode();
 //			$this->addToIThemesSecurity();
 			// Add WordPress Simple Firewall plugin whitelist
 			add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
@@ -89,7 +91,7 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 			}
 
 			$bAdded = false;
-			$aServiceIps = $this->getOption( 'service_ip_addresses_ipv4' );
+			$aServiceIps = $this->getServiceIps( 4 );
 			$sBbIpWhitelist = bb2_read_whitelist();
 			if ( empty( $sBbIpWhitelist['ip'] ) || !is_array( $sBbIpWhitelist['ip'] ) ) {
 				$sBbIpWhitelist['ip'] = $aServiceIps;
@@ -109,6 +111,24 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 			}
 		}
 
+		protected function addToWpMaintenanceMode() {
+			if ( class_exists( 'WP_Maintenance_Mode', false ) ) {
+				$aWpmmOptions = $this->loadWpFunctionsProcessor()->getOption( 'wpmm_settings' );
+				$aExcludes = empty( $aWpmmOptions['general']['exclude'] ) ? array() : array_unique( $aWpmmOptions['general']['exclude'] );
+				$bAdded = false;
+				foreach( $this->getServiceIps( 4 ) as $sIp ) {
+					if ( !in_array( $sIp, $aExcludes ) ) {
+						$aExcludes[] = $sIp;
+						$bAdded = true;
+					}
+				}
+				if ( $bAdded ) {
+					$aWpmmOptions['general']['exclude'] = $aExcludes;
+					$this->loadWpFunctionsProcessor()->updateOption( 'wpmm_settings', $aWpmmOptions );
+				}
+			}
+		}
+
 		/**
 		 * If Wordfence is found on the site, it'll add the iControlWP IP address to the whitelist
 		 * @return boolean
@@ -120,10 +140,10 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 
 				$aFirewallIps = maybe_unserialize( $mWhiteListIps );
 				if ( !is_array( $aFirewallIps ) ) {
-					return;
+					return false;
 				}
 
-				$aServiceIps = $this->getOption( 'service_ip_addresses_ipv4', array() );
+				$aServiceIps = $this->getServiceIps( 4 );
 				foreach( $aServiceIps as $sAddress ) {
 					if ( !in_array( $sAddress, $aFirewallIps ) ) {
 						$aFirewallIps[] = $sAddress;
@@ -148,9 +168,9 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 				$aItsecIpsWhiteList = isset( $itsec_globals['settings']['white_list'] ) ? $itsec_globals['settings']['white_list'] : array();
 				$aItsecIpsLockoutWhiteList = isset( $itsec_globals['settings']['lockout_white_list'] ) ? $itsec_globals['settings']['lockout_white_list'] : array();
 
-				$aOurIps = $this->getOption( 'service_ip_addresses_ipv4', array() );
+				$aServiceIps = $this->getServiceIps( 4 );
 				$bAdded = false;
-				foreach( $aOurIps as $sIp ) {
+				foreach( $aServiceIps as $sIp ) {
 					if ( !in_array( $sIp, $aItsecIpsWhiteList ) ) {
 						$aItsecIpsWhiteList[] = $sIp;
 						$bAdded = true;
@@ -198,20 +218,6 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 				remove_action( 'init', 'ET_Anticipate_Init', 5 );
 			}
 
-			// WP Maintenance Mode Plugin
-			// http://wordpress.org/extend/plugins/themefuse-maintenance-mode/developers/
-			if ( class_exists( 'WPMaintenanceMode', false ) ) {
-				remove_action( 'plugins_loaded', array ( 'WPMaintenanceMode', 'get_instance' ) );
-			}
-
-			//Maintenance Mode Plugin
-			global $myMaMo;
-			if ( class_exists( 'MaintenanceMode', false ) && isset( $myMaMo ) && is_object( $myMaMo ) ) {
-				remove_action( 'plugins_loaded', array( $myMaMo, 'ApplyMaintenanceMode') );
-			}
-
-			// ThemeFuse Maintenance Mode Plugin
-			// http://wordpress.org/extend/plugins/themefuse-maintenance-mode/developers/
 			if ( class_exists( 'tf_maintenance', false ) ) {
 				remove_action( 'init', 'tf_maintenance_Init', 5 );
 			}
@@ -249,6 +255,18 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 			$this->removeSecureWpHooks();
 			$this->removeAiowpsHooks(); //wp-security-core.php line 25
 			$this->removeBetterWpSecurityHooks();
+		}
+
+		protected function unhookRedirection() {
+			if ( class_exists( 'Redirection', false ) && class_exists( 'WordPress_Module', false ) ) {
+				global $redirection;
+				if ( is_object( $redirection ) && isset( $redirection->wp ) && is_object( $redirection->wp ) ) {
+					remove_action( 'init', array( $redirection->wp, 'init' ) );
+					remove_action( 'send_headers', array( $redirection->wp, 'send_headers' ) );
+					remove_action( 'permalink_redirect_skip', array( $redirection->wp, 'permalink_redirect_skip' ) );
+					remove_action( 'wp_redirect', array( $redirection->wp, 'wp_redirect' ), 1, 2 );
+				}
+			}
 		}
 
 		/**
@@ -294,7 +312,7 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 
 			// Adds our IP addresses to the BWPS whitelist
 			if ( !is_null( $bwpsoptions ) && is_array( $bwpsoptions ) ) {
-				$sServiceIps = implode( "\n", $this->getOption( 'service_ip_addresses_ipv4', array() ) );
+				$sServiceIps = implode( "\n", $this->getServiceIps( 4 ) );
 				if ( !isset( $bwpsoptions['id_whitelist'] ) || strlen( $bwpsoptions['id_whitelist'] ) == 0 ) {
 					$bwpsoptions['id_whitelist'] = $sServiceIps;
 				}

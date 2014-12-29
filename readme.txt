@@ -119,6 +119,8 @@ No. WorpDrive is available for a small monthly fee.
 *Released: 23th December 2014*
 
 * ADDED:	Option to clear all statistics.
+* ADDED:	UI indicators for plugin automatic updates.
+* ADDED:	Further compatibility with maintenance mode plugins.
 * FIX:	    Small bug where statistics weren't enabled when requested to do so.
 
 = 2.9.3 =

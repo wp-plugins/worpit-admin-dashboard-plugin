@@ -678,6 +678,21 @@ if ( !class_exists( 'ICWP_APP_DataProcessor_V4', false ) ):
 		}
 
 		/**
+		 * @param array $aArray
+		 *
+		 * @return stdClass
+		 */
+		public function convertArrayToStdClass( $aArray ) {
+			$oObject = new stdClass();
+			if ( !empty( $aArray ) && is_array( $aArray ) ) {
+				foreach( $aArray as $sKey => $mValue ) {
+					$oObject->{$sKey} = $mValue;
+				}
+			}
+			return $oObject;
+		}
+
+		/**
 		 * @return int
 		 */
 		public function time() {

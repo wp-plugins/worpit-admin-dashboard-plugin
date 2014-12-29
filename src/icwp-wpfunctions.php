@@ -333,6 +333,20 @@ if ( !class_exists( 'ICWP_WpFunctions_V6', false ) ):
 		}
 
 		/**
+		 * @param string $sPluginBaseFilename
+		 *
+		 * @return null|stdClass
+		 */
+		public function getPluginDataAsObject( $sPluginBaseFilename ){
+			$aPlugins = get_plugins();
+			if ( !isset( $aPlugins[$sPluginBaseFilename] ) || !is_array( $aPlugins[$sPluginBaseFilename] ) ) {
+				return null;
+			}
+
+			return $this->loadDataProcessor()->convertArrayToStdClass( $aPlugins[ $sPluginBaseFilename ] );
+		}
+
+		/**
 		 * @return string
 		 */
 		public function getWordpressVersion() {
@@ -350,6 +364,34 @@ if ( !class_exists( 'ICWP_WpFunctions_V6', false ) ):
 				}
 			}
 			return $this->sWpVersion;
+		}
+
+		/**
+		 * @param string $sVersionToMeet
+		 *
+		 * @return boolean
+		 */
+		public function getWordpressIsAtLeastVersion( $sVersionToMeet ) {
+			return version_compare( $this->getWordpressVersion(), $sVersionToMeet, '>=' );
+		}
+
+		/**
+		 * @param string $sPluginBaseFilename
+		 *
+		 * @return boolean
+		 */
+		public function getIsPluginAutomaticallyUpdated( $sPluginBaseFilename ) {
+			// This is due to a change in the filter introduced in version 3.8.2
+			if ( $this->getWordpressIsAtLeastVersion( '3.8.2' ) ) {
+				$mPluginItem = new stdClass();
+				$mPluginItem->plugin = $sPluginBaseFilename;
+			}
+			else {
+				$mPluginItem = $sPluginBaseFilename;
+			}
+
+			$bUpdate = apply_filters( 'auto_update_plugin', false, $mPluginItem );
+			return $bUpdate;
 		}
 
 		/**

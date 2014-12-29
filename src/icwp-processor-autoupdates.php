@@ -77,6 +77,12 @@ if ( !class_exists('ICWP_APP_AutoupdatesProcessor_V6') ):
 			add_filter( 'auto_core_update_email', array( $this, 'autoupdate_email_override' ), self::FilterPriority, 1 ); //more parameter options here for later
 
 			add_action( 'wp_loaded', array( $this, 'force_run_autoupdates' ) );
+
+			// Adds automatic update indicator icon to all plugin meta in plugin listing.
+//			add_filter( 'plugin_row_meta', array( $this, 'fAddAutomaticUpdatePluginMeta' ), self::FilterPriority, 2 );
+
+			// Adds automatic update indicator column to all plugins in plugin listing.
+			add_filter( 'manage_plugins_columns', array( $this, 'fAddPluginsListAutoUpdateColumn') );
 		}
 
 		/**
@@ -250,6 +256,66 @@ if ( !class_exists('ICWP_APP_AutoupdatesProcessor_V6') ):
 				$aEmailParams['to'] = $sOverride;
 			}
 			return $aEmailParams;
+		}
+
+		/**
+		 * @filter
+		 * @param array $aPluginMeta
+		 * @param string $sPluginBaseFileName
+		 * @return array
+		 */
+		public function fAddAutomaticUpdatePluginMeta( $aPluginMeta, $sPluginBaseFileName ) {
+
+			// first we prevent collision between iControlWP <-> Simple Firewall by not duplicating icons
+			foreach( $aPluginMeta as $sMetaItem ) {
+				if ( strpos( $sMetaItem, 'icwp-pluginautoupdateicon' ) !== false ) {
+					return $aPluginMeta;
+				}
+			}
+			$bUpdate = $this->loadWpFunctionsProcessor()->getIsPluginAutomaticallyUpdated( $sPluginBaseFileName );
+			$sHtml = $this->getPluginAutoupdateIconHtml( $bUpdate );
+			array_unshift( $aPluginMeta, sprintf( '%s', $sHtml ) );
+			return $aPluginMeta;
+		}
+
+		/**
+		 * Adds the column to the plugins listing table to indicate whether WordPress will automatically update the plugins
+		 *
+		 * @param array $aColumns
+		 *
+		 * @return array
+		 */
+		public function fAddPluginsListAutoUpdateColumn( $aColumns ) {
+			if ( !isset( $aColumns['icwp_autoupdate'] ) ) {
+				$aColumns['icwp_autoupdate'] = 'Auto Update';
+				add_action( 'manage_plugins_custom_column', array( $this, 'aPrintPluginsListAutoUpdateColumnContent' ), self::FilterPriority, 2 );
+			}
+			return $aColumns;
+		}
+
+		/**
+		 * @param string $sColumnName
+		 * @param string $sPluginBaseFileName
+		 */
+		public function aPrintPluginsListAutoUpdateColumnContent( $sColumnName, $sPluginBaseFileName ) {
+			if ( $sColumnName != 'icwp_autoupdate' ) {
+				return;
+			}
+			$bUpdate = $this->loadWpFunctionsProcessor()->getIsPluginAutomaticallyUpdated( $sPluginBaseFileName );
+			echo $this->getPluginAutoupdateIconHtml( $bUpdate );
+		}
+
+		/**
+		 * @param boolean $bIsAutoupdate
+		 *
+		 * @return string
+		 */
+		protected function getPluginAutoupdateIconHtml( $bIsAutoupdate ) {
+			return sprintf(
+				'<span title="%s" class="icwp-pluginautoupdateicon dashicons dashicons-%s"></span>',
+				$bIsAutoupdate ? 'Updates are applied automatically by WordPress' : 'Updates are applied manually by Administrators',
+				$bIsAutoupdate ? 'update' : 'hammer'
+			);
 		}
 
 		/**
