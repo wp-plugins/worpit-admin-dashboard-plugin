@@ -17,6 +17,10 @@ options:
     key: 'current_plugin_version'
     section: 'section_non_ui'
   -
+    key: 'action_hook_priority'
+    section: 'section_non_ui'
+    default: 1001
+  -
     key: 'enable_autoupdates'
     section: 'section_non_ui'
     default: 'N'
