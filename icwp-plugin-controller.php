@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
+ * Copyright (c) 2015 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
  * "iControlWP" is distributed under the GNU General Public License, Version 2,
@@ -952,7 +952,12 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 */
 	public function loadCorePluginFeatureHandler() {
 		if ( !isset( $this->oFeatureHandlerPlugin ) ) {
-			$this->loadFeatureHandler( array( 'slug' => 'plugin' ) );
+			$this->loadFeatureHandler(
+				array(
+					'slug' => 'plugin',
+					'load_priority' => 5
+				)
+			);
 		}
 		return $this->oFeatureHandlerPlugin;
 	}

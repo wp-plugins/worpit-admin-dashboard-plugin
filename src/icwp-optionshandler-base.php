@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
+ * Copyright (c) 2015 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -108,18 +108,25 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 			add_action( $this->doPluginPrefix( 'plugin_shutdown' ), array( $this, 'action_doFeatureShutdown' ) );
 			add_action( $this->doPluginPrefix( 'delete_plugin' ), array( $this, 'deletePluginOptions' )  );
 			add_filter( $this->doPluginPrefix( 'aggregate_all_plugin_options' ), array( $this, 'aggregateOptionsValues' ) );
+
+			$this->doPostConstruction();
 		}
+
+		protected function doPostConstruction() {}
 
 		/**
 		 * A action added to WordPress 'plugins_loaded' hook
 		 */
 		public function onWpPluginsLoaded() {
-
 			if ( $this->getIsMainFeatureEnabled() ) {
-				$oProcessor = $this->getProcessor();
-				if ( is_object( $oProcessor ) && $oProcessor instanceof ICWP_APP_Processor_Base ) {
-					$oProcessor->run();
-				}
+				$this->doExecuteProcessor();
+			}
+		}
+
+		protected function doExecuteProcessor() {
+			$oProcessor = $this->getProcessor();
+			if ( is_object( $oProcessor ) && $oProcessor instanceof ICWP_APP_Processor_Base ) {
+				$oProcessor->run();
 			}
 		}
 
@@ -435,13 +442,14 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 
 		/**
 		 * Saves the options to the WordPress Options store.
-		 *
 		 * It will also update the stored plugin options version.
+		 *
+		 * @return bool
 		 */
 		public function savePluginOptions() {
 			$this->doPrePluginOptionsSave();
 			$this->updateOptionsVersion();
-			$this->getOptionsVo()->doOptionsSave();
+			return $this->getOptionsVo()->doOptionsSave();
 		}
 
 		/**
@@ -482,6 +490,15 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 
 					if ( $sOptionType == 'password' && !empty( $mCurrentOptionVal ) ) {
 						$mCurrentOptionVal = '';
+					}
+					else if ( $sOptionType == 'array' ) {
+
+						if ( empty( $mCurrentOptionVal ) ) {
+							$mCurrentOptionVal = '';
+						}
+						else {
+							$mCurrentOptionVal = implode( "\n", $mCurrentOptionVal );
+						}
 					}
 					else if ( $sOptionType == 'ip_addresses' ) {
 
@@ -699,6 +716,9 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 							continue;
 						}
 						$sOptionValue = md5( $sTempValue );
+					}
+					else if ( $sOptionType == 'array' ) { //arrays are textareas, where each is separated by newline
+						$sOptionValue = array_filter( explode( "\n", $sOptionValue ), 'trim' );
 					}
 					else if ( $sOptionType == 'ip_addresses' ) { //ip addresses are textareas, where each is separated by newline
 						$sOptionValue = $oDp->extractIpAddresses( $sOptionValue );
