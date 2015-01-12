@@ -1,7 +1,6 @@
 <?php
-
 /**
- * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
+ * Copyright (c) 2015 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -45,6 +44,11 @@ if ( !class_exists( 'ICWP_APP_DataProcessor_V4', false ) ):
 		 * @var integer
 		 */
 		protected static $nRequestTime;
+
+		/**
+		 * @var array
+		 */
+		protected $aRequestUriParts;
 
 		/**
 		 * @return int
@@ -115,6 +119,23 @@ if ( !class_exists( 'ICWP_APP_DataProcessor_V4', false ) ):
 				}
 			}
 			return $sIpToReturn;
+		}
+
+		/**
+		 * @return string
+		 */
+		public function getRequestUri() {
+			return $this->FetchServer( 'REQUEST_URI' );
+		}
+
+		/**
+		 * @return array|false
+		 */
+		public function getRequestUriParts() {
+			if ( !isset( $this->aRequestUriParts ) ) {
+				$this->aRequestUriParts = parse_url( $this->getRequestUri() );
+			}
+			return $this->aRequestUriParts;
 		}
 
 		/**
@@ -598,6 +619,15 @@ if ( !class_exists( 'ICWP_APP_DataProcessor_V4', false ) ):
 			}
 			$oJson = new JSON();
 			return @$oJson->unserialize( $sData );
+		}
+
+		/**
+		 * @param string $sRequestedUrl
+		 * @param string $sBaseUrl
+		 */
+		public function doSendApache404( $sRequestedUrl, $sBaseUrl ) {
+			header( 'HTTP/1.1 404 Not Found' );
+			die( '<html><head><title>404 Not Found</title><style type="text/css"></style></head><body><h1>Not Found</h1><p>The requested URL '.$sRequestedUrl.' was not found on this server.</p><p>Additionally, a 404 Not Found error was encountered while trying to use an ErrorDocument to handle the request.</p><hr><address>Apache Server at '.$sBaseUrl.' Port 80</address></body></html>' );
 		}
 
 		/**
