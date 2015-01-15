@@ -15,30 +15,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( dirname(__FILE__).ICWP_DS.'icwp-processor-base.php' );
+require_once( 'icwp-processor-base.php' );
 
 if ( !class_exists('ICWP_APP_Processor_Plugin_SiteLink') ):
 
 	class ICWP_APP_Processor_Plugin_SiteLink extends ICWP_APP_Processor_Base {
-
-		/**
-		 * @var ICWP_APP_FeatureHandler_Plugin
-		 */
-		protected $oFeatureOptions;
-
-		/**
-		 * @param ICWP_APP_FeatureHandler_Plugin $oFeatureOptions
-		 */
-		public function __construct( ICWP_APP_FeatureHandler_Plugin $oFeatureOptions ) {
-			parent::__construct( $oFeatureOptions );
-		}
-
-		/**
-		 * @return ICWP_APP_FeatureHandler_Plugin
-		 */
-		protected function getFeatureOptions() {
-			return $this->oFeatureOptions;
-		}
 
 		/**
 		 * @return stdClass
@@ -50,8 +31,9 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_SiteLink') ):
 			$oResponse->success = false;
 			$oResponse->code = 0;
 
-			$oDp = $this->loadDataProcessor();
+			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
 			$oFO = $this->getFeatureOptions();
+			$oDp = $this->loadDataProcessor();
 
 			if ( $oFO->getIsSiteLinked() ) {
 				$oResponse->message = 'Assigned To:'.$this->getOption( 'assigned_to' );

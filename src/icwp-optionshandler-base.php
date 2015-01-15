@@ -16,6 +16,7 @@
  */
 
 require_once( 'icwp-options-vo.php' );
+
 if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 
 	abstract class ICWP_APP_FeatureHandler_Base_V2 extends ICWP_APP_Foundation {
@@ -141,7 +142,23 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		 * Override this and adapt per feature
 		 * @return ICWP_APP_Processor_Base
 		 */
-		abstract protected function loadFeatureProcessor();
+		protected function loadFeatureProcessor() {
+			if ( !isset( $this->oFeatureProcessor ) ) {
+				require_once( $this->getController()->getPath_SourceFile( sprintf( 'icwp-processor-%s.php', $this->getFeatureSlug() ) ) );
+				$sClassName = $this->getProcessorClassName();
+				if ( !class_exists( $sClassName, false ) ) {
+					return null;
+				}
+				$this->oFeatureProcessor = new $sClassName( $this );
+			}
+			return $this->oFeatureProcessor;
+		}
+
+		/**
+		 * Override this and adapt per feature
+		 * @return string
+		 */
+		abstract protected function getProcessorClassName();
 
 		/**
 		 * @return ICWP_APP_OptionsVO

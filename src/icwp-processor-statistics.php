@@ -15,7 +15,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( dirname(__FILE__).ICWP_DS.'icwp-processor-basedb.php' );
+require_once( 'icwp-processor-basedb.php' );
 
 if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 
@@ -58,9 +58,9 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 		protected static $bStatRegistered = false;
 
 		/**
-		 * @param ICWP_APP_FeatureHandler_Base $oFeatureOptions
+		 * @param ICWP_APP_FeatureHandler_Statistics $oFeatureOptions
 		 */
-		public function __construct( $oFeatureOptions ) {
+		public function __construct( ICWP_APP_FeatureHandler_Statistics $oFeatureOptions ) {
 			parent::__construct( $oFeatureOptions, $oFeatureOptions->getStatisticsTableName() );
 		}
 
@@ -258,7 +258,7 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 				$this->getMonth(),
 				$this->getYear()
 			);
-			return $this->doSql( $sQuery );
+			return $this->loadDbProcessor()->doSql( $sQuery );
 		}
 
 		/**
@@ -420,7 +420,7 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 				$this->getTableName(),
 				( $this->time() - 31 * DAY_IN_SECONDS )
 			);
-			$this->doSql( $sQuery );
+			return $this->loadDbProcessor()->doSql( $sQuery );
 		}
 
 		/**

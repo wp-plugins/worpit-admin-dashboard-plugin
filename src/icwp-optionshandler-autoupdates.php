@@ -15,26 +15,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( dirname(__FILE__).ICWP_DS.'icwp-optionshandler-base.php' );
+require_once( 'icwp-optionshandler-base.php' );
 
 if ( !class_exists('ICWP_APP_FeatureHandler_Autoupdates_V3') ):
 
 	class ICWP_APP_FeatureHandler_Autoupdates_V3 extends ICWP_APP_FeatureHandler_Base {
 
 		/**
-		 * @var ICWP_APP_Processor_Autoupdates
+		 * @return string
 		 */
-		protected $oFeatureProcessor;
-
-		/**
-		 * @return ICWP_APP_Processor_Autoupdates|null
-		 */
-		protected function loadFeatureProcessor() {
-			if ( !isset( $this->oFeatureProcessor ) ) {
-				require_once( $this->getController()->getPath_SourceFile( sprintf( 'icwp-processor-%s.php', $this->getFeatureSlug() ) ) );
-				$this->oFeatureProcessor = new ICWP_APP_Processor_Autoupdates( $this );
-			}
-			return $this->oFeatureProcessor;
+		protected function getProcessorClassName() {
+			return 'ICWP_APP_Processor_Autoupdates';
 		}
 
 		/**
