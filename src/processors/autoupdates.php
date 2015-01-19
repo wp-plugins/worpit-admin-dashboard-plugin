@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
+ * Copyright (c) 2015 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -15,23 +15,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( 'icwp-processor-base.php' );
+require_once( 'base.php' );
 
-if ( !class_exists('ICWP_APP_AutoupdatesProcessor_V6') ):
+if ( !class_exists( 'ICWP_APP_AutoupdatesProcessor_V7', false ) ):
 
-	class ICWP_APP_AutoupdatesProcessor_V6 extends ICWP_APP_Processor_Base {
+	class ICWP_APP_AutoupdatesProcessor_V7 extends ICWP_APP_Processor_Base {
 
 		/**
 		 * @var boolean
 		 */
 		protected $bDoForceRunAutoupdates = false;
-
-		/**
-		 * @param ICWP_APP_FeatureHandler_Autoupdates $oFeatureOptions
-		 */
-		public function __construct( ICWP_APP_FeatureHandler_Autoupdates $oFeatureOptions ) {
-			parent::__construct( $oFeatureOptions );
-		}
 
 		/**
 		 * @param boolean $bDoForceRun
@@ -347,5 +340,5 @@ if ( !class_exists('ICWP_APP_AutoupdatesProcessor_V6') ):
 endif;
 
 if ( !class_exists('ICWP_APP_Processor_Autoupdates') ):
-	class ICWP_APP_Processor_Autoupdates extends ICWP_APP_AutoupdatesProcessor_V6 { }
+	class ICWP_APP_Processor_Autoupdates extends ICWP_APP_AutoupdatesProcessor_V7 { }
 endif;

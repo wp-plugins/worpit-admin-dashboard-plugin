@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
+ * Copyright (c) 2015 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -36,7 +36,7 @@ if ( !class_exists('ICWP_APP_YamlProcessor_V1') ):
 		 */
 		protected function loadYamlParser() {
 			if ( !class_exists( 'Spyc' ) ) {
-				require_once( 'lib/yaml/Spyc.php' );
+				require_once( 'yaml/Spyc.php' );
 			}
 			return class_exists( 'Spyc' );
 		}

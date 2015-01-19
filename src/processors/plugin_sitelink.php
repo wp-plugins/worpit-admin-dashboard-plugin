@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
+ * Copyright (c) 2015 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -15,9 +15,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( 'icwp-processor-base.php' );
+require_once( 'base.php' );
 
-if ( !class_exists('ICWP_APP_Processor_Plugin_SiteLink') ):
+if ( !class_exists( 'ICWP_APP_Processor_Plugin_SiteLink', false ) ):
 
 	class ICWP_APP_Processor_Plugin_SiteLink extends ICWP_APP_Processor_Base {
 

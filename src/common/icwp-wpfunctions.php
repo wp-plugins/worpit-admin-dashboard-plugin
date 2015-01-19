@@ -15,9 +15,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-if ( !class_exists( 'ICWP_APP_WpFunctions_V6', false ) ):
+if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 
-	class ICWP_APP_WpFunctions_V6 {
+	class ICWP_APP_WpFunctions_V7 {
 
 		/**
 		 * @var WP_Automatic_Updater
@@ -25,12 +25,12 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V6', false ) ):
 		protected $oWpAutomaticUpdater;
 
 		/**
-		 * @var ICWP_APP_WpFunctions_V6
+		 * @var ICWP_APP_WpFunctions_V7
 		 */
 		protected static $oInstance = NULL;
 
 		/**
-		 * @return ICWP_APP_WpFunctions_V6
+		 * @return ICWP_APP_WpFunctions_V7
 		 */
 		public static function GetInstance() {
 			if ( is_null( self::$oInstance ) ) {
@@ -296,7 +296,7 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V6', false ) ):
 		 */
 		public function getPlugins() {
 			if ( !function_exists( 'get_plugins' ) ) {
-				require_once ( ABSPATH . 'wp-admin/includes/plugin.php' );
+				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			}
 			return function_exists( 'get_plugins' ) ? get_plugins() : array();
 		}
@@ -792,7 +792,7 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V6', false ) ):
 		}
 
 		/**
-		 * @return null|WP_Automatic_Updater
+		 * @return false|WP_Automatic_Updater
 		 */
 		public function getWpAutomaticUpdater() {
 			if ( !isset( $this->oWpAutomaticUpdater ) ) {
@@ -833,8 +833,8 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V6', false ) ):
 		 * @return ICWP_APP_DataProcessor
 		 */
 		public function loadDataProcessor() {
-			if ( !class_exists('ICWP_APP_DataProcessor') ) {
-				require_once( dirname(__FILE__).ICWP_DS.'icwp-data-processor.php' );
+			if ( !class_exists( 'ICWP_APP_DataProcessor', false ) ) {
+				require_once( 'icwp-data.php' );
 			}
 			return ICWP_APP_DataProcessor::GetInstance();
 		}
@@ -843,15 +843,17 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V6', false ) ):
 		 * @return ICWP_APP_WpDb
 		 */
 		public function loadDbProcessor() {
-			require_once( 'icwp-wpdb.php' );
+			if ( !class_exists( 'ICWP_APP_WpDb', false ) ) {
+				require_once( 'icwp-wpdb.php' );
+			}
 			return ICWP_APP_WpDb::GetInstance();
 		}
 	}
 endif;
 
-if ( !class_exists('ICWP_APP_WpFunctions') ):
+if ( !class_exists( 'ICWP_APP_WpFunctions', false ) ):
 
-	class ICWP_APP_WpFunctions extends ICWP_APP_WpFunctions_V6 {
+	class ICWP_APP_WpFunctions extends ICWP_APP_WpFunctions_V7 {
 		/**
 		 * @return ICWP_APP_WpFunctions
 		 */

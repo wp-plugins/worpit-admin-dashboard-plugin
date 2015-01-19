@@ -41,6 +41,11 @@ if ( !class_exists('ICWP_APP_BaseProcessor_V3') ):
 		private $aAuditEntry;
 
 		/**
+		 * @var array
+		 */
+		protected $aAdminNotices;
+
+		/**
 		 * @var ICWP_APP_FeatureHandler_Base
 		 */
 		protected $oFeatureOptions;

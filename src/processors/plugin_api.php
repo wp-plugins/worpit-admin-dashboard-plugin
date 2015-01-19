@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
+ * Copyright (c) 2015 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -15,9 +15,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( 'icwp-processor-base.php' );
+require_once( 'base.php' );
 
-if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
+if ( !class_exists( 'ICWP_APP_Processor_Plugin_Api', false ) ):
 
 	/**
 	 * Class ICWP_APP_Processor_Plugin_Api
@@ -33,13 +33,6 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		 * @var ICWP_APP_FeatureHandler_Plugin
 		 */
 		protected $oFeatureOptions;
-
-		/**
-		 * @param ICWP_APP_FeatureHandler_Plugin $oFeatureOptions
-		 */
-		public function __construct( ICWP_APP_FeatureHandler_Plugin $oFeatureOptions ) {
-			parent::__construct( $oFeatureOptions );
-		}
 
 		/**
 		 * @return ICWP_APP_FeatureHandler_Plugin
@@ -84,30 +77,20 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 			$this->doWpEngine();
 			@set_time_limit( $oDp->FetchRequest( 'timeout', false, 60 ) );
 
-			$aOldVersionMethods = array(
-				'query',
-//				'index',
-//				'retrieve',
-//				'execute',
-			);
+			switch( $sApiMethod ) {
 
-			if ( in_array( $sApiMethod, $aOldVersionMethods ) ) {
-				define( 'WORPIT_DIRECT_API', 1 );
-				include_once( dirname(__FILE__).'/transport.php' );
-				die();
-			}
-
-			if ( $sApiMethod == 'index' ) {
-				$this->doIndex();
-			}
-			else if ( $sApiMethod == 'retrieve' ) {
-				$this->doRetrieve();
-			}
-			else if ( $sApiMethod == 'execute' ) {
-				$this->doExecute();
-			}
-			else if ( $sApiMethod == 'internal' ) {
-//				$this->doInternal();
+				case 'index':
+					$this->doIndex();
+					break;
+				case 'retrieve':
+					$this->doRetrieve();
+					break;
+				case 'execute':
+					$this->doExecute();
+					break;
+				case 'internal':
+//			    	$this->doInternal();
+					break;
 			}
 
 			return $oResponse;
@@ -329,7 +312,7 @@ if ( !class_exists('ICWP_APP_Processor_Plugin_Api') ):
 		 * @return stdClass
 		 */
 		protected function doInternal() {
-			include_once( 'icwp-processor-plugin_internalapi.php' );
+			include_once( 'plugin_internalapi.php' );
 			$oInternalApi = new ICWP_APP_Processor_Plugin_InternalApi( $this->getFeatureOptions() );
 			return $oInternalApi->run();
 		}

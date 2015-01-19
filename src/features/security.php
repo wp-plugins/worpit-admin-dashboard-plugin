@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
+ * Copyright (c) 2015 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -15,9 +15,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( 'icwp-optionshandler-base.php' );
+require_once( 'base.php' );
 
-if ( !class_exists('ICWP_APP_FeatureHandler_Security_V1') ):
+if ( !class_exists( 'ICWP_APP_FeatureHandler_Security_V1', false ) ):
 
 	class ICWP_APP_FeatureHandler_Security_V1 extends ICWP_APP_FeatureHandler_Base {
 
@@ -26,29 +26,6 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Security_V1') ):
 		 */
 		protected function getProcessorClassName() {
 			return 'ICWP_APP_Processor_Security';
-		}
-
-		public function doPrePluginOptionsSave() {
-
-			// Migrate from old system
-			$aOldOptions = $this->loadWpFunctionsProcessor()->getOption( 'icwp_security_system_options' );
-			if ( !empty( $aOldOptions ) && is_array( $aOldOptions ) ) {
-				if ( isset( $aOldOptions['enabled'] ) && $aOldOptions['enabled'] ) {
-					$this->setIsMainFeatureEnabled( true );
-				}
-				$aSettings = array(
-					'disallow_file_edit',
-					'force_ssl_admin',
-					'hide_wp_version',
-					'hide_wlmanifest_link',
-					'hide_rsd_link',
-					'cloudflare_flexible_ssl'
-				);
-				foreach( $aSettings as $sOption ) {
-					$this->setOpt( $sOption, isset( $aOldOptions[$sOption] ) ? $aOldOptions[$sOption]  : 'N' );
-				}
-				$this->loadWpFunctionsProcessor()->deleteOption( 'icwp_security_system_options' );
-			}
 		}
 	}
 

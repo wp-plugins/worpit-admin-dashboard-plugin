@@ -10,7 +10,7 @@ class ICWP_APP_Foundation {
 	 * @return ICWP_APP_DataProcessor
 	 */
 	static public function loadDataProcessor() {
-		require_once( 'icwp-data-processor.php' );
+		require_once( 'icwp-data.php' );
 		return ICWP_APP_DataProcessor::GetInstance();
 	}
 
@@ -42,7 +42,7 @@ class ICWP_APP_Foundation {
 	 * @return ICWP_APP_YamlProcessor
 	 */
 	static public function loadYamlProcessor() {
-		require_once( 'icwp-processor-yaml.php' );
+		require_once( 'icwp-yaml.php' );
 		return ICWP_APP_YamlProcessor::GetInstance();
 	}
 

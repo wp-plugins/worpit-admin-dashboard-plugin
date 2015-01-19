@@ -121,6 +121,7 @@ No. WorpDrive is available for a small monthly fee.
 * ADDED:	UI indicators for plugin automatic updates.
 * ADDED:	Further compatibility with maintenance mode plugins.
 * CHANGED:	Tweaks to the white labelling system.
+* CHANGED:	Refactored files for better organisation.
 
 = 2.9.4 =
 *Released: 23th December 2014*

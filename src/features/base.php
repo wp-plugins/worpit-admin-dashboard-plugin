@@ -15,11 +15,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( 'icwp-options-vo.php' );
+require_once( 'options-vo.php' );
 
-if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
+if ( !class_exists( 'ICWP_APP_FeatureHandler_Base_V3', false ) ):
 
-	abstract class ICWP_APP_FeatureHandler_Base_V2 extends ICWP_APP_Foundation {
+	abstract class ICWP_APP_FeatureHandler_Base_V3 extends ICWP_APP_Foundation {
 
 		/**
 		 * @var ICWP_APP_Plugin_Controller
@@ -113,7 +113,9 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 			$this->doPostConstruction();
 		}
 
-		protected function doPostConstruction() {}
+		protected function doPostConstruction() {
+			add_filter( $this->doPluginPrefix( 'override_off' ), array( $this, 'aDoCheckForForceOffFile' ) );
+		}
 
 		/**
 		 * A action added to WordPress 'plugins_loaded' hook
@@ -144,7 +146,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		 */
 		protected function loadFeatureProcessor() {
 			if ( !isset( $this->oFeatureProcessor ) ) {
-				require_once( $this->getController()->getPath_SourceFile( sprintf( 'icwp-processor-%s.php', $this->getFeatureSlug() ) ) );
+				require_once( $this->getController()->getPath_SourceFile( sprintf( 'processors/%s.php', $this->getFeatureSlug() ) ) );
 				$sClassName = $this->getProcessorClassName();
 				if ( !class_exists( $sClassName, false ) ) {
 					return null;
@@ -243,7 +245,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		 * @return mixed
 		 */
 		public function getIsMainFeatureEnabled() {
-			$bOverride = $this->getIfOverride();
+			$bOverride = $this->getIfOverrideOff();
 			if ( $bOverride ) {
 				return !$bOverride;
 			}
@@ -254,21 +256,25 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		}
 
 		/**
+		 * @param $bOverrideOff
+		 *
+		 * @return boolean
+		 */
+		public function aDoCheckForForceOffFile( $bOverrideOff ) {
+			if ( $bOverrideOff ) {
+				return $bOverrideOff;
+			}
+			return $this->loadFileSystemProcessor()->fileExistsInDir( 'forceOff', $this->getController()->getRootDir(), false );
+		}
+
+		/**
 		 * Returns true if you're overriding OFF.  We don't do override ON any more (as of 3.5.1)
 		 */
-		public function getIfOverride() {
-
+		public function getIfOverrideOff() {
 			if ( !is_null( $this->bOverrideState ) ) {
 				return $this->bOverrideState;
 			}
-
-			$oWpFs = $this->loadFileSystemProcessor();
-			if ( $oWpFs->fileExistsInDir( 'forceOff', $this->getController()->getRootDir(), false ) ) {
-				$this->bOverrideState = true;
-			}
-			else {
-				$this->bOverrideState = false;
-			}
+			$this->bOverrideState = apply_filters( $this->doPluginPrefix( 'override_off' ), false );
 			return $this->bOverrideState;
 		}
 
@@ -470,7 +476,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		}
 
 		/**
-		 * @param $aAggregatedOptions
+		 * @param array $aAggregatedOptions
 		 * @return array
 		 */
 		public function aggregateOptionsValues( $aAggregatedOptions ) {
@@ -692,6 +698,16 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		protected function doExtraSubmitProcessing() { }
 
 		/**
+		 * Should be used sparingly - it allows immediate on-demand saving of plugin options that by-passes checking from
+		 * the admin access restriction feature.
+		 */
+		protected function doSaveByPassAdminProtection() {
+			add_filter( $this->doPluginPrefix( 'has_permission_to_submit' ), '__return_true' );
+			$this->savePluginOptions();
+			remove_filter( $this->doPluginPrefix( 'has_permission_to_submit' ), '__return_true' );
+		}
+
+		/**
 		 * @param string $sAllOptionsInput - comma separated list of all the input keys to be processed from the $_POST
 		 * @return void|boolean
 		 */
@@ -764,9 +780,8 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 		 */
 		protected function updateHandler() {
 			if ( version_compare( $this->getVersion(), '3.0.0', '<' ) ) {
-				$oWpFunctions = $this->loadWpFunctionsProcessor();
 				$sKey = $this->doPluginPrefix( $this->getFeatureSlug().'_processor', '_' );
-				$oWpFunctions->deleteOption( $sKey );
+				$this->loadWpFunctionsProcessor()->deleteOption( $sKey );
 			}
 		}
 
@@ -958,4 +973,4 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Base_V2') ):
 
 endif;
 
-abstract class ICWP_APP_FeatureHandler_Base extends ICWP_APP_FeatureHandler_Base_V2 { }
+abstract class ICWP_APP_FeatureHandler_Base extends ICWP_APP_FeatureHandler_Base_V3 { }

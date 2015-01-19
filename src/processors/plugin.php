@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
+ * Copyright (c) 2015 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -15,23 +15,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( 'icwp-processor-base.php' );
+require_once( 'base.php' );
 
 if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 
 	class ICWP_APP_Processor_Plugin extends ICWP_APP_Processor_Base {
-
-		/**
-		 * @var ICWP_APP_FeatureHandler_Plugin
-		 */
-		protected $oFeatureOptions;
-
-		/**
-		 * @param ICWP_APP_FeatureHandler_Plugin $oFeatureOptions
-		 */
-		public function __construct( ICWP_APP_FeatureHandler_Plugin $oFeatureOptions ) {
-			parent::__construct( $oFeatureOptions );
-		}
 
 		/**
 		 * @return ICWP_APP_FeatureHandler_Plugin
@@ -151,15 +139,15 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 			$oDp = $this->loadDataProcessor();
 			if ( $oDp->FetchGet( 'worpit_link' ) == 1 ) {
 				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-				require_once( 'icwp-processor-plugin_sitelink.php' );
+				require_once( 'plugin_sitelink.php' );
 				$oLinkProcessor = new ICWP_APP_Processor_Plugin_SiteLink( $this->getFeatureOptions() );
 				$oLinkResponse = $oLinkProcessor->run();
 				$this->sendApiResponse( $oLinkResponse );
 				die();
 			}
-			else if ( $oDp->FetchGet('worpit_api') == 1 ) {
+			else if ( $oDp->FetchGet( 'worpit_api' ) == 1 ) {
 				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-				require_once( 'icwp-processor-plugin_api.php' );
+				require_once( 'plugin_api.php' );
 				$oApiProcessor = new ICWP_APP_Processor_Plugin_Api( $this->getFeatureOptions() );
 				$oApiResponse = $oApiProcessor->run();
 				$this->sendApiResponse( $oApiResponse );

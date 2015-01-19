@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2014 iControlWP <support@icontrolwp.com>
+ * Copyright (c) 2015 iControlWP <support@icontrolwp.com>
  * All rights reserved.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -15,9 +15,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( 'icwp-processor-basedb.php' );
+require_once( 'basedb.php' );
 
-if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
+if ( !class_exists( 'ICWP_APP_Processor_Statistics_V1', false ) ):
 
 	class ICWP_APP_Processor_Statistics_V1 extends ICWP_APP_BaseDbProcessor {
 
@@ -258,7 +258,7 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 				$this->getMonth(),
 				$this->getYear()
 			);
-			return $this->loadDbProcessor()->doSql( $sQuery );
+			return $this->doSql( $sQuery );
 		}
 
 		/**
@@ -420,7 +420,7 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 				$this->getTableName(),
 				( $this->time() - 31 * DAY_IN_SECONDS )
 			);
-			return $this->loadDbProcessor()->doSql( $sQuery );
+			$this->doSql( $sQuery );
 		}
 
 		/**
@@ -437,6 +437,6 @@ if ( !class_exists('ICWP_APP_Processor_Statistics_V1') ):
 
 endif;
 
-if ( !class_exists('ICWP_APP_Processor_Statistics') ):
+if ( !class_exists( 'ICWP_APP_Processor_Statistics', false ) ):
 	class ICWP_APP_Processor_Statistics extends ICWP_APP_Processor_Statistics_V1 { }
 endif;

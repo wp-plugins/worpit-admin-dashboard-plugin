@@ -624,7 +624,7 @@ if ( !class_exists( 'ICWP_APP_DataProcessor_V4', false ) ):
 				return json_decode( $sData );
 			}
 			if ( !class_exists( 'JSON' )  ) {
-				require_once( 'lib/json/JSON.php' );
+				require_once( 'json/JSON.php' );
 			}
 			$oJson = new JSON();
 			return @$oJson->unserialize( $sData );
@@ -704,6 +704,13 @@ if ( !class_exists( 'ICWP_APP_DataProcessor_V4', false ) ):
 			}
 
 			return false;
+		}
+
+		/**
+		 * @return string
+		 */
+		public function getPhpVersion() {
+			return ( defined( 'PHP_VERSION' ) ? PHP_VERSION : phpversion() );
 		}
 
 		/**
