@@ -167,14 +167,16 @@ if ( !class_exists( 'ICWP_APP_AutoupdatesProcessor_V7', false ) ):
 				return $bDoAutoUpdate;
 			}
 
+			/** @var ICWP_APP_FeatureHandler_Autoupdates $oFO */
+			$oFO = $this->getFeatureOptions();
 			// If it's this plugin and autoupdate this plugin is set...
-			if ( $sItemFile === $this->getFeatureOptions()->getPluginBaseFile() ) {
+			if ( $sItemFile === $oFO->getPluginBaseFile() ) {
 				if ( false && $this->getIsOption( 'autoupdate_plugin_self', 'Y' ) ) { // false since 2.9.3
 					$bDoAutoUpdate = true;
 				}
 			}
 
-			$aAutoupdateFiles = $this->getFeatureOptions()->getAutoUpdates( 'plugins' );
+			$aAutoupdateFiles = $oFO->getAutoUpdates( 'plugins' );
 			if ( !empty( $aAutoupdateFiles ) && is_array( $aAutoupdateFiles ) && in_array( $sItemFile, $aAutoupdateFiles ) ) {
 				$bDoAutoUpdate = true;
 			}

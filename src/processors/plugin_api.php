@@ -189,7 +189,6 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin_Api', false ) ):
 
 			$sRequestedKey = $oDp->FetchRequest( 'key', '' );
 			if ( empty( $sRequestedKey ) || strlen( $sRequestedKey ) != 24 ) {
-				die( $sRequestedKey );
 				return false;
 			}
 

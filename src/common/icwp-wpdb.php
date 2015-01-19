@@ -93,14 +93,13 @@ if ( !class_exists( 'ICWP_APP_WpDb_V1', false ) ):
 		 */
 		public function doTruncateTable( $sTable ) {
 			if ( !$this->getIfTableExists( $sTable ) ) {
-				return;
+				return false;
 			}
 			$sQuery = sprintf( 'TRUNCATE TABLE `%s`', $sTable );
 			return $this->doSql( $sQuery );
 		}
 
 		/**
-		 * @param string $sTable
 		 * @return bool
 		 */
 		public function getIfTableExists( $sTable ) {
@@ -141,6 +140,14 @@ if ( !class_exists( 'ICWP_APP_WpDb_V1', false ) ):
 		public function getTable_Comments() {
 			$oDb = $this->loadWpdb();
 			return $oDb->comments;
+		}
+
+		/**
+		 * @return string
+		 */
+		public function getTable_Posts() {
+			$oDb = $this->loadWpdb();
+			return $oDb->posts;
 		}
 
 		/**

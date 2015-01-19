@@ -174,7 +174,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Statistics_V1', false ) ):
 		}
 
 		/**
-		 * @return void
+		 * @return bool|int
 		 */
 		protected function doPageStats() {
 
@@ -258,13 +258,13 @@ if ( !class_exists( 'ICWP_APP_Processor_Statistics_V1', false ) ):
 				$this->getMonth(),
 				$this->getYear()
 			);
-			return $this->doSql( $sQuery );
+			return $this->loadDbProcessor()->doSql( $sQuery );
 		}
 
 		/**
 		 * Creates a new stat entry in the table for the current page for TODAY.
 		 *
-		 * @return mixed
+		 * @return bool|int
 		 */
 		public function addNewStatForCurrentPageToday() {
 			return $this->addNewStatForCurrentPage( $this->getDay(), $this->getMonth(), $this->getYear() );
@@ -277,7 +277,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Statistics_V1', false ) ):
 		 * @param $nMonth
 		 * @param $nYear
 		 *
-		 * @return mixed
+		 * @return bool|int
 		 */
 		protected function addNewStatForCurrentPage( $nDay = 0, $nMonth = 0, $nYear = 0 ) {
 			return $this->addNewStatForPage(
@@ -420,7 +420,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Statistics_V1', false ) ):
 				$this->getTableName(),
 				( $this->time() - 31 * DAY_IN_SECONDS )
 			);
-			$this->doSql( $sQuery );
+			$this->loadDbProcessor()->doSql( $sQuery );
 		}
 
 		/**
