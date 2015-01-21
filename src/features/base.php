@@ -109,13 +109,12 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Base_V3', false ) ):
 			add_action( $this->doPluginPrefix( 'plugin_shutdown' ), array( $this, 'action_doFeatureShutdown' ) );
 			add_action( $this->doPluginPrefix( 'delete_plugin' ), array( $this, 'deletePluginOptions' )  );
 			add_filter( $this->doPluginPrefix( 'aggregate_all_plugin_options' ), array( $this, 'aggregateOptionsValues' ) );
+			add_filter( $this->doPluginPrefix( 'override_off' ), array( $this, 'aDoCheckForForceOffFile' ) );
 
 			$this->doPostConstruction();
 		}
 
-		protected function doPostConstruction() {
-			add_filter( $this->doPluginPrefix( 'override_off' ), array( $this, 'aDoCheckForForceOffFile' ) );
-		}
+		protected function doPostConstruction() { }
 
 		/**
 		 * A action added to WordPress 'plugins_loaded' hook

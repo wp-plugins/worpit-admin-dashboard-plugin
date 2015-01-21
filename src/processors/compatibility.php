@@ -235,6 +235,13 @@ if ( !class_exists('ICWP_APP_Processor_Compatibility_V1') ):
 			if ( class_exists( 'SeedProd_Ultimate_Maintenance_Mode' ) && isset( $seedprod_umm ) && is_object( $seedprod_umm ) ) {
 				remove_action( 'template_redirect', array( $seedprod_umm, 'render_maintenancemode_page' ) );
 			}
+
+			global $seedprod_comingsoon;
+			if ( class_exists( 'SeedProd_Ultimate_Coming_Soon_Page', false ) && isset( $seedprod_comingsoon ) && is_object( $seedprod_comingsoon ) ) {
+				remove_action( 'template_redirect', array( $seedprod_comingsoon, 'render_comingsoon_page' ) );
+				remove_action( 'template_redirect', array( $seedprod_comingsoon, 'render_comingsoon_page' ), 9 );
+			}
+
 			/* doesn't seem to work.
 			global $seed_csp3;
 			if ( class_exists( 'SEED_CSP3_PLUGIN' ) && isset( $seed_csp3 ) && is_object( $seed_csp3 ) ) {

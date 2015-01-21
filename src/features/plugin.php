@@ -28,6 +28,10 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 			return 'ICWP_APP_Processor_Plugin';
 		}
 
+		protected function doPostConstruction() {
+			add_action( 'wp_loaded', array( $this, 'doAutoRemoteSiteAdd' ) );
+		}
+
 		/**
 		 */
 		public function doClearAdminFeedback() {
@@ -141,7 +145,7 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 		 *
 		 * @return boolean
 		 */
-		public function doRemoteAddSiteLink( $sAuthKey, $sEmailAddress ) {
+		protected function doRemoteAddSiteLink( $sAuthKey, $sEmailAddress ) {
 			if ( $this->getIsSiteLinked() ) {
 				return false;
 			}
@@ -162,6 +166,25 @@ if ( !class_exists('ICWP_APP_FeatureHandler_Plugin') ):
 				return $this->loadFileSystemProcessor()->postUrl( $this->getOpt( 'remote_add_site_url' ), $aArgs );
 			}
 			return false;
+		}
+
+		/**
+		 * reads the auto_add.php file (yaml) to an api key and email and automatically adds the site to the account.
+		 */
+		public function doAutoRemoteSiteAdd() {
+			if ( $this->getIsSiteLinked() ) {
+				return;
+			}
+
+			$sAutoAddFilePath = $this->getController()->getRootDir().'auto_add.php';
+			$sContent = @include( $sAutoAddFilePath );
+			if ( !empty( $sContent ) ) {
+				$aParsed = $this->loadYamlProcessor()->parseYamlString( $sContent );
+				$sApiKey = isset( $aParsed[ 'api-key' ] ) ? $aParsed[ 'api-key' ] : '';
+				$sEmail = isset( $aParsed[ 'email' ] ) ? $aParsed[ 'email' ] : '';
+				$this->doRemoteAddSiteLink( $sApiKey, $sEmail );
+				$this->loadFileSystemProcessor()->deleteFile( $sAutoAddFilePath );
+			}
 		}
 
 		/**

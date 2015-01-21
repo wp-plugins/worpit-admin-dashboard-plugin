@@ -22,13 +22,6 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 	class ICWP_APP_Processor_Plugin extends ICWP_APP_Processor_Base {
 
 		/**
-		 * @return ICWP_APP_FeatureHandler_Plugin
-		 */
-		protected function getFeatureOptions() {
-			return $this->oFeatureOptions;
-		}
-
-		/**
 		 */
 		public function run() {
 			/**
@@ -37,13 +30,16 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 			 */
 			add_action( $this->getApiHook(), array( $this, 'doAPI' ), 1 );
 
+			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
+			$oFO = $this->getFeatureOptions();
 			$oCon = $this->getController();
+
 			add_filter( $oCon->doPluginPrefix( 'get_service_ips_v4' ), array( $this, 'getServiceIpAddressesV4' ) );
 			add_filter( $oCon->doPluginPrefix( 'get_service_ips_v6' ), array( $this, 'getServiceIpAddressesV6' ) );
 
 			add_filter( $oCon->doPluginPrefix( 'verify_site_can_handshake' ), array( $this, 'doVerifyCanHandshake' ) );
-			add_filter( $oCon->doPluginPrefix( 'hide_plugin' ), array( $this->getFeatureOptions(), 'getIfHidePlugin' ) );
-			add_filter( $oCon->doPluginPrefix( 'filter_hidePluginMenu' ), array( $this->getFeatureOptions(), 'getIfHidePlugin' ) );
+			add_filter( $oCon->doPluginPrefix( 'hide_plugin' ), array( $oFO, 'getIfHidePlugin' ) );
+			add_filter( $oCon->doPluginPrefix( 'filter_hidePluginMenu' ), array( $oFO, 'getIfHidePlugin' ) );
 
 			$oDp = $this->loadDataProcessor();
 			if ( ( $oDp->FetchRequest( 'getworpitpluginurl', false ) == 1 ) || $oDp->FetchRequest( 'geticwppluginurl', false ) == 1 ) {
@@ -51,7 +47,6 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 			}
 
 			if ( $oCon->getIsValidAdminArea() ) {
-				$oFO = $this->getFeatureOptions();
 				add_filter( $oFO->doPluginPrefix( 'admin_notices' ), array( $this, 'adminNoticeFeedback' ) );
 				add_filter( $oFO->doPluginPrefix( 'admin_notices' ), array( $this, 'adminNoticeAddSite' ) );
 			}
@@ -102,8 +97,9 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 		 * @return boolean
 		 */
 		public function doVerifyCanHandshake( $bCanHandshake ) {
-			$oDp = $this->loadDataProcessor();
+			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
 			$oFO = $this->getFeatureOptions();
+			$oDp = $this->loadDataProcessor();
 
 			$oFO->setOpt( 'time_last_check_can_handshake', $this->time() );
 
@@ -221,9 +217,10 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 					}
 					$aAdminNotices[] = $this->getAdminNoticeHtml( '<p>'.$sNotice.'</p>', 'updated', false );
 				}
-				$this->getFeatureOptions()->doClearAdminFeedback( 'feedback_admin_notice', array() );
+				/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
+				$oFO = $this->getFeatureOptions();
+				$oFO->doClearAdminFeedback( 'feedback_admin_notice', array() );
 			}
-
 			return $aAdminNotices;
 		}
 
@@ -232,12 +229,14 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 		 * @return array
 		 */
 		public function adminNoticeAddSite( $aAdminNotices ) {
+			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
+			$oFO = $this->getFeatureOptions();
 
 			$oCon = $this->getController();
 			$oWp = $this->loadWpFunctionsProcessor();
 			$sAckPluginNotice = $oWp->getUserMeta( $oCon->doPluginOptionPrefix( 'ack_plugin_notice' ) );
 
-			if ( $this->getFeatureOptions()->getIsSiteLinked() ) {
+			if ( $oFO->getIsSiteLinked() ) {
 				return;
 			}
 
@@ -245,9 +244,9 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 			$sNonce = wp_nonce_field( $oCon->getPluginPrefix() );
 			$sServiceName = $oCon->getHumanName();
 			$sFormAction = $oCon->getPluginUrl_AdminMainPage();
-			$sAuthKey = $this->getFeatureOptions()->getPluginAuthKey();
+			$sAuthKey = $oFO->getPluginAuthKey();
 			ob_start();
-			include( $this->getFeatureOptions()->getViewSnippet( 'admin_notice_add_site' ) );
+			include( $oFO->getViewSnippet( 'admin_notice_add_site' ) );
 			$sNoticeMessage = ob_get_contents();
 			ob_end_clean();
 
