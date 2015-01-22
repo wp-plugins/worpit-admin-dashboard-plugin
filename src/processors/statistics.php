@@ -15,9 +15,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( 'basedb.php' );
-
 if ( !class_exists( 'ICWP_APP_Processor_Statistics_V1', false ) ):
+
+	require_once( dirname(__FILE__).ICWP_DS.'basedb.php' );
 
 	class ICWP_APP_Processor_Statistics_V1 extends ICWP_APP_BaseDbProcessor {
 

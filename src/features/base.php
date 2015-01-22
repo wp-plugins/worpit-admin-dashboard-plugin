@@ -15,7 +15,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( 'options-vo.php' );
+require_once( dirname(__FILE__).ICWP_DS.'options-vo.php' );
 
 if ( !class_exists( 'ICWP_APP_FeatureHandler_Base_V3', false ) ):
 

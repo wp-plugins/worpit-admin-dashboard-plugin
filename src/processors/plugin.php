@@ -15,9 +15,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( 'base.php' );
-
 if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
+
+	require_once( dirname(__FILE__).ICWP_DS.'base.php' );
 
 	class ICWP_APP_Processor_Plugin extends ICWP_APP_Processor_Base {
 
@@ -135,7 +135,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 			$oDp = $this->loadDataProcessor();
 			if ( $oDp->FetchGet( 'worpit_link' ) == 1 ) {
 				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-				require_once( 'plugin_sitelink.php' );
+				require_once( dirname(__FILE__).ICWP_DS.'plugin_sitelink.php' );
 				$oLinkProcessor = new ICWP_APP_Processor_Plugin_SiteLink( $this->getFeatureOptions() );
 				$oLinkResponse = $oLinkProcessor->run();
 				$this->sendApiResponse( $oLinkResponse );
@@ -143,7 +143,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 			}
 			else if ( $oDp->FetchGet( 'worpit_api' ) == 1 ) {
 				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-				require_once( 'plugin_api.php' );
+				require_once( dirname(__FILE__).ICWP_DS.'plugin_api.php' );
 				$oApiProcessor = new ICWP_APP_Processor_Plugin_Api( $this->getFeatureOptions() );
 				$oApiResponse = $oApiProcessor->run();
 				$this->sendApiResponse( $oApiResponse );

@@ -15,9 +15,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-require_once( 'base.php' );
-
 if ( !class_exists( 'ICWP_APP_Processor_Plugin_Api', false ) ):
+
+	require_once( dirname(__FILE__).ICWP_DS.'base.php' );
 
 	/**
 	 * Class ICWP_APP_Processor_Plugin_Api
