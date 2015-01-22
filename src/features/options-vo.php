@@ -1,7 +1,5 @@
 <?php
-if ( class_exists( 'ICWP_APP_OptionsVO', false ) ) {
-	return;
-}
+if ( !class_exists( 'ICWP_APP_OptionsVO', false ) ) :
 
 class ICWP_APP_OptionsVO extends ICWP_APP_Foundation {
 
@@ -444,3 +442,4 @@ class ICWP_APP_OptionsVO extends ICWP_APP_Foundation {
 		return $aConfig;
 	}
 }
+endif;

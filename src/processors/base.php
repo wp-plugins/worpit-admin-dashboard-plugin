@@ -16,7 +16,7 @@
  *
  */
 
-if ( !class_exists('ICWP_APP_BaseProcessor_V3') ):
+if ( !class_exists( 'ICWP_APP_BaseProcessor_V3', false ) ):
 
 	abstract class ICWP_APP_BaseProcessor_V3 extends ICWP_APP_Foundation {
 
@@ -388,6 +388,6 @@ if ( !class_exists('ICWP_APP_BaseProcessor_V3') ):
 
 endif;
 
-if ( !class_exists('ICWP_APP_Processor_Base') ):
+if ( !class_exists( 'ICWP_APP_Processor_Base', false ) ):
 	abstract class ICWP_APP_Processor_Base extends ICWP_APP_BaseProcessor_V3 { }
 endif;
