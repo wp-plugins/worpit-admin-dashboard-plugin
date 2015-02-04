@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, managewp, worpit, automatic updates
 Requires at least: 3.2.0
 Tested up to: 4.1
-Stable tag: 2.10.1
+Stable tag: 2.11.0
 
 == Description ==
 
@@ -115,11 +115,17 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= 2.11 Series =
+*Released: 4th February 2015*
+
+* CHANGED:	iControlWP action parameters are more reliably transmitted to the plugin.
+* CHANGED:	Performance improvements.
+
 = 2.10 Series =
 *Released: 21st January 2015*
 
 * ADDED:	Ability to automatically add a site to an iControlWP account.
-* ADDED:	Support for Utlimate Coming Soon Maintenance mode plugin.
+* ADDED:	Support for 'Ultimate Coming Soon Maintenance Mode' plugin.
 * FIXED:	PHP require() for relative paths is broken in certain environments.
 
 = 2.9.5 =

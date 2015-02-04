@@ -59,9 +59,9 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Base_V3', false ) ):
 		protected $sFeatureSlug;
 
 		/**
-		 * @var string
+		 * @var boolean
 		 */
-		protected static $sPluginBaseFile;
+		protected static $bForceOffFileExists;
 
 		/**
 		 * @var ICWP_APP_FeatureHandler_Email
@@ -107,7 +107,7 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Base_V3', false ) ):
 			add_action( $this->doPluginPrefix( 'plugin_shutdown' ), array( $this, 'action_doFeatureShutdown' ) );
 			add_action( $this->doPluginPrefix( 'delete_plugin' ), array( $this, 'deletePluginOptions' )  );
 			add_filter( $this->doPluginPrefix( 'aggregate_all_plugin_options' ), array( $this, 'aggregateOptionsValues' ) );
-			add_filter( $this->doPluginPrefix( 'override_off' ), array( $this, 'aDoCheckForForceOffFile' ) );
+			add_filter( $this->doPluginPrefix( 'override_off' ), array( $this, 'fDoCheckForForceOffFile' ) );
 
 			$this->doPostConstruction();
 		}
@@ -243,14 +243,14 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Base_V3', false ) ):
 		 * @return mixed
 		 */
 		public function getIsMainFeatureEnabled() {
-			$bOverride = $this->getIfOverrideOff();
-			if ( $bOverride ) {
-				return !$bOverride;
+			if ( $this->getIfOverrideOff() ) {
+				return false;
 			}
-			if ( $this->getOptionsVo()->getFeatureProperty( 'auto_enabled' ) === true ) {
-				return true;
-			}
-			return $this->getOptIs( 'enable_'.$this->getFeatureSlug(), 'Y' ) || $this->getOptIs( 'enable_'.$this->getFeatureSlug(), true, true ) ;
+
+			$bEnabled = $this->getOptIs( 'enable_'.$this->getFeatureSlug(), 'Y' ) || $this->getOptIs( 'enable_'.$this->getFeatureSlug(), true, true );
+			// we have the option to auto-enable a feature
+			$bEnabled = $bEnabled || ( $this->getOptionsVo()->getFeatureProperty( 'auto_enabled' ) === true );
+			return $bEnabled;
 		}
 
 		/**
@@ -258,11 +258,15 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Base_V3', false ) ):
 		 *
 		 * @return boolean
 		 */
-		public function aDoCheckForForceOffFile( $bOverrideOff ) {
+		public function fDoCheckForForceOffFile( $bOverrideOff ) {
 			if ( $bOverrideOff ) {
 				return $bOverrideOff;
 			}
-			return $this->loadFileSystemProcessor()->fileExistsInDir( 'forceOff', $this->getController()->getRootDir(), false );
+			if ( !isset( self::$bForceOffFileExists ) ) {
+				self::$bForceOffFileExists = $this->loadFileSystemProcessor()
+					->fileExistsInDir( 'forceOff', $this->getController()->getRootDir(), false );
+			}
+			return self::$bForceOffFileExists;
 		}
 
 		/**
@@ -284,13 +288,6 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Base_V3', false ) ):
 				$this->sFeatureName = $this->getOptionsVo()->getFeatureProperty( 'name' );
 			}
 			return $this->sFeatureName;
-		}
-
-		/**
-		 * @return string
-		 */
-		public function getPluginBaseFile() {
-			return $this->getController()->getPluginBaseFile();
 		}
 
 		/**

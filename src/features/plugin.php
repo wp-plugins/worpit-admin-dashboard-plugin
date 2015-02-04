@@ -22,6 +22,11 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Plugin', false ) ):
 	class ICWP_APP_FeatureHandler_Plugin extends ICWP_APP_FeatureHandler_Base {
 
 		/**
+		 * @var array
+		 */
+		protected $aRequestParams;
+
+		/**
 		 * @return string
 		 */
 		protected function getProcessorClassName() {
@@ -272,6 +277,25 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Plugin', false ) ):
 				}
 			}
 			return $sNewPlugin;
+		}
+
+		/**
+		 * @param string $sKey
+		 * @param string $mDefault
+		 *
+		 * @return mixed
+		 */
+		public function fetchIcwpRequestParam( $sKey, $mDefault = '' ) {
+			if ( !isset( $this->aRequestParams ) ) {
+				$sRawGetParameters = $this->loadDataProcessor()->FetchGet( 'reqpars', '' );
+				$sRawPostParameters = $this->loadDataProcessor()->FetchPost( 'reqpars', '' );
+
+				$aGetParams = empty( $sRawGetParameters ) ? array() : maybe_unserialize( base64_decode( $sRawGetParameters ) );
+				$aPostParams = empty( $sRawPostParameters ) ? array() : maybe_unserialize( base64_decode( $sRawPostParameters ) );
+				$this->aRequestParams = array_merge( $_GET, $_POST, $aGetParams, $aPostParams );
+			}
+			$mReturn = isset( $this->aRequestParams[$sKey] ) ? $this->aRequestParams[$sKey] : $mDefault;
+			return $mReturn;
 		}
 
 		/**

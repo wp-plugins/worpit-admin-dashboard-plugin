@@ -33,7 +33,6 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin_SiteLink', false ) ):
 
 			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
 			$oFO = $this->getFeatureOptions();
-			$oDp = $this->loadDataProcessor();
 
 			if ( $oFO->getIsSiteLinked() ) {
 				$oResponse->message = 'Assigned To:'.$this->getOption( 'assigned_to' );
@@ -42,7 +41,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin_SiteLink', false ) ):
 			}
 
 			// First is the check to see that we can simply call the site and communicate with the plugin
-			if ( $oDp->FetchGet( 'a' ) == 'check' ) {
+			if ( $oFO->fetchIcwpRequestParam( 'a' ) == 'check' ) {
 				$oResponse->success = true;
 				return $oResponse;
 			}
@@ -54,7 +53,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin_SiteLink', false ) ):
 				return $oResponse;
 			}
 
-			$sRequestedKey = $oDp->FetchGet( 'key', '' );
+			$sRequestedKey = $oFO->fetchIcwpRequestParam( 'key' );
 			if ( empty( $sRequestedKey ) ) {
 				$oResponse->message = 'KeyEmpty:'.'.';
 				$oResponse->code = 2;
@@ -66,7 +65,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin_SiteLink', false ) ):
 				return $oResponse;
 			}
 
-			$sRequestedPin = $oDp->FetchGet( 'pin', '' );
+			$sRequestedPin = $oFO->fetchIcwpRequestParam( 'pin' );
 			if ( empty( $sRequestedPin ) ) {
 				$oResponse->message = 'PinEmpty:'.'.';
 				$oResponse->code = 4;
@@ -74,7 +73,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin_SiteLink', false ) ):
 			}
 			$sRequestedPin = md5( $sRequestedPin );
 
-			$sRequestedAcc = urldecode( $oDp->FetchGet( 'accname', '' ) );
+			$sRequestedAcc = urldecode( $oFO->fetchIcwpRequestParam( 'accname' ) );
 			if ( empty( $sRequestedAcc ) ) {
 				$oResponse->message = 'AccountEmpty:'.'.';
 				$oResponse->code = 5;

@@ -170,7 +170,7 @@ if ( !class_exists( 'ICWP_APP_AutoupdatesProcessor_V7', false ) ):
 			/** @var ICWP_APP_FeatureHandler_Autoupdates $oFO */
 			$oFO = $this->getFeatureOptions();
 			// If it's this plugin and autoupdate this plugin is set...
-			if ( $sItemFile === $oFO->getPluginBaseFile() ) {
+			if ( $sItemFile === $oFO->getController()->getPluginBaseFile() ) {
 				if ( false && $this->getIsOption( 'autoupdate_plugin_self', 'Y' ) ) { // false since 2.9.3
 					$bDoAutoUpdate = true;
 				}
