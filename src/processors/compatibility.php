@@ -62,7 +62,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Compatibility_V1', false ) ):
 			$this->addToWordfence();
 			$this->addToBadBehaviour();
 			$this->addToWordpressFirewall2();
-			$this->addToWpMaintenanceMode();
+//			$this->addToWpMaintenanceMode(); // replaced with unhooking of init action
 //			$this->addToIThemesSecurity();
 			// Add WordPress Simple Firewall plugin whitelist
 			add_filter( 'icwp_simple_firewall_whitelist_ips', array( $this, 'addToSimpleFirewallWhitelist' ) );
@@ -111,6 +111,9 @@ if ( !class_exists( 'ICWP_APP_Processor_Compatibility_V1', false ) ):
 			}
 		}
 
+		/**
+		 * No longer used in favour of removing init hook
+		 */
 		protected function addToWpMaintenanceMode() {
 			if ( class_exists( 'WP_Maintenance_Mode', false ) ) {
 				$aWpmmOptions = $this->loadWpFunctionsProcessor()->getOption( 'wpmm_settings' );
@@ -220,6 +223,11 @@ if ( !class_exists( 'ICWP_APP_Processor_Compatibility_V1', false ) ):
 
 			if ( class_exists( 'tf_maintenance', false ) ) {
 				remove_action( 'init', 'tf_maintenance_Init', 5 );
+			}
+
+			// WP Maintenance Mode Plugin ( https://wordpress.org/plugins/wp-maintenance-mode/ )
+			if ( class_exists( 'WP_Maintenance_Mode', false ) && method_exists( 'WP_Maintenance_Mode', 'get_instance' ) ) {
+				remove_action( 'init', array( WP_Maintenance_Mode::get_instance(), 'init' ) );
 			}
 
 			//underConstruction plugin

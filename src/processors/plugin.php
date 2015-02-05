@@ -132,8 +132,10 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 		 * @return void
 		 */
 		public function doAPI() {
-			$oDp = $this->loadDataProcessor();
-			if ( $oDp->FetchGet( 'worpit_link' ) == 1 ) {
+			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
+			$oFO = $this->getFeatureOptions();
+
+			if ( $oFO->fetchIcwpRequestParam( 'worpit_link', 0 ) == 1 ) {
 				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 				require_once( dirname(__FILE__).ICWP_DS.'plugin_sitelink.php' );
 				$oLinkProcessor = new ICWP_APP_Processor_Plugin_SiteLink( $this->getFeatureOptions() );
@@ -141,7 +143,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 				$this->sendApiResponse( $oLinkResponse );
 				die();
 			}
-			else if ( $oDp->FetchGet( 'worpit_api' ) == 1 ) {
+			else if ( $oFO->fetchIcwpRequestParam( 'worpit_api', 0 ) == 1 ) {
 				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 				require_once( dirname(__FILE__).ICWP_DS.'plugin_api.php' );
 				$oApiProcessor = new ICWP_APP_Processor_Plugin_Api( $this->getFeatureOptions() );
