@@ -307,7 +307,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Statistics_V1', false ) ):
 			$aData[ 'month_id' ]	= $nMonth;
 			$aData[ 'year_id' ]		= $nYear;
 			$aData[ 'count_total' ]	= 1;
-			$aData[ 'created_at' ]	= $this->time();
+			$aData[ 'created_at' ]	= $this->loadDataProcessor()->time();
 
 			$mResult = $this->insertData( $aData );
 			return $mResult;
@@ -418,7 +418,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Statistics_V1', false ) ):
 			";
 			$sQuery = sprintf( $sQuery,
 				$this->getTableName(),
-				( $this->time() - 31 * DAY_IN_SECONDS )
+				( $this->loadDataProcessor()->time() - 31 * DAY_IN_SECONDS )
 			);
 			$this->loadDbProcessor()->doSql( $sQuery );
 		}

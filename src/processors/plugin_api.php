@@ -64,7 +64,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin_Api', false ) ):
 
 			$this->preApiCheck();
 			if ( !$oResponse->success ) {
-				if ( !$this->doAttemptSiteReassign() ) {
+				if ( !$this->doAttemptSiteReassign()->success ) {
 					return $oResponse;
 				}
 			}
@@ -157,49 +157,68 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin_Api', false ) ):
 		 * 2) The site CAN Handshake (it will check this)
 		 * 3) The handshake is verified for this package
 		 *
-		 * @return bool
+		 * @return stdClass
 		 */
 		protected function doAttemptSiteReassign() {
 			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
 			$oFO = $this->getFeatureOptions();
 
 			$oResponse = $this->getStandardResponse();
-			if ( !isset( $oResponse->method ) || $oResponse->method == 'execute' ) {
-				return false;
+			if ( !isset( $oResponse->method ) || $oResponse->method != 'retrieve' ) {
+				return $this->setErrorResponse(
+					sprintf( 'Attempting Site Reassign Failed: %s.', 'Site action method is not "retrieve"' ),
+					9806
+				);
 			}
 
 			// We first verify fully if we CAN handshake
 			if ( !$oFO->getCanHandshake( true ) ) {
-				return false;
+				return $this->setErrorResponse(
+					sprintf( 'Attempting Site Reassign Failed: %s.', 'Site cannot handshake' ),
+					9801
+				);
 			}
 			$oResponse = $this->doHandshakeVerify();
 			if ( !$oResponse->success ) {
-				return false;
+				return $this->setErrorResponse(
+					sprintf( 'Attempting Site Reassign Failed: %s.', 'Handshake verify failed' ),
+					9802
+				);
 			}
 
 			$sRequestedAcc = urldecode( $oFO->fetchIcwpRequestParam( 'accname' ) );
 			if ( empty( $sRequestedAcc ) || !is_email( $sRequestedAcc ) ) {
-				return false;
+				return $this->setErrorResponse(
+					sprintf( 'Attempting Site Reassign Failed: %s.', 'Request account empty or invalid' ),
+					9803
+				);
 			}
 
 			$sRequestedKey = $oFO->fetchIcwpRequestParam( 'key', '' );
 			if ( empty( $sRequestedKey ) || strlen( $sRequestedKey ) != 24 ) {
-				return false;
+				return $this->setErrorResponse(
+					sprintf( 'Attempting Site Reassign Failed: %s.', 'Auth Key not of the correct format' ),
+					9804
+				);
 			}
 
-			$sRequestedPin = $oFO->fetchIcwpRequestParam( 'pin', '' );
-			if ( empty( $sRequestedPin ) ) {
-				return false;
+			$sRequestPin = $oFO->fetchIcwpRequestParam( 'pin', '' );
+			if ( empty( $sRequestPin ) ) {
+				return $this->setErrorResponse(
+					sprintf( 'Attempting Site Reassign Failed: %s.', 'PIN empty' ),
+					9805
+				);
 			}
-			$sRequestedPin = md5( $sRequestedPin );
 
 			$oFO->setOpt( 'key', $sRequestedKey );
-			$oFO->setOpt( 'pin', $sRequestedPin );
-			$oFO->setOpt( 'assigned', 'Y' );
-			$oFO->setOpt( 'assigned_to', $sRequestedAcc );
+			$oFO->setPluginAssigned( $sRequestedAcc );
+			$oFO->setPluginPin( $sRequestPin );
 			$oFO->savePluginOptions();
 
-			return true;
+			return $this->setSuccessResponse(
+				'Attempting Site Reassign Succeeded.',
+				9800
+			);
 		}
 
 		/**
@@ -574,7 +593,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin_Api', false ) ):
 		protected function setErrorResponse( $sErrorMessage = '', $nErrorCode = -1, $mErrorData = '' ) {
 			$oResponse = $this->getStandardResponse();
 			$oResponse->success = false;
-			$oResponse->error_message = $sErrorMessage;
+			$oResponse->error_message .= ' '.$sErrorMessage;
 			$oResponse->code = $nErrorCode;
 			$oResponse->data = $mErrorData;
 			return $oResponse;

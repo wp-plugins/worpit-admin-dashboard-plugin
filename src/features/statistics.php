@@ -52,39 +52,6 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Statistics_V1', false ) ):
 		public function getStatisticsTableName() {
 			return $this->doPluginPrefix( $this->getOpt( 'statistics_table_name' ), '_' );
 		}
-
-		public function doPrePluginOptionsSave() {
-
-			$sOptionValue = $this->getIsMainFeatureEnabled() ? 'Y' : 'N';
-			$this->setOpt( 'enable_daily_statistics', $sOptionValue );
-			$this->setOpt( 'enable_monthly_statistics', $sOptionValue );
-
-			// Migrate from old system
-			$aOldOptions = $this->loadWpFunctionsProcessor()->getOption( 'icwp_stats_system_options' );
-			if ( !empty( $aOldOptions ) && is_array( $aOldOptions ) ) {
-				if ( isset( $aOldOptions['enabled'] ) && $aOldOptions['enabled'] ) {
-					$this->setIsMainFeatureEnabled( true );
-				}
-				$this->setOpt( 'enable_daily_statistics', ( isset( $aOldOptions['do_page_stats_daily'] ) && $aOldOptions['do_page_stats_daily'] ) ? 'Y' : 'N' );
-				$this->setOpt( 'enable_monthly_statistics', ( isset( $aOldOptions['do_page_stats_monthly'] ) && $aOldOptions['do_page_stats_monthly'] ) ? 'Y' : 'N' );
-				$this->setOpt( 'ignore_logged_in_user', ( isset( $aOldOptions['ignore_logged_in_user'] ) && $aOldOptions['ignore_logged_in_user'] ) ? 'Y' : 'N' );
-				$this->setOpt( 'ignore_from_user_level', isset( $aOldOptions['ignore_from_user_level'] ) ? $aOldOptions['ignore_from_user_level']  : 11 );
-
-				$oDb = $this->loadDbProcessor();
-
-				$sDailyStatsTable = $oDb->getPrefix() . 'icwp_dailystats';
-				if ( $oDb->getIfTableExists( $sDailyStatsTable ) ) {
-					$oDb->doDropTable( $sDailyStatsTable );
-				}
-
-				$aMonthlyStatsTable = $oDb->getPrefix() . 'icwp_monthlystats';
-				if ( $oDb->getIfTableExists( $aMonthlyStatsTable ) ) {
-					$oDb->doDropTable( $aMonthlyStatsTable );
-				}
-				$this->loadWpFunctionsProcessor()->deleteOption( 'icwp_stats_system_options' );
-
-			}
-		}
 	}
 
 endif;

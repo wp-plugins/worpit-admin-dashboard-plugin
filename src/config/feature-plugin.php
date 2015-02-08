@@ -67,6 +67,9 @@ options:
     value: 'https://app.icontrolwp.com/system/package/retrieve/'
     immutable: true
   -
+    key: 'activated_at'
+    section: 'section_non_ui'
+  -
     key: 'installation_time'
     section: 'section_non_ui'
   -

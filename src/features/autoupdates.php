@@ -67,23 +67,6 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Autoupdates_V3', false ) ):
 			}
 			$this->setAutoUpdates( $aAutoUpdateItems, $sContext );
 		}
-
-		public function doPrePluginOptionsSave() {
-
-			// Migrate from old system
-			$aOldOptions = $this->loadWpFunctionsProcessor()->getOption( 'icwp_autoupdates_system_options' );
-			if ( !empty( $aOldOptions ) && is_array( $aOldOptions ) ) {
-				if ( isset( $aOldOptions['enabled'] ) && $aOldOptions['enabled'] ) {
-					$this->setIsMainFeatureEnabled( true );
-				}
-				if ( isset( $aOldOptions['tracking_id'] ) ) {
-					$this->setOpt( 'tracking_id', $aOldOptions['tracking_id']  );
-				}
-				$this->setOpt( 'auto_update_plugins', ( isset( $aOldOptions['auto_update_plugins'] ) && is_array( $aOldOptions['auto_update_plugins'] ) ) ? $aOldOptions['auto_update_plugins'] : array() );
-				$this->setOpt( 'auto_update_themes', ( isset( $aOldOptions['auto_update_themes'] ) && is_array( $aOldOptions['auto_update_themes'] ) ) ? $aOldOptions['auto_update_themes'] : array() );
-				$this->loadWpFunctionsProcessor()->deleteOption( 'icwp_autoupdates_system_options' );
-			}
-		}
 	}
 
 endif;

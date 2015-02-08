@@ -3,7 +3,7 @@
 Plugin Name: iControlWP
 Plugin URI: http://icwp.io/home
 Description: Take Control Of All WordPress Sites From A Single Dashboard
-Version: 2.11.1
+Version: 2.11.2
 Author: iControlWP
 Author URI: http://www.icontrolwp.com/
 */

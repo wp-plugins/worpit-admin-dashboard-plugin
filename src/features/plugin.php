@@ -76,7 +76,7 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Plugin', false ) ):
 		public function getCanHandshake( $bDoVerify = false ) {
 
 			if ( !$bDoVerify ) { // we always verify can handshake at least once every 24hrs
-				$nSinceLastHandshakeCheck = time() - $this->getOpt( 'time_last_check_can_handshake', 0 );
+				$nSinceLastHandshakeCheck = $this->loadDataProcessor()->time() - $this->getOpt( 'time_last_check_can_handshake', 0 );
 				if ( $nSinceLastHandshakeCheck > DAY_IN_SECONDS ) {
 					$bDoVerify = true;
 				}
@@ -115,10 +115,9 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Plugin', false ) ):
 					$aParts = array( urlencode( $sTo ), $sKey, $sPin );
 					$this->loadFileSystemProcessor()->getUrl( $this->getOpt( 'reset_site_url' ) . implode( '/', $aParts ) );
 				}
-				$this->setOpt( 'assigned_to', '' );
-				$this->setOpt( 'assigned', 'N' );
 				$this->setOpt( 'key', '' );
-				$this->setOpt( 'pin', '' );
+				$this->setPluginPin( '' );
+				$this->setPluginAssigned( '' );
 				return;
 			}
 
@@ -163,7 +162,7 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Plugin', false ) ):
 					'plugin_url'				=> $this->getController()->getPluginUrl(),
 					'account_email_address'		=> $sEmailAddress,
 					'account_auth_key'			=> $sAuthKey,
-					'plugin_key'				=> $this->getOpt( 'key' )
+					'plugin_key'				=> $this->getPluginAuthKey()
 				);
 				$aArgs = array(
 					'body'	=> $aPostVars
@@ -263,6 +262,22 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Plugin', false ) ):
 		}
 
 		/**
+		 * No checking or validation done for email.  If it's empty, the site is unassigned.
+		 *
+		 * @param $sAccountEmail
+		 */
+		public function setPluginAssigned( $sAccountEmail ) {
+			if ( empty( $sAccountEmail ) ) {
+				$this->setOpt( 'assigned', 'N' );
+				$this->setOpt( 'assigned_to', '' );
+			}
+			else {
+				$this->setOpt( 'assigned', 'Y' );
+				$this->setOpt( 'assigned_to', $sAccountEmail );
+			}
+		}
+
+		/**
 		 * @return string
 		 */
 		public function getPluginPin() {
@@ -277,6 +292,18 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Plugin', false ) ):
 				}
 			}
 			return $sNewPlugin;
+		}
+
+		/**
+		 * The PIN should be passed here without any pre-processing (such as MD5)
+		 *
+		 * @param string $sRawPin
+		 * @return bool
+		 */
+		public function setPluginPin( $sRawPin ) {
+			$sTrimmed = trim( $sRawPin );
+			$sPin = empty( $sTrimmed ) ? '' : md5( $sTrimmed );
+			return $this->setOpt( 'pin', $sPin );
 		}
 
 		/**
@@ -310,29 +337,16 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Plugin', false ) ):
 		 * This is the point where you would want to do any options verification
 		 */
 		protected function doPrePluginOptionsSave() {
-
 			$oDp = $this->loadDataProcessor();
 
-			$sAuthKey = $this->getPluginAuthKey();
-			if ( empty( $sAuthKey ) || strlen( $sAuthKey ) != 24 ) {
-				$this->setOpt( 'key', $oDp->GenerateRandomString( 24, 7 ) );
+			if ( $this->getOpt( 'activated_at', 0 ) <= 0 ) {
+				$this->setOpt( 'activated_at', $oDp->time() );
 			}
-
-			$nActivatedAt = $this->getOpt( 'activated_at' );
-			if ( empty( $nActivatedAt ) ) {
-				$this->setOpt( 'activated_at', $oDp->GetRequestTime() );
-			}
-			$nInstalledAt = $this->getOpt( 'installed_at' );
-			if ( empty( $nInstalledAt ) ) {
-				$this->setOpt( 'installed_at', $oDp->GetRequestTime() );
+			if (  $this->getOpt( 'installation_time', 0 ) <= 0 ) {
+				$this->setOpt( 'installation_time', $oDp->time() );
 			}
 
 			$this->setOpt( 'installed_version', $this->getController()->getVersion() );
-
-			$nInstalledAt = $this->getOpt( 'installation_time' );
-			if ( empty( $nInstalledAt ) || $nInstalledAt <= 0 ) {
-				$this->setOpt( 'installation_time', time() );
-			}
 		}
 
 		protected function updateHandler() {

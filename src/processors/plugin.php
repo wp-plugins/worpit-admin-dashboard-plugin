@@ -101,7 +101,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 			$oFO = $this->getFeatureOptions();
 			$oDp = $this->loadDataProcessor();
 
-			$oFO->setOpt( 'time_last_check_can_handshake', $this->time() );
+			$oFO->setOpt( 'time_last_check_can_handshake', $oDp->time() );
 
 			// First simply check SSL usage
 			if ( $oDp->getCanOpensslSign() ) {
@@ -264,7 +264,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 			if ( empty( $nTimeInstalled ) ) {
 				return 0;
 			}
-			return round( ( time() - $nTimeInstalled ) / DAY_IN_SECONDS );
+			return round( ( $this->loadDataProcessor()->time() - $nTimeInstalled ) / DAY_IN_SECONDS );
 		}
 
 	}

@@ -65,17 +65,16 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin_SiteLink', false ) ):
 				return $oResponse;
 			}
 
-			$sRequestedPin = $oFO->fetchIcwpRequestParam( 'pin' );
-			if ( empty( $sRequestedPin ) ) {
-				$oResponse->message = 'PinEmpty:'.'.';
+			$sRequestPin = $oFO->fetchIcwpRequestParam( 'pin' );
+			if ( empty( $sRequestPin ) ) {
+				$oResponse->message = 'PinEmpty:.';
 				$oResponse->code = 4;
 				return $oResponse;
 			}
-			$sRequestedPin = md5( $sRequestedPin );
 
 			$sRequestedAcc = urldecode( $oFO->fetchIcwpRequestParam( 'accname' ) );
 			if ( empty( $sRequestedAcc ) ) {
-				$oResponse->message = 'AccountEmpty:'.'.';
+				$oResponse->message = 'AccountEmpty:.';
 				$oResponse->code = 5;
 				return $oResponse;
 			}
@@ -85,9 +84,8 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin_SiteLink', false ) ):
 				return $oResponse;
 			}
 
-			$oFO->setOpt( 'pin', $sRequestedPin );
-			$oFO->setOpt( 'assigned', 'Y' );
-			$oFO->setOpt( 'assigned_to', $sRequestedAcc );
+			$oFO->setPluginPin( $sRequestPin );
+			$oFO->setPluginAssigned( $sRequestedAcc );
 
 			$oResponse->success = true;
 			return $oResponse;
