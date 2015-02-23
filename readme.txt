@@ -3,7 +3,7 @@ Contributors: paultgoodchild, dlgoodchild
 Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, managewp, worpit, automatic updates
 Requires at least: 3.2.0
-Tested up to: 4.1
+Tested up to: 4.2
 Stable tag: 2.11.3
 
 == Description ==
