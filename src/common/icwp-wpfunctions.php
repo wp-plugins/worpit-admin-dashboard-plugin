@@ -18,6 +18,10 @@
 if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 
 	class ICWP_APP_WpFunctions_V7 {
+		/**
+		 * @var ICWP_APP_WpDb
+		 */
+		private static $oWpDb;
 
 		/**
 		 * @var WP_Automatic_Updater
@@ -91,6 +95,13 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 				$sAuthorEmail
 			);
 			return $oDb->getVar( $sQuery ) == 1;
+		}
+
+		/**
+		 * @return bool
+		 */
+		public function comments_getIsCommentPost() {
+			return $this->loadDataProcessor()->GetIsRequestPost() && $this->getIsCurrentPage( 'wp-comments-post.php' );
 		}
 
 		/**
@@ -330,6 +341,15 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 		}
 
 		/**
+		 * @param string $sKey
+		 * @param mixed $mValue
+		 * @param int $nExpire
+		 */
+		public function setTransient( $sKey, $mValue, $nExpire = 0 ) {
+			set_site_transient( $sKey, $mValue, $nExpire );
+		}
+
+		/**
 		 * @param $sKey
 		 *
 		 * @return bool
@@ -535,8 +555,8 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 		 */
 		public function getIsLoginUrl() {
 			$sLoginUrl = wp_login_url();
-			$aRequestPart = $this->loadDataProcessor()->getRequestUriParts();
-			return ( $aRequestPart['path'] == str_replace( home_url(), '', $sLoginUrl ) );
+			$aRequestParts = $this->loadDataProcessor()->getRequestUriParts();
+			return ( !empty( $aRequestParts['path'] ) && ( $aRequestParts['path'] == str_replace( home_url(), '', $sLoginUrl ) ) );
 		}
 
 		/**
@@ -833,9 +853,7 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 		 * @return ICWP_APP_DataProcessor
 		 */
 		public function loadDataProcessor() {
-			if ( !class_exists( 'ICWP_APP_DataProcessor', false ) ) {
-				require_once( dirname(__FILE__).ICWP_DS.'icwp-data.php' );
-			}
+			require_once( dirname(__FILE__).ICWP_DS.'icwp-data.php' );
 			return ICWP_APP_DataProcessor::GetInstance();
 		}
 
@@ -843,10 +861,11 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 		 * @return ICWP_APP_WpDb
 		 */
 		public function loadDbProcessor() {
-			if ( !class_exists( 'ICWP_APP_WpDb', false ) ) {
+			if ( !isset( self::$oWpDb ) ) {
 				require_once( dirname(__FILE__).ICWP_DS.'icwp-wpdb.php' );
+				self::$oWpDb = ICWP_APP_WpDb::GetInstance();
 			}
-			return ICWP_APP_WpDb::GetInstance();
+			return self::$oWpDb;
 		}
 	}
 endif;

@@ -144,7 +144,9 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	/**
 	 */
 	public function onWpLoaded() {
-		$this->doPluginFormSubmit();
+		if ( $this->getIsValidAdminArea() ) {
+			$this->doPluginFormSubmit();
+		}
 	}
 
 	/**
@@ -1025,10 +1027,10 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 */
 	private function readPluginConfiguration() {
 		$aConfig = array();
-		$sContents = include( 'plugin-spec.php' ); // these two files always go together
+		$sSpecPath = dirname( __FILE__ ) . ICWP_DS . 'plugin-spec.php';
+		$sContents = include( $sSpecPath );
 		if ( !empty( $sContents ) ) {
-			$oYaml = $this->loadYamlProcessor();
-			$aConfig = $oYaml->parseYamlString( $sContents );
+			$aConfig = $this->loadYamlProcessor()->parseYamlString( $sContents );
 			if ( is_null( $aConfig ) ) {
 				throw new Exception( 'YAML parser could not load to process the plugin spec configuration.' );
 			}
