@@ -69,7 +69,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Compatibility_V1', false ) ):
 		}
 
 		protected function addToWordfence() {
-			if ( !class_exists('wordfence') || !method_exists( 'wordfence', 'whitelistIP' ) ) {
+			if ( !class_exists( 'wordfence' ) || !method_exists( 'wordfence', 'whitelistIP' ) ) {
 				return;
 			}
 

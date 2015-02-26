@@ -1,19 +1,19 @@
-=== iControlWP - Take Control of WordPress  ===
+=== iControlWP - Secure Multiple WordPress Management  ===
 Contributors: paultgoodchild, dlgoodchild
 Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, managewp, worpit, automatic updates
 Requires at least: 3.2.0
 Tested up to: 4.2
-Stable tag: 2.11.3
+Stable tag: 2.11.4
 
 == Description ==
 
 The [iControlWP Secure WordPress Manager](http://www.icontrolwp.com/?src=icwp_readme) is the only solution you need to
 manage all your WordPress websites.
 
-We're serious about helping you, so we neither charge you with silly pricing tiers like "Pro" and "Business", and we're certainly not free.
+You're serious about WordPress Management, so we don't restrict you on features and tiers like "Pro" and "Business" - you can pick and choose exactly what you need.
 
-*Our Mission - Fewer WordPress Plugins; More Free Time*
+*Our Mission - Better WordPress Management with Fewer WordPress Plugins*
 
 With iControlWP you need fewer WordPress plugins on your sites because you can centrally manage much more from within your
 control panel. For example:
@@ -118,9 +118,10 @@ No. WorpDrive is available for a small monthly fee.
 = 2.11 Series =
 *Released: 4th February 2015*
 
-* ADDED:	**Significant Performance Improvement** to plugin load times (v.3)
-* CHANGED:  Small logic fix during action success/failure reporting (v.2)
-* ADDED:	Improved support for 'WP Maintenance Mode' plugin (v.1)
+* CHANGED:	Sets a WordPress flag in order to better detect premium plugin updates **(v.4)**
+* ADDED:	**Significant Performance Improvement** to plugin load times **(v.3)**
+* CHANGED:  Small logic fix during action success/failure reporting **(v.2)**
+* ADDED:	Improved support for 'WP Maintenance Mode' plugin **(v.1)**
 * CHANGED:  iControlWP action parameters are more reliably transmitted to the plugin.
 * CHANGED:  Performance improvements.
 

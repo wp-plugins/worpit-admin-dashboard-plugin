@@ -1,7 +1,7 @@
 <?php
 return "---
 properties:
-  version: '2.11.3'
+  version: '2.11.4'
 #  slug_parent: 'worpit'
 #  slug_plugin: 'admin'
   slug_parent: 'icwp'
@@ -11,6 +11,8 @@ properties:
   wpms_network_admin_only: true
   logging_enabled: false
   autoupdate: 'block' #yes/block/pass
+
+requirements:
 
 paths:
   source: 'src'

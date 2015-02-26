@@ -1,4 +1,6 @@
-<?php include_once( 'icwp-app-config_header.php' );
+<?php
+$sBaseDirName = dirname(__FILE__).ICWP_DS;
+include_once( $sBaseDirName.'config_header.php' );
 
 $sAuthKey = isset( $icwp_aHiddenOptions['key'] ) ? $icwp_aHiddenOptions['key'] : '';
 $bAssigned = isset( $icwp_aHiddenOptions['assigned'] ) && $icwp_aHiddenOptions['assigned'] == 'Y';
@@ -241,4 +243,4 @@ $bWhitelabelled = ($sServiceName != 'iControlWP');
 
 <?php endif;
 
-include_once( 'icwp-app-config_footer.php' );
+include_once( $sBaseDirName.'config_footer.php' );

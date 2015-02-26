@@ -24,11 +24,12 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 		/**
 		 */
 		public function run() {
-			/**
-			 * Always perform the API check, as this is used for linking as well and requires
-			 * a different variation of POST variables.
-			 */
-			add_action( $this->getApiHook(), array( $this, 'doAPI' ), 1 );
+			if ( $this->getIsApiCall() ) {
+				if ( !defined( 'WP_ADMIN' ) ) {
+					define( 'WP_ADMIN', true );
+				}
+				add_action( $this->getApiHook(), array( $this, 'doAPI' ), 1 );
+			}
 
 			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
 			$oFO = $this->getFeatureOptions();
@@ -151,6 +152,15 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 				$this->sendApiResponse( $oApiResponse );
 				die();
 			}
+		}
+
+		/**
+		 * @return bool
+		 */
+		protected function getIsApiCall() {
+			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
+			$oFO = $this->getFeatureOptions();
+			return ( ( $oFO->fetchIcwpRequestParam( 'worpit_link', 0 ) == 1 ) || ( $oFO->fetchIcwpRequestParam( 'worpit_api', 0 ) == 1 ) );
 		}
 
 		/**
