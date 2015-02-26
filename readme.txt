@@ -1,4 +1,4 @@
-=== iControlWP - Secure Multiple WordPress Management  ===
+=== Secure Multiple WordPress Management  ===
 Contributors: paultgoodchild, dlgoodchild
 Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, managewp, worpit, automatic updates
