@@ -9,7 +9,7 @@
 			<div class="form-actions">
 				<input type="hidden" name="<?php echo $icwp_var_prefix; ?>all_options_input" value="<?php echo $icwp_all_options_input; ?>" />
 				<input type="hidden" name="<?php echo $icwp_var_prefix; ?>plugin_form_submit" value="Y" />
-				<button type="submit" class="btn btn-primary btn-large" name="submit"><?php ( 'Save All Settings' ); ?></button>
+				<button type="submit" class="btn btn-primary btn-large" name="submit"><?php echo 'Save All Settings'; ?></button>
 			</div>
 		</form>
 
