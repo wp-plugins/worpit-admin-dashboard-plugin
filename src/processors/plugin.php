@@ -25,9 +25,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 		 */
 		public function run() {
 			if ( $this->getIsApiCall() ) {
-				if ( !defined( 'WP_ADMIN' ) ) {
-					define( 'WP_ADMIN', true );
-				}
+				$this->maybeSetIsAdmin();
 				add_action( $this->getApiHook(), array( $this, 'doAPI' ), $this->getApiHookPriority() );
 			}
 
@@ -56,23 +54,48 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 		}
 
 		/**
-		 * @return string
+		 * @return bool
 		 */
-		protected function getApiHook() {
-			if ( class_exists( 'WooDojo_Maintenance_Mode', false ) || class_exists( 'ITSEC_Core', false ) ) {
-				return 'init';
+		protected function maybeSetIsAdmin() {
+			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
+			$oFO = $this->getFeatureOptions();
+			$sSetWpAdmin = $oFO->fetchIcwpRequestParam( 'set_is_admin', 0 );
+			if ( $sSetWpAdmin == 1 && !defined( 'WP_ADMIN' ) ) {
+				define( 'WP_ADMIN', true );
 			}
-			return 'wp_loaded';
+			return ( defined( 'WP_ADMIN' ) && WP_ADMIN );
 		}
 
 		/**
 		 * @return string
 		 */
-		protected function getApiHookPriority() {
-			if ( class_exists( 'ITSEC_Core', false ) ) {
-				return 100;
+		protected function getApiHook() {
+			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
+			$oFO = $this->getFeatureOptions();
+			$sApiHook = $oFO->fetchIcwpRequestParam( 'api_hook', '' );
+			if ( empty( $sApiHook ) ) {
+				$sApiHook = 'wp_loaded';
+				if ( class_exists( 'WooDojo_Maintenance_Mode', false ) || class_exists( 'ITSEC_Core', false ) ) {
+					$sApiHook = 'init';
+				}
 			}
-			return 1;
+			return $sApiHook;
+		}
+
+		/**
+		 * @return int
+		 */
+		protected function getApiHookPriority() {
+			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
+			$oFO = $this->getFeatureOptions();
+			$nHookPriority = $oFO->fetchIcwpRequestParam( 'api_priority', '' );
+			if ( empty( $nHookPriority ) || !is_numeric( $nHookPriority )) {
+				$nHookPriority = 1;
+				if ( class_exists( 'ITSEC_Core', false ) ) {
+					$nHookPriority = 100;
+				}
+			}
+			return $nHookPriority;
 		}
 
 		/**

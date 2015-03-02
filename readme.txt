@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, managewp, worpit, automatic updates
 Requires at least: 3.2.0
 Tested up to: 4.2
-Stable tag: 2.11.5
+Stable tag: 2.11.6
 
 == Description ==
 
@@ -118,6 +118,7 @@ No. WorpDrive is available for a small monthly fee.
 = 2.11 Series =
 *Released: 4th February 2015*
 
+* FIX:  	Fix disconnection for certain sites **(v.6)**
 * CHANGED:	Better compatibility with the iThemes security plugin **(v.5)**
 * CHANGED:	Sets a WordPress flag in order to better detect premium plugin updates **(v.4)**
 * ADDED:	**Significant Performance Improvement** to plugin load times **(v.3)**
