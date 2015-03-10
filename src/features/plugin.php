@@ -35,6 +35,19 @@ if ( !class_exists( 'ICWP_APP_FeatureHandler_Plugin', false ) ):
 
 		protected function doPostConstruction() {
 			add_action( 'wp_loaded', array( $this, 'doAutoRemoteSiteAdd' ) );
+			add_filter( 'plugin_action_links_'.$this->getController()->getPluginBaseFile(), array( $this, 'onWpPluginActionLinks' ), 100, 1 );
+		}
+
+		/**
+		 * @param $aActions
+		 * @return $aActions
+		 */
+		public function onWpPluginActionLinks( $aActions ) {
+			if ( $this->getIsSiteLinked() && isset( $aActions['deactivate'] ) ) {
+				$sJsConfirmCode = '" onClick="return confirm(\'WARNING: If you have WorpDrive automatic backups active on this site, backups will also stop running. Are you absolutely sure?\');" >';
+				$aActions[ 'deactivate' ] = preg_replace( '#"\s*>#i', $sJsConfirmCode, $aActions['deactivate'], 1 );
+			}
+			return $aActions;
 		}
 
 		/**

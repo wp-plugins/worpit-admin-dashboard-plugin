@@ -29,6 +29,11 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	private static $aPluginSpec;
 
 	/**
+	 * @var boolean
+	 */
+	protected $bRebuildOptions;
+
+	/**
 	 * @var string
 	 */
 	private static $sRootFile;
@@ -161,11 +166,12 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 
 		add_filter( 'all_plugins', 						array( $this, 'filter_hidePluginFromTableList' ) );
 		add_filter( 'all_plugins',						array( $this, 'doPluginLabels' ) );
-		add_filter( 'plugin_action_links',				array( $this, 'onWpPluginActionLinks' ), 10, 4 );
+		add_filter( 'plugin_action_links_'.$this->getPluginBaseFile(), array( $this, 'onWpPluginActionLinks' ), 50, 1 );
 		add_filter( 'site_transient_update_plugins',	array( $this, 'filter_hidePluginUpdatesFromUI' ) );
 		add_action( 'in_plugin_update_message-'.$this->getPluginBaseFile(), array( $this, 'onWpPluginUpdateMessage' ) );
 
-		add_filter( 'auto_update_plugin',		array( $this, 'onWpAutoUpdate' ), 10001, 2 );
+		add_filter( 'auto_update_plugin',						array( $this, 'onWpAutoUpdate' ), 10001, 2 );
+		add_filter( 'set_site_transient_update_plugins',		array( $this, 'setUpdateFirstDetectedAt' ) );
 
 		add_action( 'shutdown',					array( $this, 'onWpShutdown' ) );
 	}
@@ -184,6 +190,7 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	public function onWpDeactivatePlugin() {
 		if ( current_user_can( $this->getBasePermissions() ) && apply_filters( $this->doPluginPrefix( 'delete_on_deactivate' ), false ) ) {
 			do_action( $this->doPluginPrefix( 'delete_plugin' ) );
+			$this->deletePluginControllerOptions();
 		}
 	}
 
@@ -302,14 +309,12 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	public function onDisplayTopMenu() { }
 
 	/**
-	 * @param $aActionLinks
-	 * @param $sPluginFile
-	 *
-	 * @return mixed
+	 * @param array $aActionLinks
+	 * @return array
 	 */
-	public function onWpPluginActionLinks( $aActionLinks, $sPluginFile ) {
+	public function onWpPluginActionLinks( $aActionLinks ) {
 
-		if ( $this->getIsValidAdminArea() && $sPluginFile == $this->getPluginBaseFile() ) {
+		if ( $this->getIsValidAdminArea() ) {
 
 			$aLinksToAdd = $this->getPluginSpec_ActionLinks( 'add' );
 			if ( !empty( $aLinksToAdd ) && is_array( $aLinksToAdd ) ) {
@@ -433,6 +438,34 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	}
 
 	/**
+	 * This will hook into the saving of plugin update information and if there is an update for this plugin, it'll add
+	 * a data stamp to state when the update was first detected.
+	 *
+	 * @param stdClass $oPluginUpdateData
+	 * @return stdClass
+	 */
+	public function setUpdateFirstDetectedAt( $oPluginUpdateData ) {
+
+		if ( !empty( $oPluginUpdateData ) && !empty( $oPluginUpdateData->response ) ) {
+
+			// i.e. there's an update available
+			if ( isset( $oPluginUpdateData->response[ $this->getPluginBaseFile() ] ) ) {
+
+				$sNewVersion = $this->loadWpFunctionsProcessor()->getPluginUpdateNewVersion( $this->getPluginBaseFile() );
+				if ( !empty( $sNewVersion ) ) {
+					$sKey = 'update_first_detected_'.$sNewVersion;
+					$oOptions = $this->getPluginControllerOptions();
+					if ( !isset( $oOptions->{$sKey} ) ) {
+						$oOptions->{$sKey} = $this->loadDataProcessor()->time();
+					}
+					$this->setPluginControllerOptions( $oOptions );
+				}
+			}
+		}
+		return $oPluginUpdateData;
+	}
+
+	/**
 	 * This is a filter method designed to say whether WordPress plugin upgrades should be permitted,
 	 * based on the plugin settings.
 	 *
@@ -454,13 +487,42 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 			return $bDoAutoUpdate;
 		}
 
+		// The item in question is this plugin...
 		if ( $sItemFile === $this->getPluginBaseFile() ) {
 			$sAutoupdateSpec = $this->getPluginSpec_Property( 'autoupdate' );
-			if ( $sAutoupdateSpec == 'yes' ) {
-				$bDoAutoUpdate = true;
+
+			$oWp = $this->loadWpFunctionsProcessor();
+
+			if ( !$oWp->getIsRunningAutomaticUpdates() && $sAutoupdateSpec == 'confidence' ) {
+				$sAutoupdateSpec = 'yes';
 			}
-			else if ( $sAutoupdateSpec == 'block' ) {
-				$bDoAutoUpdate = false;
+
+			switch( $sAutoupdateSpec ) {
+
+				case 'yes' :
+					$bDoAutoUpdate = true;
+					break;
+
+				case 'block' :
+					$bDoAutoUpdate = false;
+					break;
+
+				case 'confidence' :
+					$bDoAutoUpdate = false;
+					$sNewVersion = $oWp->getPluginUpdateNewVersion( $this->getPluginBaseFile() );
+					if ( !empty( $sNewVersion ) ) {
+						$oOptions = $this->getPluginControllerOptions();
+						$sNewVersionKey = 'update_first_detected_'.$sNewVersion;
+						$nFirstDetected = isset( $oOptions->{$sNewVersionKey} ) ? $oOptions->{$sNewVersionKey} : 0;
+						$nTimeUpdateAvailable =  $this->loadDataProcessor()->time() - $nFirstDetected;
+						$bDoAutoUpdate = ( $nFirstDetected > 0 && ( $nTimeUpdateAvailable > DAY_IN_SECONDS * 2 ) );
+					}
+					break;
+
+				case 'pass' :
+				default:
+					break;
+
 			}
 		}
 		return $bDoAutoUpdate;
@@ -500,6 +562,15 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 */
 	public function onWpShutdown() {
 		do_action( $this->doPluginPrefix( 'plugin_shutdown' ) );
+		$this->deleteRebuildFlag();
+	}
+
+	/**
+	 */
+	protected function deleteRebuildFlag() {
+		if ( $this->getIsRebuildOptionsFromFile() ) {
+			$this->loadFileSystemProcessor()->deleteFile( $this->getPath_Flags( 'rebuild' ) );
+		}
 	}
 
 	/**
@@ -787,6 +858,17 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	/**
 	 * @return boolean
 	 */
+	public function getIsRebuildOptionsFromFile() {
+		if ( !isset( $this->bRebuildOptions ) ) {
+			$bExists = $this->loadFileSystemProcessor()->isFile( $this->getPath_Flags( 'rebuild' ) );
+			$this->bRebuildOptions = is_null( $bExists ) ? false : $bExists;
+		}
+		return $this->bRebuildOptions;
+	}
+
+	/**
+	 * @return boolean
+	 */
 	public function getIsWpmsNetworkAdminOnly() {
 		return $this->getPluginSpec_Property( 'wpms_network_admin_only' );
 	}
@@ -892,7 +974,6 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 
 	/**
 	 * @param string $sAsset
-	 *
 	 * @return string
 	 */
 	public function getPath_Assets( $sAsset = '' ) {
@@ -900,8 +981,15 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	}
 
 	/**
+	 * @param string $sFlag
+	 * @return string
+	 */
+	public function getPath_Flags( $sFlag = '' ) {
+		return $this->getRootDir().$this->getPluginSpec_Path( 'flags' ).ICWP_DS.$sFlag;
+	}
+
+	/**
 	 * @param string $sTmpFile
-	 *
 	 * @return string
 	 */
 	public function getPath_Temp( $sTmpFile = '' ) {
@@ -915,7 +1003,6 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 
 	/**
 	 * @param string $sAsset
-	 *
 	 * @return string
 	 */
 	public function getPath_AssetCss( $sAsset = '' ) {
@@ -924,7 +1011,6 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 
 	/**
 	 * @param string $sAsset
-	 *
 	 * @return string
 	 */
 	public function getPath_AssetJs( $sAsset = '' ) {
@@ -933,7 +1019,6 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 
 	/**
 	 * @param string $sAsset
-	 *
 	 * @return string
 	 */
 	public function getPath_AssetImage( $sAsset = '' ) {
@@ -1036,6 +1121,39 @@ class ICWP_APP_Plugin_Controller extends ICWP_APP_Foundation {
 	 */
 	public function getVersion() {
 		return $this->getPluginSpec_Property( 'version' );
+	}
+
+	/**
+	 * @return stdClass
+	 */
+	protected function getPluginControllerOptions() {
+		$oOptions = $this->loadWpFunctionsProcessor()->getOption( $this->getPluginControllerOptionsKey() );
+		if ( !is_object( $oOptions ) ) {
+			$oOptions = new stdClass();
+		}
+		return $oOptions;
+	}
+
+	/**
+	 * @return mixed
+	 */
+	protected function deletePluginControllerOptions() {
+		return $this->loadWpFunctionsProcessor()->deleteOption( $this->getPluginControllerOptionsKey() );
+	}
+
+	/**
+	 * @param $oOptions
+	 * @return bool
+	 */
+	protected function setPluginControllerOptions( $oOptions ) {
+		return $this->loadWpFunctionsProcessor()->updateOption( $this->getPluginControllerOptionsKey(), $oOptions );
+	}
+
+	/**
+	 * @return string
+	 */
+	private function getPluginControllerOptionsKey() {
+		return $this->doPluginOptionPrefix( 'controller' );
 	}
 
 	/**

@@ -1,7 +1,7 @@
 <?php
 return "---
 properties:
-  version: '2.11.6'
+  version: '2.12.0'
 #  slug_parent: 'worpit'
 #  slug_plugin: 'admin'
   slug_parent: 'icwp'
@@ -10,7 +10,7 @@ properties:
   base_permissions: 'manage_options'
   wpms_network_admin_only: true
   logging_enabled: false
-  autoupdate: 'block' #yes/block/pass
+  autoupdate: 'confidence' #yes/block/pass/confidence - confidence is where the version update detected has been available for at least 48hrs.
 
 requirements:
 
@@ -20,6 +20,7 @@ paths:
   temp: 'tmp'
   languages: 'languages'
   views: 'views'
+  flags: 'flags'
 
 includes:
   admin:

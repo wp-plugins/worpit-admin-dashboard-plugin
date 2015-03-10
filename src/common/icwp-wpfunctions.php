@@ -157,6 +157,13 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 		}
 
 		/**
+		 * @return bool
+		 */
+		public function getIsRunningAutomaticUpdates() {
+			return ( get_option( 'auto_updater.lock' ) ? true : false );
+		}
+
+		/**
 		 * The full plugin file to be upgraded.
 		 *
 		 * @param string $sPluginFile
@@ -193,17 +200,29 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 
 		/**
 		 * @param string $sPluginFile
+		 * @return stdClass|null
+		 */
+		public function getPluginUpdateInfo( $sPluginFile ) {
+			$aUpdates = $this->getWordpressUpdates();
+			return ( !empty( $aUpdates ) && isset( $aUpdates[ $sPluginFile ] ) ) ? $aUpdates[ $sPluginFile ] : null;
+		}
+
+		/**
+		 * @param string $sPluginFile
+		 * @return string
+		 */
+		public function getPluginUpdateNewVersion( $sPluginFile ) {
+			$oInfo = $this->getPluginUpdateInfo( $sPluginFile );
+			return ( !is_null( $oInfo ) && isset( $oInfo->new_version ) ) ? $oInfo->new_version : '';
+		}
+
+		/**
+		 * @param string $sPluginFile
 		 * @return boolean|stdClass
 		 */
 		public function getIsPluginUpdateAvailable( $sPluginFile ) {
-			$aUpdates = $this->getWordpressUpdates();
-			if ( empty( $aUpdates ) ) {
-				return false;
-			}
-			if ( isset( $aUpdates[ $sPluginFile ] ) ) {
-				return $aUpdates[ $sPluginFile ];
-			}
-			return false;
+			$oInfo = $this->getPluginUpdateInfo( $sPluginFile );
+			return !is_null( $oInfo );
 		}
 
 		/**
@@ -295,10 +314,11 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 		}
 
 		/**
+		 * @param string $sType - plugins, themes
 		 * @return array
 		 */
-		public function getWordpressUpdates() {
-			$oCurrent = $this->getTransient( 'update_plugins' );
+		public function getWordpressUpdates( $sType = 'plugins' ) {
+			$oCurrent = $this->getTransient( 'update_'.$sType );
 			return ( is_object( $oCurrent ) && isset( $oCurrent->response ) ) ? $oCurrent->response : array();
 		}
 
@@ -547,6 +567,18 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 				$oDp->GetIsRequestPost()
 				&& !is_null( $oDp->FetchPost( 'log' ) )
 				&& !is_null( $oDp->FetchPost( 'pwd' ) )
+				&& $this->getIsLoginUrl();
+		}
+
+		/**
+		 * @return bool
+		 */
+		public function getIsRegisterRequest() {
+			$oDp = $this->loadDataProcessor();
+			return
+				$oDp->GetIsRequestPost()
+				&& !is_null( $oDp->FetchPost( 'user_login' ) )
+				&& !is_null( $oDp->FetchPost( 'user_email' ) )
 				&& $this->getIsLoginUrl();
 		}
 
