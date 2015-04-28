@@ -321,9 +321,11 @@ class ICWP_APP_OptionsVO extends ICWP_APP_Foundation {
 	 */
 	public function getRawData_SingleOption( $sOptionKey ) {
 		$aAllRawOptions = $this->getRawData_AllOptions();
-		foreach( $aAllRawOptions as $aOption ) {
-			if ( $sOptionKey == $aOption['key'] ) {
-				return $aOption;
+		if ( is_array( $aAllRawOptions ) ) {
+			foreach( $aAllRawOptions as $aOption ) {
+				if ( isset( $aOption['key'] ) && ( $sOptionKey == $aOption['key'] ) ) {
+					return $aOption;
+				}
 			}
 		}
 		return null;

@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, managewp, worpit, automatic updates
 Requires at least: 3.2.0
 Tested up to: 4.2
-Stable tag: 2.12.0
+Stable tag: 2.12.1
 
 == Description ==
 
@@ -115,11 +115,17 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
+= Lastest Point Release: 2.12.1 =
+*Released: 28th April 2015*
+
+* FIX:  	Fix small admin-side incompatibility with BuddyPress plugin.
+
 = 2.12 Series =
 *Released: 9th March 2015*
 
-* ADDED:	Re-implemented automatic updates but with a 48hr confidence delay **(v.0)**
-* ADDED:	Warning upon plugin deactivation **(v.0)**
+* FIX:  	**(v.1)** Fix small admin-side incompatibility with BuddyPress plugin.
+* ADDED:	**(v.0)** Re-implemented automatic updates but with a 48hr confidence delay
+* ADDED:	**(v.0)** Warning upon plugin deactivation
 
 = 2.11 Series =
 *Released: 4th February 2015*

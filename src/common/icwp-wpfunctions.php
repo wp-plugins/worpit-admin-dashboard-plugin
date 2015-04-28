@@ -199,6 +199,27 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 		}
 
 		/**
+		 * @return array
+		 */
+		public function getPlugins() {
+			if ( !function_exists( 'get_plugins' ) ) {
+				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			}
+			return function_exists( 'get_plugins' ) ? get_plugins() : array();
+		}
+
+		/**
+		 * @param string $sRootPluginFile - the full path to the root plugin file
+		 * @return array|null
+		 */
+		public function getPluginData( $sRootPluginFile ) {
+			if ( !function_exists( 'get_plugin_data' ) ) {
+				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			}
+			return function_exists( 'get_plugin_data' ) ? get_plugin_data( $sRootPluginFile, false, false ) : array();
+		}
+
+		/**
 		 * @param string $sPluginFile
 		 * @return stdClass|null
 		 */
@@ -231,7 +252,6 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 		 * @return bool
 		 */
 		public function getIsPluginActive( $sCompareString, $sKey = 'Name' ) {
-
 			$sPluginFile = $this->getIsPluginInstalled( $sCompareString, $sKey );
 			if ( !$sPluginFile ) {
 				return false;
@@ -259,16 +279,12 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 		}
 
 		/**
-		 * @param string $sPluginFile
-		 *
+		 * @param string $sPluginBaseFile
 		 * @return bool
 		 */
-		public function getIsPluginInstalledByFile( $sPluginFile ) {
+		public function getIsPluginInstalledByFile( $sPluginBaseFile ) {
 			$aPlugins = $this->getPlugins();
-			if ( empty( $aPlugins ) || !is_array( $aPlugins ) ) {
-				return false;
-			}
-			return array_key_exists( $sPluginFile, $aPlugins );
+			return isset( $aPlugins[$sPluginBaseFile] );
 		}
 
 		/**
@@ -320,16 +336,6 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 		public function getWordpressUpdates( $sType = 'plugins' ) {
 			$oCurrent = $this->getTransient( 'update_'.$sType );
 			return ( is_object( $oCurrent ) && isset( $oCurrent->response ) ) ? $oCurrent->response : array();
-		}
-
-		/**
-		 * @return array
-		 */
-		public function getPlugins() {
-			if ( !function_exists( 'get_plugins' ) ) {
-				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-			}
-			return function_exists( 'get_plugins' ) ? get_plugins() : array();
 		}
 
 		/**
@@ -493,6 +499,9 @@ if ( !class_exists( 'ICWP_APP_WpFunctions_V7', false ) ):
 				$oDp->setCookie( 'icwp-isredirect', 'yes', 7 );
 			}
 
+			// based on: https://make.wordpress.org/plugins/2015/04/20/fixing-add_query_arg-and-remove_query_arg-usage/
+			// we now escape the URL to be absolutely sure since we can't guarantee the URL coming through there
+			$sUrl = esc_url_raw( $sUrl );
 			$bSafe ? wp_safe_redirect( $sUrl ) : wp_redirect( $sUrl );
 			exit();
 		}

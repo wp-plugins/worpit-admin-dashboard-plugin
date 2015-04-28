@@ -45,10 +45,8 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 				$this->returnIcwpPluginUrl();
 			}
 
-			if ( $oCon->getIsValidAdminArea() ) {
-				add_filter( $oFO->doPluginPrefix( 'admin_notices' ), array( $this, 'adminNoticeFeedback' ) );
-				add_filter( $oFO->doPluginPrefix( 'admin_notices' ), array( $this, 'adminNoticeAddSite' ) );
-			}
+			add_filter( $oFO->doPluginPrefix( 'admin_notices' ), array( $this, 'adminNoticeFeedback' ) );
+			add_filter( $oFO->doPluginPrefix( 'admin_notices' ), array( $this, 'adminNoticeAddSite' ) );
 
 			add_action( 'wp_footer', array( $this, 'printPluginUri') );
 		}
@@ -254,7 +252,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 		public function adminNoticeFeedback( $aAdminNotices ) {
 			$aAdminFeedbackNotice = $this->getOption( 'feedback_admin_notice' );
 
-			if ( !empty( $aAdminFeedbackNotice ) && is_array( $aAdminFeedbackNotice ) ) {
+			if ( $this->getController()->getIsValidAdminArea() && !empty( $aAdminFeedbackNotice ) && is_array( $aAdminFeedbackNotice ) ) {
 
 				foreach ( $aAdminFeedbackNotice as $sNotice ) {
 					if ( empty( $sNotice ) || !is_string( $sNotice ) ) {
@@ -276,26 +274,24 @@ if ( !class_exists( 'ICWP_APP_Processor_Plugin', false ) ):
 		public function adminNoticeAddSite( $aAdminNotices ) {
 			/** @var ICWP_APP_FeatureHandler_Plugin $oFO */
 			$oFO = $this->getFeatureOptions();
-
 			$oCon = $this->getController();
-			$oWp = $this->loadWpFunctionsProcessor();
-			$sAckPluginNotice = $oWp->getUserMeta( $oCon->doPluginOptionPrefix( 'ack_plugin_notice' ) );
 
-			if ( $oFO->getIsSiteLinked() ) {
-				return;
+			if ( $oCon->getIsValidAdminArea() && !$oFO->getIsSiteLinked() ) {
+
+				$sAckPluginNotice = $this->loadWpFunctionsProcessor()->getUserMeta( $oCon->doPluginOptionPrefix( 'ack_plugin_notice' ) );
+				$nCurrentUserId = 0;
+				$sNonce = wp_nonce_field( $oCon->getPluginPrefix() );
+				$sServiceName = $oCon->getHumanName();
+				$sFormAction = $oCon->getPluginUrl_AdminMainPage();
+				$sAuthKey = $oFO->getPluginAuthKey();
+				
+				ob_start();
+				include( $oFO->getViewSnippet( 'admin_notice_add_site' ) );
+				$sNoticeMessage = ob_get_contents();
+				ob_end_clean();
+
+				$aAdminNotices[] = $this->getAdminNoticeHtml( $sNoticeMessage, 'error', false );
 			}
-
-			$nCurrentUserId = 0;
-			$sNonce = wp_nonce_field( $oCon->getPluginPrefix() );
-			$sServiceName = $oCon->getHumanName();
-			$sFormAction = $oCon->getPluginUrl_AdminMainPage();
-			$sAuthKey = $oFO->getPluginAuthKey();
-			ob_start();
-			include( $oFO->getViewSnippet( 'admin_notice_add_site' ) );
-			$sNoticeMessage = ob_get_contents();
-			ob_end_clean();
-
-			$aAdminNotices[] = $this->getAdminNoticeHtml( $sNoticeMessage, 'error', false );
 			return $aAdminNotices;
 		}
 
