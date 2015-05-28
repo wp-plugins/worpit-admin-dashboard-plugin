@@ -4,7 +4,7 @@ Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, managewp, worpit, automatic updates
 Requires at least: 3.2.0
 Tested up to: 4.2
-Stable tag: 2.12.2
+Stable tag: 2.12.3
 
 == Description ==
 
@@ -38,7 +38,6 @@ and [Optimize WordPress databases](http://www.icontrolwp.com/2012/07/how-to-opti
 *	Install new WordPress websites automatically, anywhere you have cPanel web hosting
 *	Automatically log into your WordPress sites without remembering your WordPress login details.
 *	Collect useful visitor site statistics and view them directly from within your control panel.
-
 
 == Frequently Asked Questions ==
 
@@ -115,15 +114,15 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
-= Lastest Point Release: 2.12.2 =
-*Released: 27th May 2015*
+= Lastest Point Release: 2.12.3 =
+*Released: 28th May 2015*
 
-* UPDATED:  **(v.2)** Update registered service IP addresses.
+* UPDATED:  **(v.3)** Update service IP addresses.
 
 = 2.12 Series =
 *Released: 9th March 2015*
 
-* UPDATED:  **(v.2)** Update registered service IP addresses.
+* UPDATED:  **(v.3)** Update service IP addresses.
 * FIX:  	**(v.1)** Fix small admin-side incompatibility with BuddyPress plugin.
 * ADDED:	**(v.0)** Re-implemented automatic updates but with a 48hr confidence delay
 * ADDED:	**(v.0)** Warning upon plugin deactivation
