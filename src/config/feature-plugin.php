@@ -87,6 +87,7 @@ options:
   -
     key: 'service_ip_addresses_ipv4'
     section: 'section_non_ui'
+    immutable: true
     value:
       valid:
         - '198.61.176.9' #wd01
@@ -94,12 +95,12 @@ options:
         - '23.253.62.185' #app1b
         - '104.130.217.172' #app2
         - '23.253.32.180' #wd02
-        - '50.57.214.212' #lb
       old:
         - '198.61.173.69'
   -
     key: 'service_ip_addresses_ipv6'
     section: 'section_non_ui'
+    immutable: true
     value:
       valid:
         - '2001:4801:7817:0072:ca75:cc9b:ff10:4699' #wd01
@@ -110,8 +111,6 @@ options:
         - '2001:4801:7828:101:be76:4eff:fe11:9cd6' #app2
         - '2001:4801:7822:0103:be76:4eff:fe10:89a9' #wd02
         - '2001:4801:7822:103:be76:4eff:fe10:89a9' #wd02
-        - '2001:4801:7901:0000:ca75:cc9b:0000:0002' #lb
-        - '2001:4801:7901::ca75:cc9b::2' #lb
   -
     key: 'active_plugin_features'
     section: 'section_non_ui'
