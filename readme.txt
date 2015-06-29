@@ -1,10 +1,10 @@
 === iControlWP - Multiple WordPress Management ===
-Contributors: paultgoodchild, dlgoodchild
+Contributors: paultgoodchild
 Donate link: http://www.icontrolwp.com/
 Tags: manage, manage wordpress, wordpress admin, backup, restore, bulk, icontrolwp, managewp, worpit, automatic updates
 Requires at least: 3.2.0
 Tested up to: 4.2
-Stable tag: 2.12.4
+Stable tag: 2.12.5
 
 == Description ==
 
@@ -114,10 +114,9 @@ No. WorpDrive is available for a small monthly fee.
 
 == Changelog ==
 
-= Lastest Point Release: 2.12.4 =
-*Released: 2nd June 2015*
+= Lastest Point Release: 2.12.5 =
 
-* FIX:      **(v.4)** bug where the white listed IPs weren't being updated correctly within security plugin white lists.
+* ADDED:    **(v.5)** support for WP-SpamShield to prevent it blocking requests.
 
 = 2.12 Series =
 *Released: 9th March 2015*

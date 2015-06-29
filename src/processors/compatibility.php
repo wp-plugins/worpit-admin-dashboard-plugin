@@ -250,6 +250,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Compatibility_V1', false ) ):
 
 		protected function unhookSecurityPlugins() {
 			$this->removeSecureWpHooks();
+			$this->removeWpSpamShield();
 			$this->removeAiowpsHooks(); //wp-security-core.php line 25
 			$this->removeBetterWpSecurityHooks();
 		}
@@ -288,6 +289,15 @@ if ( !class_exists( 'ICWP_APP_Processor_Compatibility_V1', false ) ):
 				remove_action( 'init', array( $SecureWP, 'remove_plugin_update' ), 1 );
 				remove_action( 'init', array( $SecureWP, 'remove_theme_update' ), 1 );
 				remove_action( 'init', array( $SecureWP, 'remove_wp_version_on_admin' ), 1 );
+			}
+		}
+
+		/**
+		 * @return void
+		 */
+		protected function removeWpSpamShield() {
+			if ( function_exists( 'rs_wpss_misc_form_spam_check' ) ) {
+				remove_action( 'init', 'rs_wpss_misc_form_spam_check', 2 );
 			}
 		}
 
