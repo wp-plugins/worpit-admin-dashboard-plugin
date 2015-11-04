@@ -42,3 +42,7 @@ td.icwp_autoupdate span.icwp-pluginautoupdateicon.dashicons-update {
 td.icwp_autoupdate span.icwp-pluginautoupdateicon.dashicons-hammer {
 	color: #87492e;
 }
+
+li#toplevel_page_icwp-app div.wp-menu-image > img {
+	width: 16px;
+}

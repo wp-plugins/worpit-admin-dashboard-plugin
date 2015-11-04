@@ -36,6 +36,17 @@ if ( !class_exists( 'ICWP_APP_Processor_Whitelabel_V1', false ) ):
 				$aPluginLabels['PluginURI'] = $sUrl;
 				$aPluginLabels['AuthorURI'] = $sUrl;
 			}
+
+			$sIcon16 = $this->getOption( 'icon_url_16x16' );
+			if ( !empty( $sIcon16 ) ) {
+				$aPluginLabels['icon_url_16x16'] =  $sIcon16;
+			}
+
+			$sIcon32 = $this->getOption( 'icon_url_32x32' );
+			if ( !empty( $sIcon32 ) ) {
+				$aPluginLabels['icon_url_32x32'] =  $sIcon32;
+			}
+
 			return $aPluginLabels;
 		}
 

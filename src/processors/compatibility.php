@@ -268,6 +268,8 @@ if ( !class_exists( 'ICWP_APP_Processor_Compatibility_V1', false ) ):
 		}
 
 		/**
+		 * Note: This only ever gets run during an iCWP request.
+		 *
 		 * Remove actions setup by All In One WP Security plugin that interferes with iControlWP packages.
 		 * @return void
 		 */
@@ -278,6 +280,8 @@ if ( !class_exists( 'ICWP_APP_Processor_Compatibility_V1', false ) ):
 		}
 
 		/**
+		 * Note: This only ever gets run during an iCWP request.
+		 *
 		 * Remove actions setup by Secure WP plugin that interfere with Worpit synchronizing packages.
 		 * @return void
 		 */
@@ -293,15 +297,19 @@ if ( !class_exists( 'ICWP_APP_Processor_Compatibility_V1', false ) ):
 		}
 
 		/**
+		 * Note: This only ever gets run during an iCWP request.
 		 * @return void
 		 */
 		protected function removeWpSpamShield() {
-			if ( function_exists( 'rs_wpss_misc_form_spam_check' ) ) {
+			add_filter( 'wpss_misc_form_spam_check_bypass', '__return_false', 100 );
+			/* if ( function_exists( 'rs_wpss_misc_form_spam_check' ) ) {
 				remove_action( 'init', 'rs_wpss_misc_form_spam_check', 2 );
-			}
+			}*/
 		}
 
 		/**
+		 * Note: This only ever gets run during an iCWP request.
+		 *
 		 * Remove actions setup by Better WP Security plugin that interfere with iControlWP synchronizing packages.
 		 * Check secure.php for changes to these hooks.
 		 * @return void
