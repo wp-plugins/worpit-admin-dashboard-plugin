@@ -262,7 +262,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Compatibility_V1', false ) ):
 					remove_action( 'init', array( $redirection->wp, 'init' ) );
 					remove_action( 'send_headers', array( $redirection->wp, 'send_headers' ) );
 					remove_action( 'permalink_redirect_skip', array( $redirection->wp, 'permalink_redirect_skip' ) );
-					remove_action( 'wp_redirect', array( $redirection->wp, 'wp_redirect' ), 1, 2 );
+					remove_action( 'wp_redirect', array( $redirection->wp, 'wp_redirect' ), 1 );
 				}
 			}
 		}
@@ -301,7 +301,7 @@ if ( !class_exists( 'ICWP_APP_Processor_Compatibility_V1', false ) ):
 		 * @return void
 		 */
 		protected function removeWpSpamShield() {
-			add_filter( 'wpss_misc_form_spam_check_bypass', '__return_false', 100 );
+			add_filter( 'wpss_misc_form_spam_check_bypass', '__return_true', 100 );
 			/* if ( function_exists( 'rs_wpss_misc_form_spam_check' ) ) {
 				remove_action( 'init', 'rs_wpss_misc_form_spam_check', 2 );
 			}*/
